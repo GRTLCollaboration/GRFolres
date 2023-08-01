@@ -1,32 +1,39 @@
-# Prerequisites
-*.d
+# Build files
+*_F.H
+d
+o
+p
+f
+*.ex
+ipo_out.optrpt
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# Scheduler files
+jobscript*
+*.pbs
 
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
+# Example output
+Weyl_integral*
+*ExtractionOut_*
 *.out
-*.app
+*.dat
+*.hdf5
+LB.txt
+time.table.*
+pout.*
+hdf5
+pout
+data
+datasets
+
+# Documentation
+Doxygen/html
+
+# Other
+.bashrc
+*.s
+.DS_Store
+log*
+.*.sw[n-p]
+*.dSYM
+*.patch
+*.log

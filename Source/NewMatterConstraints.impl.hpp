@@ -13,12 +13,12 @@
 
 template <class matter_t>
 MatterConstraints<matter_t>::MatterConstraints(
-    const matter_t a_matter, double dx, int a_c_Ham, const Interval &a_c_Moms,
+    const matter_t a_matter, double dx, double G_Newton, int a_c_Ham, const Interval &a_c_Moms,
     int a_c_Ham_abs_terms /* defaulted*/,
     const Interval &a_c_Moms_abs_terms /*defaulted*/)
     : Constraints(dx, a_c_Ham, a_c_Moms, a_c_Ham_abs_terms, a_c_Moms_abs_terms,
                   0.0 /*No cosmological constant*/),
-      my_matter(a_matter)
+      my_matter(a_matter), m_G_Newton(G_Newton)
 {
 }
 
@@ -46,8 +46,8 @@ void MatterConstraints<matter_t>::compute(Cell<data_t> current_cell) const
     // Hamiltonian constraint
     if (m_c_Ham >= 0 || m_c_Ham_abs_terms >= 0)
     {
-        out.Ham += -2. * rho_Si.rho;
-        out.Ham_abs_terms += 2. * abs(rho_Si.rho);
+        out.Ham += - 16. * M_PI * m_G_Newton * rho_Si.rho;
+        out.Ham_abs_terms += 16. * M_PI * m_G_Newton * abs(rho_Si.rho);
     }
 
     // Momentum constraints
@@ -55,8 +55,8 @@ void MatterConstraints<matter_t>::compute(Cell<data_t> current_cell) const
     {
         FOR(i)
         {
-            out.Mom[i] += -rho_Si.Si[i];
-            out.Mom_abs_terms[i] += abs(rho_Si.Si[i]);
+            out.Mom[i] += - 8. * M_PI * m_G_Newton * rho_Si.Si[i];
+            out.Mom_abs_terms[i] += 8. * M_PI * m_G_Newton * abs(rho_Si.Si[i]);
         }
     }
     // Write the constraints into the output FArrayBox

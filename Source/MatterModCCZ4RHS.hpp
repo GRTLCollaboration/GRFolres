@@ -97,7 +97,7 @@ class MatterModCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
     */
     MatterModCCZ4RHS(matter_t a_matter, params_t a_params,
                      mod_gauge_t a_mod_gauge, double a_dx, double a_sigma,
-                     int a_formulation = CCZ4RHS<>::USE_CCZ4);
+                     int a_formulation = CCZ4RHS<>::USE_CCZ4, double a_G_Newton = 1.0);
 
     //!  The compute member which calculates the RHS at each point in the box
     //!  \sa matter_rhs_equation()
@@ -138,6 +138,7 @@ class MatterModCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
     // Class members
     matter_t my_matter;       //!< The matter object, e.g. EsGB.
     mod_gauge_t my_mod_gauge; //!< The modified gauge object, i.e a(x) and b(x)
+    double m_G_Newton;
 };
 
 #include "MatterModCCZ4RHS.impl.hpp"

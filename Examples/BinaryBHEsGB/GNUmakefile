@@ -21,8 +21,6 @@ else
 endif
 endif
 
-GRCHOMBO_SOURCE = ../../../GRChombo_public/Source
-
 ebase := Main_BinaryBHEsGB
 
 LibNames := AMRTimeDependent AMRTools BoxTools
