@@ -78,7 +78,7 @@ void BinaryBHEsGBLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         MatterModCCZ4RHS<EsGBWithCoupling, MovingPunctureGauge,
                          FourthOrderDerivatives, ModGauge>
             my_modccz4_matter(esgb, m_p.ccz4_params, mod_gauge, m_dx, m_p.sigma,
-                              m_p.formulation);
+                              m_p.formulation, m_p.G_Newton);
         BoxLoops::loop(my_modccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
     else if (m_p.max_spatial_derivative_order == 6)
@@ -86,7 +86,7 @@ void BinaryBHEsGBLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         MatterModCCZ4RHS<EsGBWithCoupling, MovingPunctureGauge,
                          SixthOrderDerivatives, ModGauge>
             my_modccz4_matter(esgb, m_p.ccz4_params, mod_gauge, m_dx, m_p.sigma,
-                              m_p.formulation);
+                              m_p.formulation, m_p.G_Newton);
         BoxLoops::loop(my_modccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
 }
@@ -182,7 +182,7 @@ void BinaryBHEsGBLevel::specificPostTimeStep()
         EsGBWithCoupling esgb(coupling);
         fillAllGhosts();
         BoxLoops::loop(MatterConstraints<EsGBWithCoupling>(
-                           esgb, m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
+                           esgb, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
                        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
         if (m_level == 0)
         {
@@ -225,7 +225,7 @@ void BinaryBHEsGBLevel::prePlotLevel()
         BoxLoops::loop(
             make_compute_pack(
                 Weyl4(m_p.extraction_params.center, m_dx, m_p.formulation),
-                MatterConstraints<EsGBWithCoupling>(esgb, m_dx, c_Ham,
+                MatterConstraints<EsGBWithCoupling>(esgb, m_dx, m_p.G_Newton, c_Ham,
                                                     Interval(c_Mom1, c_Mom3))),
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
     }

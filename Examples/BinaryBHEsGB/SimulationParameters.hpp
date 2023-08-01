@@ -190,6 +190,7 @@ class SimulationParameters : public SimulationParametersBase
         // Initial scalar field data
         initial_params.center =
             center; // already read in SimulationParametersBase
+        pp.load("G_Newton", G_Newton, 1.0);
         pp.load("scalar_amplitude", initial_params.amplitude, 0.);
         pp.load("scalar_width", initial_params.width, 1.0);
         pp.load("lambda_GB", coupling_params.lambda_GB, 0.);
@@ -315,6 +316,7 @@ class SimulationParameters : public SimulationParametersBase
     // Collection of parameters necessary for initial conditions
     // Set these even in the case of TwoPunctures as they are used elsewhere
     // e.g. for puncture tracking/tagging
+    double G_Newton;
     InitialScalarData::params_t initial_params;
     Coupling::params_t coupling_params;
     ModGauge::params_t mod_gauge_params;

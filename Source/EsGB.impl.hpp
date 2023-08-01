@@ -36,10 +36,10 @@ rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
     FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
 
     // S_i (note lower index) = - n^a T_ai
-    FOR(i) { out.Si[i] = 0.5 * d1.phi[i] * vars.Kphi; }
+    FOR(i) { out.Si[i] = d1.phi[i] * vars.Kphi; }
 
     // rho = n^a n^b T_ab
-    out.rho = 0.5 * vars.Kphi * vars.Kphi + 0.25 * Vt;
+    out.rho = vars.Kphi * vars.Kphi + 0.5 * Vt;
 
     // Compute useful quantities for the Gauss-Bonnet sector
     const auto ricci0 =
@@ -102,8 +102,8 @@ rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
     Tensor<2, data_t> Cij_UU = raise_all(Cij, h_UU); // raise all indexs
     // note that they have been raised with the conformal metric
 
-    data_t rhoGB = 0.5 * C * M; // rho = n^a n^b T_ab
-    FOR(i, j) rhoGB -= vars.chi * Mij[i][j] * vars.chi * Cij_UU[i][j];
+    data_t rhoGB = C * M; // rho = n^a n^b T_ab
+    FOR(i, j) rhoGB -= 2. * vars.chi * Mij[i][j] * vars.chi * Cij_UU[i][j];
 
     // other useful quantities
     Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
@@ -142,14 +142,14 @@ rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
     Tensor<1, data_t> JGB; // S_i (note lower index) = - n^a T_ai
     FOR(i)
     {
-        JGB[i] = Ci[i] * M / 2. + C * (Ni[i] + d1.K[i] / 3.);
+        JGB[i] = Ci[i] * M + 2. * C * (Ni[i] + d1.K[i] / 3.);
         FOR(j, k)
         {
-            JGB[i] -= h_UU[j][k] * vars.chi *
+            JGB[i] -= 2 * h_UU[j][k] * vars.chi *
                       (Mij[i][j] * Ci[k] + Cij[i][j] * (Ni[k] + d1.K[k] / 3.));
             FOR(l, m)
             {
-                JGB[i] += h_UU[j][l] * h_UU[k][m] * Cij[l][m] * vars.chi *
+                JGB[i] += 2 * h_UU[j][l] * h_UU[k][m] * Cij[l][m] * vars.chi *
                           (covd_Aphys_times_chi[i][j][k] -
                            covd_Aphys_times_chi[j][i][k]);
             }
@@ -197,7 +197,7 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
     FOR(i, j)
     {
         out.Sij[i][j] =
-            -0.25 * vars.h[i][j] * Vt / vars.chi + 0.5 * d1.phi[i] * d1.phi[j];
+            -0.5 * vars.h[i][j] * Vt / vars.chi + d1.phi[i] * d1.phi[j];
     }
 
     // S = Tr_S_ij
@@ -383,37 +383,37 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
                (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
     }
 
-    data_t SGB = 2. / 3. * C * F + 2. * M * (-df2GB / 4. * Vt + C / 3.) -
-                 (out.rho - 0.5 * vars.Kphi * vars.Kphi - 0.25 * Vt);
+    data_t SGB = 4. / 3. * C * F + 4. * M * (-df2GB / 4. * Vt + C / 3.) -
+                 (out.rho - vars.Kphi * vars.Kphi - 0.5 * Vt);
     FOR(i, j)
-    SGB += -Cij_TF_UU[i][j] * vars.chi * (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
-           2. * h_UU[i][j] * vars.chi * Ni[i] * Ci[j];
-    SGB += dfGB * dfGB / 8. * M * RGB;
+    SGB += - 2. * Cij_TF_UU[i][j] * vars.chi * (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
+           4. * h_UU[i][j] * vars.chi * Ni[i] * Ci[j];
+    SGB += dfGB * dfGB / 4. * M * RGB;
 
     Tensor<2, data_t> SijGB;
     FOR(i, j)
     {
         SijGB[i][j] =
-            -1. / 3. * Cij_TF[i][j] * vars.chi *
+            -2. / 3. * Cij_TF[i][j] * vars.chi *
                 (F + 2. * (tr_covd2lapse / lapse_regularised - tr_A2)) -
-            vars.chi * Mij_TF[i][j] * (C - df2GB * Vt) - C / 3. * Fij_TF[i][j] +
-            vars.chi * ((Ni[i] + d1.K[i] / 3.) * Ci[j] +
+            2. * vars.chi * Mij_TF[i][j] * (C - df2GB * Vt) - 2. * C / 3. * Fij_TF[i][j] +
+            2. * vars.chi * ((Ni[i] + d1.K[i] / 3.) * Ci[j] +
                         (Ni[j] + d1.K[j] / 3.) * Ci[i]);
         FOR(k, l)
         {
             SijGB[i][j] +=
-                vars.chi * h_UU[k][l] *
+                2. * vars.chi * h_UU[k][l] *
                     (Cij_TF[i][k] * Fij[l][j] + Cij_TF[j][k] * Fij[l][i] -
                      Ci[l] * (2. * covd_Aphys_times_chi[k][i][j] -
                               covd_Aphys_times_chi[i][j][k] -
                               covd_Aphys_times_chi[j][k][i])) -
-                2. / 3. * vars.h[i][j] * vars.chi *
+                4. / 3. * vars.h[i][j] * vars.chi *
                     (Cij_TF_UU[k][l] * Fij[k][l] +
                      h_UU[k][l] * Ci[k] * (2. * Ni[l] + d1.K[l]));
         }
         SijGB[i][j] += vars.h[i][j] * SGB / 3.;
         SijGB[i][j] /= chi_regularised;
-        SijGB[i][j] += -dfGB * dfGB / 4. * Mij_TF[i][j] * RGB;
+        SijGB[i][j] += -dfGB * dfGB / 2. * Mij_TF[i][j] * RGB;
     }
 
     out.S += SGB;

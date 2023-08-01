@@ -14,10 +14,10 @@
 template <class matter_t, class gauge_t, class deriv_t, class mod_gauge_t>
 MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::MatterModCCZ4RHS(
     matter_t a_matter, CCZ4_params_t<typename gauge_t::params_t> a_params,
-    mod_gauge_t a_mod_gauge, double a_dx, double a_sigma, int a_formulation)
+    mod_gauge_t a_mod_gauge, double a_dx, double a_sigma, int a_formulation, double a_G_Newton)
     : CCZ4RHS<gauge_t, deriv_t>(a_params, a_dx, a_sigma, a_formulation,
                                 0.0 /*No cosmological constant*/),
-      my_matter(a_matter), my_mod_gauge(a_mod_gauge)
+      my_matter(a_matter), my_mod_gauge(a_mod_gauge), m_G_Newton(a_G_Newton)
 {
 }
 
@@ -215,15 +215,15 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
     // Update RHS for K and Theta depending on formulation
     if (this->m_formulation == CCZ4RHS<>::USE_BSSN)
     {
-        matter_rhs.K += 0.5 * matter_vars.lapse *
+        matter_rhs.K += 4. * M_PI * m_G_Newton * matter_vars.lapse *
                         (emtensor.S + emtensor.rho / (1. + b_of_x));
         matter_rhs.Theta += 0.0;
     }
     else
     {
-        matter_rhs.K += 0.5 * matter_vars.lapse *
+        matter_rhs.K += 4.0 * M_PI * m_G_Newton * matter_vars.lapse *
                         (emtensor.S - 3 * emtensor.rho / (1. + b_of_x));
-        matter_rhs.Theta += -matter_vars.lapse * emtensor.rho / (1. + b_of_x);
+        matter_rhs.Theta += -8. * M_PI * m_G_Newton * matter_vars.lapse * emtensor.rho / (1. + b_of_x);
     }
 
     // Update RHS for other variables
@@ -235,7 +235,7 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
         // matter_rhs.A[i][j] += -matter_vars.chi *
         //                      matter_vars.lapse * Sij_TF[i][j];
         matter_rhs.A[i][j] +=
-            -matter_vars.lapse *
+            - 8. * M_PI * m_G_Newton * matter_vars.lapse *
             (matter_vars.chi * emtensor.Sij[i][j] -
              matter_vars.h[i][j] * emtensor.S / (double)GR_SPACEDIM);
     }
@@ -245,7 +245,7 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
         data_t matter_term_Gamma = 0.0;
         FOR(j)
         {
-            matter_term_Gamma += -2. * matter_vars.lapse * h_UU[i][j] *
+            matter_term_Gamma += - 16. * M_PI * m_G_Newton * matter_vars.lapse * h_UU[i][j] *
                                  emtensor.Si[j] / (1. + b_of_x);
         }
 

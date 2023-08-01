@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     ModGauge mod_gauge(m_params_mod_gauge);
     Coupling coupling(m_params_coupling);
     EsGB<Coupling> esgb(coupling);
-    MyModGravClass my_modccz4_matter(esgb, m_params, mod_gauge, dx, sigma, 0);
+    MyModGravClass my_modccz4_matter(esgb, m_params, mod_gauge, dx, sigma, 0, 1./(16.*M_PI));
 
     // add functions a(x) and b(x) of the modified gauge
     my_modccz4_matter.add_a_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
