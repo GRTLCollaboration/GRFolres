@@ -83,20 +83,20 @@ rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = dfGB * (covd2phi[i][j] -
+        Cij[i][j] = 4. * dfGB * (covd2phi[i][j] -
                             vars.Kphi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-                    df2GB * d1.phi[i] * d1.phi[j];
+                    4. * df2GB * d1.phi[i] * d1.phi[j];
     }
     data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
 
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = df2GB * vars.Kphi * d1.phi[i] +
-                dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += -dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        Ci[i] = 4. * df2GB * vars.Kphi * d1.phi[i] +
+                4. * dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        FOR(j, k) { Ci[i] += - 4. * dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
     Tensor<2, data_t> Cij_UU = raise_all(Cij, h_UU); // raise all indexs
@@ -246,20 +246,20 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = dfGB * (covd2phi[i][j] -
+        Cij[i][j] = 4. * dfGB * (covd2phi[i][j] -
                             vars.Kphi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-                    df2GB * d1.phi[i] * d1.phi[j];
+                    4. * df2GB * d1.phi[i] * d1.phi[j];
     }
     data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
 
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = df2GB * vars.Kphi * d1.phi[i] +
-                dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += -dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        Ci[i] = 4. * df2GB * vars.Kphi * d1.phi[i] +
+                4. * dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        FOR(j, k) { Ci[i] += - 4. * dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
     Tensor<2, data_t> Cij_UU = raise_all(Cij, h_UU); // raise all indexs
@@ -383,12 +383,12 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
                (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
     }
 
-    data_t SGB = 4. / 3. * C * F + 4. * M * (-df2GB / 4. * Vt + C / 3.) -
+    data_t SGB = 4. / 3. * C * F + 4. * M * (- 4. * df2GB / 4. * Vt + C / 3.) -
                  (out.rho - vars.Kphi * vars.Kphi - 0.5 * Vt);
     FOR(i, j)
     SGB += - 2. * Cij_TF_UU[i][j] * vars.chi * (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
            4. * h_UU[i][j] * vars.chi * Ni[i] * Ci[j];
-    SGB += dfGB * dfGB / 4. * M * RGB;
+    SGB += 4. * dfGB * 4. * dfGB / 4. * M * RGB;
 
     Tensor<2, data_t> SijGB;
     FOR(i, j)
@@ -396,7 +396,7 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
         SijGB[i][j] =
             -2. / 3. * Cij_TF[i][j] * vars.chi *
                 (F + 2. * (tr_covd2lapse / lapse_regularised - tr_A2)) -
-            2. * vars.chi * Mij_TF[i][j] * (C - df2GB * Vt) - 2. * C / 3. * Fij_TF[i][j] +
+            2. * vars.chi * Mij_TF[i][j] * (C - 4. * df2GB * Vt) - 2. * C / 3. * Fij_TF[i][j] +
             2. * vars.chi * ((Ni[i] + d1.K[i] / 3.) * Ci[j] +
                         (Ni[j] + d1.K[j] / 3.) * Ci[i]);
         FOR(k, l)
@@ -413,7 +413,7 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
         }
         SijGB[i][j] += vars.h[i][j] * SGB / 3.;
         SijGB[i][j] /= chi_regularised;
-        SijGB[i][j] += -dfGB * dfGB / 2. * Mij_TF[i][j] * RGB;
+        SijGB[i][j] += -4. * dfGB * 4. * dfGB / 2. * Mij_TF[i][j] * RGB;
     }
 
     out.S += SGB;
@@ -597,7 +597,7 @@ void EsGB<coupling_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
             covd_Aphys_times_chi[l][m][n] *
             (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
     }
-    rhs.Kphi += -dfGB * RGB_times_lapse / 4.;
+    rhs.Kphi += -4. * dfGB * RGB_times_lapse / 4.;
 }
 
 // Adds in the RHS for the matter vars
@@ -669,20 +669,20 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = dfGB * (covd2phi[i][j] -
+        Cij[i][j] = 4. * dfGB * (covd2phi[i][j] -
                             vars.Kphi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-                    df2GB * d1.phi[i] * d1.phi[j];
+                    4. * df2GB * d1.phi[i] * d1.phi[j];
     }
     data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
 
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = df2GB * vars.Kphi * d1.phi[i] +
-                dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += -dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        Ci[i] = 4. * df2GB * vars.Kphi * d1.phi[i] +
+                4. * dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        FOR(j, k) { Ci[i] += - 4. * dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
     Tensor<2, data_t> Mij_TF = Mij;
@@ -714,7 +714,7 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
             LHS_mat[n1][n2] =
                 -2.0 * vars.chi *
                 (1. / 3. * vars.h[a2][b2] * Cij_TF_UU[a1][b1] +
-                 dfGB * dfGB * Mij_TF[a2][b2] * Mij_TF_UU[a1][b1] * vars.chi);
+                 4. * dfGB * 4. * dfGB * Mij_TF[a2][b2] * Mij_TF_UU[a1][b1] * vars.chi);
             if (a1 == a2)
             {
                 if (b1 == b2)
@@ -730,7 +730,7 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
                 LHS_mat[n1][n2] +=
                     -2.0 * vars.chi *
                     (1. / 3. * vars.h[a2][b2] * Cij_TF_UU[b1][a1] +
-                     dfGB * dfGB * Mij_TF[a2][b2] * Mij_TF_UU[b1][a1] *
+                     4. * dfGB * 4. * dfGB * Mij_TF[a2][b2] * Mij_TF_UU[b1][a1] *
                          vars.chi);
                 if (a1 == b2)
                 {
@@ -757,19 +757,19 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
             continue;
 
         LHS_mat[N - 2][n1] =
-            vars.chi / 3. * (-Cij_TF[a][b] + dfGB * dfGB * M * Mij_TF[a][b]);
+            vars.chi / 3. * (-Cij_TF[a][b] + 4. * dfGB * 4. * dfGB * M * Mij_TF[a][b]);
 
         LHS_mat[n1][N - 2] =
             vars.chi / 2. *
-            (Cij_TF_UU[a][b] - dfGB * dfGB * M * Mij_TF_UU[a][b]);
+            (Cij_TF_UU[a][b] - 4. * dfGB * 4. * dfGB * M * Mij_TF_UU[a][b]);
         if (a != b)
             LHS_mat[n1][N - 2] +=
                 vars.chi / 2. *
-                (Cij_TF_UU[b][a] - dfGB * dfGB * M * Mij_TF_UU[b][a]);
+                (Cij_TF_UU[b][a] - 4. * dfGB * 4. * dfGB * M * Mij_TF_UU[b][a]);
         ++n1;
     }
 
-    LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-C + 1. / 4. * dfGB * dfGB * M * M);
+    LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-C + dfGB * 4. * dfGB * M * M);
 
     n1 = 0;
     FOR(a, b)
@@ -778,13 +778,13 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
             continue;
 
         LHS_mat[N - 1][n1] = 0.;
-        LHS_mat[n1][N - 1] = 0.5 * dfGB * Mij_TF_UU[a][b] * vars.chi;
+        LHS_mat[n1][N - 1] = 2. * dfGB * Mij_TF_UU[a][b] * vars.chi;
         if (a != b)
-            LHS_mat[n1][N - 1] += 0.5 * dfGB * Mij_TF_UU[b][a] * vars.chi;
+            LHS_mat[n1][N - 1] += 2. * dfGB * Mij_TF_UU[b][a] * vars.chi;
         ++n1;
     }
     LHS_mat[N - 1][N - 2] = 0.;
-    LHS_mat[N - 2][N - 1] = -1. / 12. * dfGB * M;
+    LHS_mat[N - 2][N - 1] = -1. / 3. * dfGB * M;
     LHS_mat[N - 1][N - 1] = 1.;
 
     for (int n1 = 0; n1 < N; ++n1)
