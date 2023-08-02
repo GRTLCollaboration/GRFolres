@@ -227,8 +227,7 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
     }
 
     // Update RHS for other variables
-    Tensor<2, data_t> Sij_TF = emtensor.Sij;
-    make_trace_free(Sij_TF, matter_vars.h, h_UU);
+
 
     FOR(i, j)
     {
