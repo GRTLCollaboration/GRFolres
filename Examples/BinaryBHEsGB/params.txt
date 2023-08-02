@@ -156,6 +156,7 @@ b0 = 0
 
 # Coupling parameters
 lambda_GB = 0
+scalar_mass = 0
 cutoff_GB = 0.15
 factor_GB = 100
 

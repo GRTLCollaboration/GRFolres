@@ -6,7 +6,7 @@
 #ifndef BINARYBHESGBLEVEL_HPP_
 #define BINARYBHESGBLEVEL_HPP_
 
-#include "Coupling.hpp"
+#include "CouplingAndPotential.hpp"
 #include "DefaultLevelFactory.hpp"
 #include "EsGB.hpp"
 #include "GRAMRLevel.hpp"
@@ -26,7 +26,7 @@ class BinaryBHEsGBLevel : public GRAMRLevel
 #endif /* USE_TWOPUNCTURES */
 
     // Typedef for esgb
-    typedef EsGB<Coupling> EsGBWithCoupling;
+    typedef EsGB<CouplingAndPotential> EsGBWithCoupling;
 
     /// Things to do at every full timestep
     ///(might include several substeps, e.g. in RK4)

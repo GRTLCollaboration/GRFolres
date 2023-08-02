@@ -70,8 +70,8 @@ void BinaryBHEsGBLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                    a_soln, a_soln, INCLUDE_GHOST_CELLS);
 
     // Calculate MatterModCCZ4 right hand side with matter_t = EsGB
-    Coupling coupling(m_p.coupling_params);
-    EsGBWithCoupling esgb(coupling);
+    CouplingAndPotential coupling_and_potential(m_p.coupling_and_potential_params);
+    EsGBWithCoupling esgb(coupling_and_potential);
     ModGauge mod_gauge(m_p.mod_gauge_params);
     if (m_p.max_spatial_derivative_order == 4)
     {
@@ -178,8 +178,8 @@ void BinaryBHEsGBLevel::specificPostTimeStep()
 
     if (m_p.calculate_constraint_norms)
     {
-        Coupling coupling(m_p.coupling_params);
-        EsGBWithCoupling esgb(coupling);
+        CouplingAndPotential coupling_and_potential(m_p.coupling_and_potential_params);
+        EsGBWithCoupling esgb(coupling_and_potential);
         fillAllGhosts();
         BoxLoops::loop(MatterConstraints<EsGBWithCoupling>(
                            esgb, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
@@ -220,8 +220,8 @@ void BinaryBHEsGBLevel::prePlotLevel()
     fillAllGhosts();
     if (m_p.activate_extraction == 1)
     {
-        Coupling coupling(m_p.coupling_params);
-        EsGBWithCoupling esgb(coupling);
+        CouplingAndPotential coupling_and_potential(m_p.coupling_and_potential_params);
+        EsGBWithCoupling esgb(coupling_and_potential);
         BoxLoops::loop(
             make_compute_pack(
                 Weyl4(m_p.extraction_params.center, m_dx, m_p.formulation),

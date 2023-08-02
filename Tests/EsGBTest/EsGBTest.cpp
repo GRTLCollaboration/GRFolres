@@ -5,7 +5,7 @@
 
 #include "CCZ4RHS.hpp"
 #include "Coordinates.hpp"
-#include "Coupling.hpp"
+#include "CouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "EsGB.hpp"
 #include "MatterModCCZ4RHS.hpp"
@@ -29,7 +29,7 @@ template <class data_t> struct Vars : public CCZ4::Vars<data_t>
     }
 };
 
-typedef MatterModCCZ4RHS<EsGB<Coupling>, MovingPunctureGauge,
+typedef MatterModCCZ4RHS<EsGB<CouplingAndPotential>, MovingPunctureGauge,
                      FourthOrderDerivatives, ModGauge> MyModGravClass;
 
 int main(int argc, char *argv[])
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
     CCZ4::params_t m_params;
     ModGauge::params_t m_params_mod_gauge;
-    Coupling::params_t m_params_coupling;    
+    CouplingAndPotential::params_t m_params_coupling_and_potential;    
 
     MyModGravClass::Vars<double> rhs;
     MyModGravClass::Vars<double> vars;
@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
     Coordinates<double> coords(vect, dx, {0., 0., 0.});
     
     ModGauge mod_gauge(m_params_mod_gauge);
-    Coupling coupling(m_params_coupling);
-    EsGB<Coupling> esgb(coupling);
+    CouplingAndPotential coupling_and_potential(m_params_coupling_and_potential);
+    EsGB<CouplingAndPotential> esgb(coupling_and_potential);
     MyModGravClass my_modccz4_matter(esgb, m_params, mod_gauge, dx, sigma, 0, 1./(16.*M_PI));
 
     // add functions a(x) and b(x) of the modified gauge
