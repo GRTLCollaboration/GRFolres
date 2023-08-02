@@ -235,8 +235,7 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
         //                      matter_vars.lapse * Sij_TF[i][j];
         matter_rhs.A[i][j] +=
             - 8. * M_PI * m_G_Newton * matter_vars.lapse *
-            (matter_vars.chi * emtensor.Sij[i][j] -
-             matter_vars.h[i][j] * emtensor.S / (double)GR_SPACEDIM);
+            (matter_vars.chi * emtensor.Sij[i][j]);
     }
 
     FOR(i)

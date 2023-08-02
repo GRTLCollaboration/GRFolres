@@ -411,7 +411,6 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
                     (Cij_TF_UU[k][l] * Fij[k][l] +
                      h_UU[k][l] * Ci[k] * (2. * Ni[l] + d1.K[l]));
         }
-        SijGB[i][j] += vars.h[i][j] * SGB / 3.;
         SijGB[i][j] /= chi_regularised;
         SijGB[i][j] += -dfGB * dfGB / 2. * Mij_TF[i][j] * RGB;
     }
