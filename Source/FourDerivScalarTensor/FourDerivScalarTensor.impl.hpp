@@ -80,31 +80,31 @@ rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si
                              chi_regularised;
     }
 
-    // decomposition of C_{ab} = \nabla_a\nabla_bf(\phi)
-    Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
+    // decomposition of \nabla_a\nabla_bf(\phi)
+    Tensor<2, data_t> Omega_ij; // Omega_{ij} = \gamma^a_{~i}\gamma^b_{~j}\nabla_a\nabla_bf(\phi)
     FOR(i, j)
     {
-        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
+        Omega_ij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
                             vars.Pi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
                     4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
     }
-    data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
+    data_t Omega = vars.chi * compute_trace(Omega_ij, h_UU); // trace of Omega_ij
 
-    Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
+    Tensor<1, data_t> Omega_i; // Omega_i = -\gamma^a_{~i}n^b\nabla_a\nabla_bf(\phi)
     FOR(i)
     {
-        Ci[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
+        Omega_i[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
                 4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        FOR(j, k) { Omega_i[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
-    Tensor<2, data_t> Cij_UU = raise_all(Cij, h_UU); // raise all indexs
+    Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
     // note that they have been raised with the conformal metric
 
-    data_t rhoGB = C * M; // rho = n^a n^b T_ab
-    FOR(i, j) rhoGB -= 2. * vars.chi * Mij[i][j] * vars.chi * Cij_UU[i][j];
+    data_t rhoGB = Omega * M; // rho = n^a n^b T_ab
+    FOR(i, j) rhoGB -= 2. * vars.chi * Mij[i][j] * vars.chi * Omega_ij_UU[i][j];
 
     // other useful quantities
     Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
@@ -143,14 +143,14 @@ rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si
     Tensor<1, data_t> JGB; // S_i (note lower index) = - n^a T_ai
     FOR(i)
     {
-        JGB[i] = Ci[i] * M + 2. * C * (Ni[i] + d1.K[i] / 3.);
+        JGB[i] = Omega_i[i] * M + 2. * Omega * (Ni[i] + d1.K[i] / 3.);
         FOR(j, k)
         {
             JGB[i] -= 2 * h_UU[j][k] * vars.chi *
-                      (Mij[i][j] * Ci[k] + Cij[i][j] * (Ni[k] + d1.K[k] / 3.));
+                      (Mij[i][j] * Omega_i[k] + Omega_ij[i][j] * (Ni[k] + d1.K[k] / 3.));
             FOR(l, m)
             {
-                JGB[i] += 2 * h_UU[j][l] * h_UU[k][m] * Cij[l][m] * vars.chi *
+                JGB[i] += 2 * h_UU[j][l] * h_UU[k][m] * Omega_ij[l][m] * vars.chi *
                           (covd_Aphys_times_chi[i][j][k] -
                            covd_Aphys_times_chi[j][i][k]);
             }
@@ -212,8 +212,6 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
 
     const auto ricci0 =
         CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-    // for some reason the function compute_ricci does not give the correct
-    // answer
 
     const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
@@ -247,27 +245,27 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
                              chi_regularised;
     }
 
-    // decomposition of C_{ab} = \nabla_a\nabla_bf(\phi)
-    Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
+    // decomposition of \nabla_a\nabla_bf(\phi)
+    Tensor<2, data_t> Omega_ij; // Omega_{ij} = \gamma^a_{~i}\gamma^b_{~j}\nabla_a\nabla_bf(\phi)
     FOR(i, j)
     {
-        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
+        Omega_ij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
                             vars.Pi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
                     4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
     }
-    data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
+    data_t Omega = vars.chi * compute_trace(Omega_ij, h_UU); // trace of Omega_ij
 
-    Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
+    Tensor<1, data_t> Omega_i; // Omega_i = -\gamma^a_{~i}n^b\nabla_a\nabla_bf(\phi)
     FOR(i)
     {
-        Ci[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
+        Omega_i[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
                 4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        FOR(j, k) { Omega_i[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
-    Tensor<2, data_t> Cij_UU = raise_all(Cij, h_UU); // raise all indexs
+    Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
     // note that they have been raised with the conformal metric
 
     Tensor<2, data_t> Mij_UU = raise_all(Mij, h_UU); // raise all indexs
@@ -278,9 +276,9 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
     Tensor<2, data_t> Mij_TF_UU = raise_all(Mij_TF, h_UU); // raise all indexs
     // note that they have been raised with the conformal metric
 
-    Tensor<2, data_t> Cij_TF = Cij;
-    make_trace_free(Cij_TF, vars.h, h_UU);
-    Tensor<2, data_t> Cij_TF_UU = raise_all(Cij_TF, h_UU); // raise all indexs
+    Tensor<2, data_t> Omega_ij_TF = Omega_ij;
+    make_trace_free(Omega_ij_TF, vars.h, h_UU);
+    Tensor<2, data_t> Omega_ij_TF_UU = raise_all(Omega_ij_TF, h_UU); // raise all indexs
     // note that they have been raised with the conformal metric
 
     // other useful quantities
@@ -388,33 +386,33 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
                (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
     }
 
-    data_t SGB = 4. / 3. * C * F + 4. * M * (- d2fdphi2 * Vt + C / 3.) -
+    data_t SGB = 4. / 3. * Omega * F + 4. * M * (- d2fdphi2 * Vt + Omega / 3.) -
                  (out.rho - V_of_phi - vars.Pi * vars.Pi - 0.5 * Vt);
     FOR(i, j)
-    SGB += - 2. * Cij_TF_UU[i][j] * vars.chi * (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
-           4. * h_UU[i][j] * vars.chi * Ni[i] * Ci[j];
+    SGB += - 2. * Omega_ij_TF_UU[i][j] * vars.chi * (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
+           4. * h_UU[i][j] * vars.chi * Ni[i] * Omega_i[j];
     SGB += 4. * dfdphi * dfdphi * M * RGB;
 
     Tensor<2, data_t> SijGB;
     FOR(i, j)
     {
         SijGB[i][j] =
-            -2. / 3. * Cij_TF[i][j] * vars.chi *
+            -2. / 3. * Omega_ij_TF[i][j] * vars.chi *
                 (F + 2. * (tr_covd2lapse / lapse_regularised - tr_A2)) -
-            2. * vars.chi * Mij_TF[i][j] * (C - 4. * d2fdphi2 * Vt) - 2. * C / 3. * Fij_TF[i][j] +
-            2. * vars.chi * ((Ni[i] + d1.K[i] / 3.) * Ci[j] +
-                        (Ni[j] + d1.K[j] / 3.) * Ci[i]);
+            2. * vars.chi * Mij_TF[i][j] * (Omega - 4. * d2fdphi2 * Vt) - 2. * Omega / 3. * Fij_TF[i][j] +
+            2. * vars.chi * ((Ni[i] + d1.K[i] / 3.) * Omega_i[j] +
+                        (Ni[j] + d1.K[j] / 3.) * Omega_i[i]);
         FOR(k, l)
         {
             SijGB[i][j] +=
                 2. * vars.chi * h_UU[k][l] *
-                    (Cij_TF[i][k] * Fij[l][j] + Cij_TF[j][k] * Fij[l][i] -
-                     Ci[l] * (2. * covd_Aphys_times_chi[k][i][j] -
+                    (Omega_ij_TF[i][k] * Fij[l][j] + Omega_ij_TF[j][k] * Fij[l][i] -
+                     Omega_i[l] * (2. * covd_Aphys_times_chi[k][i][j] -
                               covd_Aphys_times_chi[i][j][k] -
                               covd_Aphys_times_chi[j][k][i])) -
                 4. / 3. * vars.h[i][j] * vars.chi *
-                    (Cij_TF_UU[k][l] * Fij[k][l] +
-                     h_UU[k][l] * Ci[k] * (2. * Ni[l] + d1.K[l]));
+                    (Omega_ij_TF_UU[k][l] * Fij[k][l] +
+                     h_UU[k][l] * Omega_i[k] * (2. * Ni[l] + d1.K[l]));
         }
         SijGB[i][j] += vars.h[i][j] * SGB / 3.;
         SijGB[i][j] /= chi_regularised;
@@ -675,24 +673,24 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
                              chi_regularised;
     }
 
-    // decomposition of C_{ab} = \nabla_a\nabla_bf(\phi)
-    Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
+    // decomposition of \nabla_a\nabla_bf(\phi)
+    Tensor<2, data_t> Omega_ij; // Omega_{ij} = \gamma^a_{~i}\gamma^b_{~j}\nabla_a\nabla_bf(\phi)
     FOR(i, j)
     {
-        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
+        Omega_ij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
                             vars.Pi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
                     4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
     }
-    data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
+    data_t Omega = vars.chi * compute_trace(Omega_ij, h_UU); // trace of Omega_ij
 
-    Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
+    Tensor<1, data_t> Omega_i; // Omega_i = -\gamma^a_{~i}n^b\nabla_a\nabla_bf(\phi)
     FOR(i)
     {
-        Ci[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
+        Omega_i[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
                 4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        FOR(j, k) { Omega_i[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
     Tensor<2, data_t> Mij_TF = Mij;
@@ -700,9 +698,9 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
     Tensor<2, data_t> Mij_TF_UU = raise_all(Mij_TF, h_UU); // raise all indexs
     // note that they have been raised with the conformal metric
 
-    Tensor<2, data_t> Cij_TF = Cij;
-    make_trace_free(Cij_TF, vars.h, h_UU);
-    Tensor<2, data_t> Cij_TF_UU = raise_all(Cij_TF, h_UU); // raise all indexs
+    Tensor<2, data_t> Omega_ij_TF = Omega_ij;
+    make_trace_free(Omega_ij_TF, vars.h, h_UU);
+    Tensor<2, data_t> Omega_ij_TF_UU = raise_all(Omega_ij_TF, h_UU); // raise all indexs
     // note that they have been raised with the conformal metric
 
     int n1 = 0;
@@ -723,35 +721,35 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
             // the column (which equation)
             LHS_mat[n1][n2] =
                 -2.0 * vars.chi *
-                (1. / 3. * vars.h[a2][b2] * Cij_TF_UU[a1][b1] +
+                (1. / 3. * vars.h[a2][b2] * Omega_ij_TF_UU[a1][b1] +
                  16. * dfdphi * dfdphi * Mij_TF[a2][b2] * Mij_TF_UU[a1][b1] * vars.chi);
             if (a1 == a2)
             {
                 if (b1 == b2)
-                    LHS_mat[n1][n2] += 1. - C / 3.;
+                    LHS_mat[n1][n2] += 1. - Omega / 3.;
                 FOR(k)
-                LHS_mat[n1][n2] += vars.chi * h_UU[b1][k] * Cij_TF[b2][k];
+                LHS_mat[n1][n2] += vars.chi * h_UU[b1][k] * Omega_ij_TF[b2][k];
             }
             if (b1 == b2)
                 FOR(k)
-                LHS_mat[n1][n2] += vars.chi * h_UU[a1][k] * Cij_TF[a2][k];
+                LHS_mat[n1][n2] += vars.chi * h_UU[a1][k] * Omega_ij_TF[a2][k];
             if (a1 != b1)
             {
                 LHS_mat[n1][n2] +=
                     -2.0 * vars.chi *
-                    (1. / 3. * vars.h[a2][b2] * Cij_TF_UU[b1][a1] +
+                    (1. / 3. * vars.h[a2][b2] * Omega_ij_TF_UU[b1][a1] +
                      16. * dfdphi * dfdphi * Mij_TF[a2][b2] * Mij_TF_UU[b1][a1] *
                          vars.chi);
                 if (a1 == b2)
                 {
                     if (a2 == b1)
-                        LHS_mat[n1][n2] += 1. - C / 3.;
+                        LHS_mat[n1][n2] += 1. - Omega / 3.;
                     FOR(k)
-                    LHS_mat[n1][n2] += vars.chi * h_UU[b1][k] * Cij_TF[a2][k];
+                    LHS_mat[n1][n2] += vars.chi * h_UU[b1][k] * Omega_ij_TF[a2][k];
                 }
                 if (a2 == b1)
                     FOR(k)
-                    LHS_mat[n1][n2] += vars.chi * h_UU[a1][k] * Cij_TF[b2][k];
+                    LHS_mat[n1][n2] += vars.chi * h_UU[a1][k] * Omega_ij_TF[b2][k];
             }
 
             ++n2;
@@ -767,19 +765,19 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
             continue;
 
         LHS_mat[N - 2][n1] =
-            vars.chi / 3. * (-Cij_TF[a][b] + 16. * dfdphi * dfdphi * M * Mij_TF[a][b]);
+            vars.chi / 3. * (-Omega_ij_TF[a][b] + 16. * dfdphi * dfdphi * M * Mij_TF[a][b]);
 
         LHS_mat[n1][N - 2] =
             vars.chi / 2. *
-            (Cij_TF_UU[a][b] - 16. * dfdphi * dfdphi * M * Mij_TF_UU[a][b]);
+            (Omega_ij_TF_UU[a][b] - 16. * dfdphi * dfdphi * M * Mij_TF_UU[a][b]);
         if (a != b)
             LHS_mat[n1][N - 2] +=
                 vars.chi / 2. *
-                (Cij_TF_UU[b][a] - 16. * dfdphi * dfdphi * M * Mij_TF_UU[b][a]);
+                (Omega_ij_TF_UU[b][a] - 16. * dfdphi * dfdphi * M * Mij_TF_UU[b][a]);
         ++n1;
     }
 
-    LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-C + dfdphi * 4. * dfdphi * M * M);
+    LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-Omega + dfdphi * 4. * dfdphi * M * M);
 
     n1 = 0;
     FOR(a, b)

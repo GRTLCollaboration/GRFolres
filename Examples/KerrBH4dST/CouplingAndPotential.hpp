@@ -17,7 +17,7 @@ class CouplingAndPotential
         double cutoff_GB; // cutoff for switching off the Gauss-Bonnet terms
                           // inside the BH
         double factor_GB; // factor for the function smoothening the GB cutoff
-        double scalar_mass;
+	double scalar_mass;
     };
 
   private:
@@ -41,10 +41,9 @@ class CouplingAndPotential
         // The second derivative of the coupling
         d2fdphi2 = 0.;
 
-        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
+	V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
 
         dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
-
     }
 };
 
