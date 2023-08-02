@@ -820,8 +820,6 @@ void EsGB<coupling_t>::solve_lhs(rhs_vars_t<data_t> &rhs,
             continue;
 
         RHS[n1] = rhs.A[a1][b1];
-        if (a1 != b1)
-            RHS[n1] = rhs.A[b1][a1];
 
         ++n1;
     }
