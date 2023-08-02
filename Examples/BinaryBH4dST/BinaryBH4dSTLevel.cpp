@@ -11,6 +11,7 @@
 #include "ChiExtractionTaggingCriterion.hpp"
 #include "ChiPunctureExtractionTaggingCriterion.hpp"
 #include "ComputePack.hpp"
+#include "InitialScalarData.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "NanCheck.hpp"
 #include "ModifiedGravityConstraints.hpp"
@@ -48,7 +49,8 @@ void BinaryBH4dSTLevel::initialData()
     TwoPuncturesInitialData two_punctures_initial_data(
         m_dx, m_p.center, m_tp_amr.m_two_punctures);
     // Can't use simd with this initial data
-    BoxLoops::loop(two_punctures_initial_data, m_state_new, m_state_new,
+    BoxLoops::loop(make_compute_pack(two_punctures_initial_data,
+		   InitialScalarData(m_p.initial_params, m_dx)), m_state_new, m_state_new,
                    INCLUDE_GHOST_CELLS, disable_simd());
 #else
     // Set up the compute class for the BinaryBH initial data
@@ -69,7 +71,7 @@ void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     BoxLoops::loop(make_compute_pack(TraceARemoval(), PositiveChiAndAlpha()),
                    a_soln, a_soln, INCLUDE_GHOST_CELLS);
 
-    // Calculate MatterModCCZ4 right hand side with matter_t = EsGB
+    // Calculate ModifiedCCZ4 right hand side with matter_t = FourDerivScalarTensor
     CouplingAndPotential coupling_and_potential(m_p.coupling_and_potential_params);
     FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
     ModifiedGauge modified_gauge(m_p.modified_gauge_params);

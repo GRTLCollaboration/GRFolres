@@ -42,6 +42,20 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("puncture_tracking_level", puncture_tracking_level, max_level);
         pp.load("calculate_constraint_norms", calculate_constraint_norms,
                 false);
+	// Initial scalar field data
+        initial_params.center =
+            center; // already read in SimulationParametersBase
+        pp.load("G_Newton", G_Newton, 1.0);
+        pp.load("scalar_amplitude", initial_params.amplitude, 0.);
+        pp.load("scalar_width", initial_params.width, 1.0);
+        // Coupling and potential
+	pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
+        pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
+        pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
+        pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);
+        //Modified gauge
+	pp.load("a0", modified_gauge_params.a0, 0.);
+        pp.load("b0", modified_gauge_params.b0, 0.);
     }
 
 #ifdef USE_TWOPUNCTURES
@@ -187,19 +201,6 @@ class SimulationParameters : public SimulationParametersBase
     /// Read BH parameters if not using two punctures
     void read_bh_params(GRParmParse &pp)
     {
-        // Initial scalar field data
-        initial_params.center =
-            center; // already read in SimulationParametersBase
-        pp.load("G_Newton", G_Newton, 1.0);
-        pp.load("scalar_amplitude", initial_params.amplitude, 0.);
-        pp.load("scalar_width", initial_params.width, 1.0);
-        pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
-        pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
-        pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
-        pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);
-        pp.load("a0", modified_gauge_params.a0, 0.);
-        pp.load("b0", modified_gauge_params.b0, 0.);
-
         // Initial data
         pp.load("massA", bh1_params.mass);
         pp.load("momentumA", bh1_params.momentum);
