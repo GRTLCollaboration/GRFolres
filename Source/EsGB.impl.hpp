@@ -202,6 +202,7 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
 
     // S = Tr_S_ij
     out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij, h_UU);
+    make_trace_free(out.Sij, vars.h, h_UU); //make matter part trace-free
 
     // Compute useful quantities for the Gauss-Bonnet sector
 
@@ -279,8 +280,10 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
     // note that they have been raised with the conformal metric
 
     // other useful quantities
-    Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
-    Tensor<2, data_t> covd_Aphys_times_chi[CH_SPACEDIM];
+   // Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
+    //Tensor<2, data_t> covd_Aphys_times_chi[CH_SPACEDIM];
+    Tensor<3, data_t> covdtilde_A;
+    Tensor<3, data_t> covd_Aphys_times_chi;
 
     FOR(i, j, k)
     {
