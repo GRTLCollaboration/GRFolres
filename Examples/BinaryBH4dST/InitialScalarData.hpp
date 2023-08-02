@@ -49,7 +49,7 @@ class InitialScalarData
 
         // store the vars
         current_cell.store_vars(phi, c_phi);
-        current_cell.store_vars(0.0, c_Kphi);
+        current_cell.store_vars(0.0, c_Pi);
     }
 
   protected:

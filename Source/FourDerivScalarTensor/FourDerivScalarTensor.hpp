@@ -23,10 +23,10 @@
      of the constraints. This includes the Energy Momentum Tensor, and
      the matter evolution terms. In this case, a scalar field coupled to
      the Gauss-Bonnet invariant, the matter elements are phi and its
-     curvature, Kphi.
+     conjugate momentum, Pi.
      It is templated over a coupling function coupling_t which the
      user must specify in a class, although a default is provided which
-     sets dfGB and df2GB to zero.
+     sets dfdphi and df2dphi2 to zero.
      It assumes a scalar field without potential, coming from the action
      S=\frac{1}{8\pi G}\int d^4x\left(R - 1/2\nabla_{\mu}\nabla^{\mu}\phi
      +f(\phi)/4{\mathcal L}_{GB}\right)
@@ -52,7 +52,7 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential> class Fo
     template <class data_t> struct Vars
     {
         data_t phi;  // the scalar field
-        data_t Kphi;   // conjugate momentum of the scalar field
+        data_t Pi;   // conjugate momentum of the scalar field
 
         /// Defines the mapping between members of Vars and Chombo grid
         /// variables (enum in User_Variables)
@@ -60,7 +60,7 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential> class Fo
         void enum_mapping(mapping_function_t mapping_function)
         {
             VarsTools::define_enum_mapping(mapping_function, c_phi, phi);
-            VarsTools::define_enum_mapping(mapping_function, c_Kphi, Kphi);
+            VarsTools::define_enum_mapping(mapping_function, c_Pi, Pi);
         }
     };
 

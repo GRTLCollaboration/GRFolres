@@ -34,21 +34,19 @@ rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si
     const auto chris = compute_christoffel(d1.h, h_UU);
 
     // Useful quantity Vt
-    data_t Vt = -vars.Kphi * vars.Kphi;
+    data_t Vt = -vars.Pi * vars.Pi;
     FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
 
     // S_i (note lower index) = - n^a T_ai
-    FOR(i) { out.Si[i] = d1.phi[i] * vars.Kphi; }
+    FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi; }
 
     // rho = n^a n^b T_ab
-    out.rho = vars.Kphi * vars.Kphi + 0.5 * Vt;
+    out.rho = vars.Pi * vars.Pi + 0.5 * Vt;
     out.rho += V_of_phi;
 
     // Compute useful quantities for the Gauss-Bonnet sector
     const auto ricci0 =
         CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-    // for some reason the function compute_ricci does not give the correct
-    // answer
 
     const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
@@ -86,8 +84,8 @@ rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] -
-                            vars.Kphi / chi_regularised *
+        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
+                            vars.Pi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
                     4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
@@ -97,8 +95,8 @@ rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = 4. * d2fdphi2 * vars.Kphi * d1.phi[i] +
-                4. * dfdphi * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        Ci[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
+                4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
         FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
@@ -194,7 +192,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
     const auto chris = compute_christoffel(d1.h, h_UU);
 
     // Useful quantity Vt
-    data_t Vt = -vars.Kphi * vars.Kphi;
+    data_t Vt = -vars.Pi * vars.Pi;
     FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
 
     // Calculate components of EM Tensor for the non-Gauss-Bonnet sector
@@ -253,8 +251,8 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] -
-                            vars.Kphi / chi_regularised *
+        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
+                            vars.Pi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
                     4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
@@ -264,8 +262,8 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = 4. * d2fdphi2 * vars.Kphi * d1.phi[i] +
-                4. * dfdphi * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        Ci[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
+                4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
         FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
@@ -391,7 +389,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
     }
 
     data_t SGB = 4. / 3. * C * F + 4. * M * (- d2fdphi2 * Vt + C / 3.) -
-                 (out.rho - V_of_phi - vars.Kphi * vars.Kphi - 0.5 * Vt);
+                 (out.rho - V_of_phi - vars.Pi * vars.Pi - 0.5 * Vt);
     FOR(i, j)
     SGB += - 2. * Cij_TF_UU[i][j] * vars.chi * (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
            4. * h_UU[i][j] * vars.chi * Ni[i] * Ci[j];
@@ -459,18 +457,18 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<
     const auto chris = compute_christoffel(d1.h, h_UU);
 
     // evolution equations for scalar field and (minus) its conjugate momentum
-    rhs.phi = -vars.lapse * vars.Kphi + advec.phi;
-    rhs.Kphi = vars.lapse * vars.K * vars.Kphi + advec.Kphi;
+    rhs.phi = vars.lapse * vars.Pi + advec.phi;
+    rhs.Pi = vars.lapse * vars.K * vars.Pi + advec.Pi;
 
     FOR(i, j)
     {
         // includes non conformal parts of chris not included in chris_ULL
-        rhs.Kphi += h_UU[i][j] * (0.5 * d1.chi[j] * vars.lapse * d1.phi[i] -
+        rhs.Pi += -h_UU[i][j] * (0.5 * d1.chi[j] * vars.lapse * d1.phi[i] -
                                   vars.chi * vars.lapse * d2.phi[i][j] -
                                   vars.chi * d1.lapse[i] * d1.phi[j]);
         FOR(k)
         {
-            rhs.Kphi += vars.chi * vars.lapse * h_UU[i][j] *
+            rhs.Pi += -vars.chi * vars.lapse * h_UU[i][j] *
                         chris.ULL[k][i][j] * d1.phi[k];
         }
     }
@@ -479,8 +477,6 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<
 
     const auto ricci0 =
         CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-    // for some reason the function compute_ricci does not give the correct
-    // answer
 
     const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
@@ -608,8 +604,8 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<
             covd_Aphys_times_chi[l][m][n] *
             (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
     }
-    rhs.Kphi += - dfdphi * RGB_times_lapse;
-    rhs.Kphi += vars.lapse * dVdphi;
+    rhs.Pi += dfdphi * RGB_times_lapse;
+    rhs.Pi += -vars.lapse * dVdphi;
 }
 
 // Adds in the RHS for the matter vars
@@ -646,8 +642,6 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
 
     const auto ricci0 =
         CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-    // for some reason the function compute_ricci does not give the correct
-    // answer
 
     const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
@@ -685,8 +679,8 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] -
-                            vars.Kphi / chi_regularised *
+        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] +
+                            vars.Pi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
                     4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
@@ -696,8 +690,8 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = 4. * d2fdphi2 * vars.Kphi * d1.phi[i] +
-                4. * dfdphi * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        Ci[i] = -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
+                4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
         FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
@@ -794,13 +788,13 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
             continue;
 
         LHS_mat[N - 1][n1] = 0.;
-        LHS_mat[n1][N - 1] = 2. * dfdphi * Mij_TF_UU[a][b] * vars.chi;
+        LHS_mat[n1][N - 1] = -2. * dfdphi * Mij_TF_UU[a][b] * vars.chi;
         if (a != b)
-            LHS_mat[n1][N - 1] += 2. * dfdphi * Mij_TF_UU[b][a] * vars.chi;
+            LHS_mat[n1][N - 1] += -2. * dfdphi * Mij_TF_UU[b][a] * vars.chi;
         ++n1;
     }
     LHS_mat[N - 1][N - 2] = 0.;
-    LHS_mat[N - 2][N - 1] = -1. / 3. * dfdphi * M;
+    LHS_mat[N - 2][N - 1] = 1. / 3. * dfdphi * M;
     LHS_mat[N - 1][N - 1] = 1.;
 
     for (int n1 = 0; n1 < N; ++n1)
@@ -843,7 +837,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(rhs_vars_t<data_
         ++n1;
     }
     RHS[N - 2] = rhs.K;
-    RHS[N - 1] = rhs.Kphi;
+    RHS[N - 1] = rhs.Pi;
 
     EsGB_lapack::solve_system_lapack(N, (&LHS[0][0]), RHS);
 
@@ -860,7 +854,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(rhs_vars_t<data_
         ++n1;
     }
     rhs.K = RHS[N - 2];
-    rhs.Kphi = RHS[N - 1];
+    rhs.Pi = RHS[N - 1];
 }
 
 #endif /* FOURDERIVSCALARTENSOR_IMPL_HPP_ */

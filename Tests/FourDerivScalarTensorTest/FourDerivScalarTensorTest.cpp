@@ -16,7 +16,7 @@
 template <class data_t> struct Vars : public CCZ4::Vars<data_t>
 {
     data_t phi;  // the scalar field
-    data_t Kphi; // the curvature of the scalar field
+    data_t Pi; // the curvature of the scalar field
 
     /// Defines the mapping between members of Vars and Chombo grid
     /// variables (enum in User_Variables)
@@ -25,7 +25,7 @@ template <class data_t> struct Vars : public CCZ4::Vars<data_t>
     {
         CCZ4::Vars<data_t>::enum_mapping(mapping_function);
         VarsTools::define_enum_mapping(mapping_function, c_phi, phi);
-        VarsTools::define_enum_mapping(mapping_function, c_Kphi, Kphi);
+        VarsTools::define_enum_mapping(mapping_function, c_Pi, Pi);
     }
 };
 
@@ -177,12 +177,12 @@ int main(int argc, char *argv[])
         std::cout << "diff: " << diff << std::endl;
         failed = -1;
     }
-    diff = rhs.Kphi - dKphidt_known;
+    diff = rhs.Pi - dPidt_known;
     if (diff > 1e-10 or diff < -1e-10)
     {
-        std::cout << "RHS of Kphi wrong" << std::endl;
-        std::cout << "value: " << rhs.Kphi << std::endl;
-        std::cout << "correct value: " << dKphidt_known << std::endl;
+        std::cout << "RHS of Pi wrong" << std::endl;
+        std::cout << "value: " << rhs.Pi << std::endl;
+        std::cout << "correct value: " << dPidt_known << std::endl;
         std::cout << "diff: " << diff << std::endl;
         failed = -1;
     }
