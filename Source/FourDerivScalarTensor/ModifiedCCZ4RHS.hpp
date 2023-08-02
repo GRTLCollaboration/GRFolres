@@ -3,14 +3,14 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef MATTERMODCCZ4RHS_HPP_
-#define MATTERMODCCZ4RHS_HPP_
+#ifndef MODIFIEDCCZ4RHS_HPP_
+#define MODIFIEDCCZ4RHS_HPP_
 
 #include "CCZ4Geometry.hpp"
 #include "CCZ4RHS.hpp"
 #include "Cell.hpp"
 #include "Coordinates.hpp"
-#include "DefaultModGauge.hpp"
+#include "DefaultModifiedGauge.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "MovingPunctureGauge.hpp"
 #include "Tensor.hpp"
@@ -39,8 +39,8 @@
 
 template <class matter_t, class gauge_t = MovingPunctureGauge,
           class deriv_t = FourthOrderDerivatives,
-          class mod_gauge_t = DefaultModGauge>
-class MatterModCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
+          class modified_gauge_t = DefaultModifiedGauge>
+class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
 {
   public:
     // Use this alias for the same template instantiation as this class
@@ -88,15 +88,15 @@ class MatterModCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
         }
     };
 
-    //!  Constructor of class MatterModCCZ4
+    //!  Constructor of class ModifiedCCZ4RHS
     /*!
        Inputs are the grid spacing, plus the CCZ4 evolution parameters, the
        modified gauge functions and a matter object. It also takes the
        dissipation parameter sigma, and allows the formulation to be toggled
        between CCZ4 and BSSN. The default is CCZ4.
     */
-    MatterModCCZ4RHS(matter_t a_matter, params_t a_params,
-                     mod_gauge_t a_mod_gauge, double a_dx, double a_sigma,
+    ModifiedCCZ4RHS(matter_t a_matter, params_t a_params,
+                     modified_gauge_t a_modified_gauge, double a_dx, double a_sigma,
                      int a_formulation = CCZ4RHS<>::USE_CCZ4, double a_G_Newton = 1.0);
 
     //!  The compute member which calculates the RHS at each point in the box
@@ -137,16 +137,10 @@ class MatterModCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
 
     // Class members
     matter_t my_matter;       //!< The matter object, e.g. EsGB.
-    mod_gauge_t my_mod_gauge; //!< The modified gauge object, i.e a(x) and b(x)
+    modified_gauge_t my_modified_gauge; //!< The modified gauge object, i.e a(x) and b(x)
     double m_G_Newton;
 };
 
-#include "MatterModCCZ4RHS.impl.hpp"
+#include "ModifiedCCZ4RHS.impl.hpp"
 
-// This is here for backwards compatibility though the MatterCCZ4RHS
-// class should be used in future hence mark as deprecated
-template <class matter_t>
-using MatterModCCZ4 [[deprecated("Use MatterModCCZ4RHS instead")]] =
-    MatterModCCZ4RHS<matter_t>;
-
-#endif /* MATTERMODCCZ4RHS_HPP_ */
+#endif /* MODIFIEDCCZ4RHS_HPP_ */

@@ -29,17 +29,17 @@ class CouplingAndPotential
 
     //! Set the EsGB coupling function fhere
     template <class data_t, template <typename> class vars_t>
-    void compute_coupling_and_potential(data_t &dfGB, data_t &df2GB, data_t &V_of_phi, data_t &dVdphi,
+    void compute_coupling_and_potential(data_t &dfdphi, data_t &df2dphi2, data_t &V_of_phi, data_t &dVdphi,
                           const vars_t<data_t> &vars) const
     {
         // The first derivative of the coupling
         // It is set to 0 to the interior of the BH with a smooth function
-        dfGB =
+        dfdphi =
             m_params.lambda_GB /
             (1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB)));
 
         // The second derivative of the coupling
-        df2GB = df2GB = M_PI * m_params.lambda_GB /
+        df2dphi2 = M_PI * m_params.lambda_GB /
             (1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB)));
 
         V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);

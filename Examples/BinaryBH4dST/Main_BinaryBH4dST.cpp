@@ -21,7 +21,7 @@
 #include "TPAMR.hpp" // TPAMR code conditional compiled on USE_TWOPUNCTURES
 
 // Problem specific includes:
-#include "BinaryBHEsGBLevel.hpp"
+#include "BinaryBH4dSTLevel.hpp"
 
 // Chombo namespace
 #include "UsingNamespace.H"
@@ -61,7 +61,7 @@ int runGRChombo(int argc, char *argv[])
     // The line below selects the problem that is simulated
     // (To simulate a different problem, define a new child of AMRLevel
     // and an associated LevelFactory)
-    DefaultLevelFactory<BinaryBHEsGBLevel> binary_bh_level_fact(bh_amr,
+    DefaultLevelFactory<BinaryBH4dSTLevel> binary_bh_level_fact(bh_amr,
                                                                 sim_params);
     setupAMRObject(bh_amr, binary_bh_level_fact);
 

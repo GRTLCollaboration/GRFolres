@@ -3,16 +3,16 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#if !defined(NEWMATTERCONSTRAINTS_HPP_)
-#error "This file should only be included through NewMatterConstraints.hpp"
+#if !defined(MODIFIEDGRAVITYCONSTRAINTS_HPP_)
+#error "This file should only be included through ModifiedGravityConstraints.hpp"
 #endif
 
-#ifndef NEWMATTERCONSTRAINTS_IMPL_HPP_
-#define NEWMATTERCONSTRAINTS_IMPL_HPP_
+#ifndef MODIFIEDGRAVITYCONSTRAINTS_IMPL_HPP_
+#define MODIFIEDGRAVITYCONSTRAINTS_IMPL_HPP_
 #include "DimensionDefinitions.hpp"
 
 template <class matter_t>
-MatterConstraints<matter_t>::MatterConstraints(
+ModifiedGravityConstraints<matter_t>::ModifiedGravityConstraints(
     const matter_t a_matter, double dx, double G_Newton, int a_c_Ham, const Interval &a_c_Moms,
     int a_c_Ham_abs_terms /* defaulted*/,
     const Interval &a_c_Moms_abs_terms /*defaulted*/)
@@ -24,7 +24,7 @@ MatterConstraints<matter_t>::MatterConstraints(
 
 template <class matter_t>
 template <class data_t>
-void MatterConstraints<matter_t>::compute(Cell<data_t> current_cell) const
+void ModifiedGravityConstraints<matter_t>::compute(Cell<data_t> current_cell) const
 {
     // Load local vars and calculate derivs
     const auto vars = current_cell.template load_vars<BSSNMatterVars>();
@@ -63,4 +63,4 @@ void MatterConstraints<matter_t>::compute(Cell<data_t> current_cell) const
     store_vars(out, current_cell);
 }
 
-#endif /* NEWMATTERCONSTRAINTS_IMPL_HPP_ */
+#endif /* MODIFIEDGRAVITYCONSTRAINTS_IMPL_HPP_ */

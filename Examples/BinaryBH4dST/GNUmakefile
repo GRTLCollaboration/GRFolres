@@ -21,13 +21,13 @@ else
 endif
 endif
 
-ebase := Main_BinaryBHEsGB
+ebase := Main_BinaryBH4dST
 
 LibNames := AMRTimeDependent AMRTools BoxTools
 
 src_dirs := $(GRCHOMBO_SOURCE)/utils \
             $(GRCHOMBO_SOURCE)/simd  \
-            ../../Source  \
+            ../../Source/FourDerivScalarTensor  \
 	    $(GRCHOMBO_SOURCE)/CCZ4  \
             $(GRCHOMBO_SOURCE)/BoxUtils  \
             $(GRCHOMBO_SOURCE)/GRChomboCore  \

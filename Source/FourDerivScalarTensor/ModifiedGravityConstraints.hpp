@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef NEWMATTERCONSTRAINTS_HPP_
-#define NEWMATTERCONSTRAINTS_HPP_
+#ifndef MODIFIEDGRAVITYCONSTRAINTS_HPP_
+#define MODIFIEDGRAVITYCONSTRAINTS_HPP_
 
 #include "CCZ4Geometry.hpp"
 #include "Cell.hpp"
@@ -25,7 +25,7 @@
    EsGB()
 */
 
-template <class matter_t> class MatterConstraints : public Constraints
+template <class matter_t> class ModifiedGravityConstraints : public Constraints
 {
   public:
     template <class data_t>
@@ -46,12 +46,12 @@ template <class matter_t> class MatterConstraints : public Constraints
         }
     };
 
-    //! Constructor of class MatterConstraints
+    //! Constructor of class ModifiedGravityConstraints
     /*!
         Can specify the vars of the constraint vars instead of using the
         hardcoded ones.
     */
-    MatterConstraints(const matter_t a_matter, double dx, double G_Newton, int a_c_Ham,
+    ModifiedGravityConstraints(const matter_t a_matter, double dx, double G_Newton, int a_c_Ham,
                       const Interval &a_c_Moms, int a_c_Ham_abs_terms = -1,
                       const Interval &a_c_Moms_abs_terms = Interval());
 
@@ -64,6 +64,6 @@ template <class matter_t> class MatterConstraints : public Constraints
     double m_G_Newton;
 };
 
-#include "NewMatterConstraints.impl.hpp"
+#include "ModifiedGravityConstraints.impl.hpp"
 
-#endif /* NEWMATTERCONSTRAINTS_HPP_ */
+#endif /* MODIFIEDGRAVITYCONSTRAINTS_HPP_ */

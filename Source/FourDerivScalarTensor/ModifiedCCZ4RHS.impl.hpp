@@ -3,27 +3,27 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#if !defined(MATTERMODCCZ4RHS_HPP_)
-#error "This file should only be included through MatterModCCZ4RHS.hpp"
+#if !defined(MODIFIEDCCZ4RHS_HPP_)
+#error "This file should only be included through ModifiedCCZ4RHS.hpp"
 #endif
 
-#ifndef MATTERMODCCZ4RHS_IMPL_HPP_
-#define MATTERMODCCZ4RHS_IMPL_HPP_
+#ifndef MODIFIEDCCZ4RHS_IMPL_HPP_
+#define MODIFIEDCCZ4RHS_IMPL_HPP_
 #include "DimensionDefinitions.hpp"
 
-template <class matter_t, class gauge_t, class deriv_t, class mod_gauge_t>
-MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::MatterModCCZ4RHS(
+template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
+ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::ModifiedCCZ4RHS(
     matter_t a_matter, CCZ4_params_t<typename gauge_t::params_t> a_params,
-    mod_gauge_t a_mod_gauge, double a_dx, double a_sigma, int a_formulation, double a_G_Newton)
+    modified_gauge_t a_modified_gauge, double a_dx, double a_sigma, int a_formulation, double a_G_Newton)
     : CCZ4RHS<gauge_t, deriv_t>(a_params, a_dx, a_sigma, a_formulation,
                                 0.0 /*No cosmological constant*/),
-      my_matter(a_matter), my_mod_gauge(a_mod_gauge), m_G_Newton(a_G_Newton)
+      my_matter(a_matter), my_modified_gauge(a_modified_gauge), m_G_Newton(a_G_Newton)
 {
 }
 
-template <class matter_t, class gauge_t, class deriv_t, class mod_gauge_t>
+template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
 template <class data_t>
-void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::compute(
+void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::compute(
     Cell<data_t> current_cell) const
 {
     // copy data from chombo gridpoint into local variables
@@ -59,9 +59,9 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::compute(
 }
 
 // Function to add in EM Tensor matter terms to CCZ4 rhs
-template <class matter_t, class gauge_t, class deriv_t, class mod_gauge_t>
+template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
 template <class data_t>
-void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::add_a_b_rhs(
+void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::add_a_b_rhs(
     Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
     const Vars<Tensor<1, data_t>> &d1, const Diff2Vars<Tensor<2, data_t>> &d2,
     const Vars<data_t> &advec, const Coordinates<data_t> &coords) const
@@ -69,7 +69,7 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::add_a_b_rhs(
     data_t a_of_x = 0.;
     data_t b_of_x = 0.;
 
-    my_mod_gauge.compute_mod_gauge(a_of_x, b_of_x, coords);
+    my_modified_gauge.compute_modified_gauge(a_of_x, b_of_x, coords);
 
     const data_t chi_regularised = simd_max(1e-6, matter_vars.chi);
     using namespace TensorAlgebra;
@@ -189,9 +189,9 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::add_a_b_rhs(
 }
 
 // Function to add in EM Tensor matter terms to CCZ4 rhs
-template <class matter_t, class gauge_t, class deriv_t, class mod_gauge_t>
+template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
 template <class data_t>
-void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
+void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
     add_emtensor_rhs(Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
                      const Vars<Tensor<1, data_t>> &d1,
                      const Diff2Vars<Tensor<2, data_t>> &d2,
@@ -210,7 +210,7 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
     data_t a_of_x = 0.;
     data_t b_of_x = 0.;
 
-    my_mod_gauge.compute_mod_gauge(a_of_x, b_of_x, coords);
+    my_modified_gauge.compute_modified_gauge(a_of_x, b_of_x, coords);
 
     // Update RHS for K and Theta depending on formulation
     if (this->m_formulation == CCZ4RHS<>::USE_BSSN)
@@ -254,4 +254,4 @@ void MatterModCCZ4RHS<matter_t, gauge_t, deriv_t, mod_gauge_t>::
     }
 }
 
-#endif /* MATTERMODCCZ4RHS_IMPL_HPP_ */
+#endif /* MODIFIEDCCZ4RHS_IMPL_HPP_ */

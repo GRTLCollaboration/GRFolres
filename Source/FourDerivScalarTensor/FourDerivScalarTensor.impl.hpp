@@ -3,18 +3,18 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#if !defined(ESGB_HPP_)
-#error "This file should only be included through EsGB.hpp"
+#if !defined(FOURDERIVSCALARTENSOR_HPP_)
+#error "This file should only be included through FourDerivScalarTensor.hpp"
 #endif
 
-#ifndef ESGB_IMPL_HPP_
-#define ESGB_IMPL_HPP_
+#ifndef FOURDERIVSCALARTENSOR_IMPL_HPP_
+#define FOURDERIVSCALARTENSOR_IMPL_HPP_
 
 // Calculate the stress energy tensor elements
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-rho_Si_t<data_t> EsGB<coupling_and_potential_t>::compute_rho_Si(
+rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2) const
 {
@@ -169,7 +169,7 @@ template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
 emtensor_t<data_t>
-EsGB<coupling_and_potential_t>::compute_emtensor(const vars_t<data_t> &vars,
+FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<data_t> &vars,
                                    const vars_t<Tensor<1, data_t>> &d1,
                                    const diff2_vars_t<Tensor<2, data_t>> &d2,
                                    const vars_t<data_t> &advec) const
@@ -434,7 +434,7 @@ template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
           template <typename> class rhs_vars_t>
-void EsGB<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
+void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
                                       const vars_t<data_t> &vars,
                                       const vars_t<Tensor<1, data_t>> &d1,
                                       const diff2_vars_t<Tensor<2, data_t>> &d2,
@@ -616,7 +616,7 @@ void EsGB<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-void EsGB<coupling_and_potential_t>::compute_lhs(const int N, data_t *LHS,
+void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, data_t *LHS,
                                    const vars_t<data_t> &vars,
                                    const vars_t<Tensor<1, data_t>> &d1,
                                    const diff2_vars_t<Tensor<2, data_t>> &d2,
@@ -817,7 +817,7 @@ template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
           template <typename> class rhs_vars_t>
-void EsGB<coupling_and_potential_t>::solve_lhs(rhs_vars_t<data_t> &rhs,
+void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(rhs_vars_t<data_t> &rhs,
                                  const vars_t<data_t> &vars,
                                  const vars_t<Tensor<1, data_t>> &d1,
                                  const diff2_vars_t<Tensor<2, data_t>> &d2,
@@ -863,4 +863,4 @@ void EsGB<coupling_and_potential_t>::solve_lhs(rhs_vars_t<data_t> &rhs,
     rhs.Kphi = RHS[N - 1];
 }
 
-#endif /* ESGB_IMPL_HPP_ */
+#endif /* FOURDERIVSCALARTENSOR_IMPL_HPP_ */

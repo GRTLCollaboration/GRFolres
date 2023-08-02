@@ -6,12 +6,10 @@
 # Included makefiles need an absolute path to the Chombo installation
 # CHOMBO_HOME := Please set the CHOMBO_HOME locally(e.g. export CHOMBO_HOME=... in bash)
 
-# GRCHOMBO_SOURCE = $(shell pwd)/../../../GRChombo_public/Source
-
-ebase := EsGBTest
+ebase := FourDerivScalarTensorTest
 
 LibNames := BoxTools
 
-src_dirs := $(GRCHOMBO_SOURCE)/utils $(GRCHOMBO_SOURCE)/simd ../../Source $(GRCHOMBO_SOURCE)/CCZ4 $(GRCHOMBO_SOURCE)/BoxUtils
+src_dirs := $(GRCHOMBO_SOURCE)/utils $(GRCHOMBO_SOURCE)/simd ../../Source/FourDerivScalarTensor $(GRCHOMBO_SOURCE)/CCZ4 $(GRCHOMBO_SOURCE)/BoxUtils
 
 include $(CHOMBO_HOME)/mk/Make.test

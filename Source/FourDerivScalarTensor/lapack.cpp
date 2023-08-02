@@ -12,7 +12,7 @@
 #include <lapacke.h>
 #endif
 
-#include "EsGB.hpp"
+#include "FourDerivScalarTensor.hpp"
 
 template <>
 void EsGB_lapack::solve_system_lapack(const int N, double *LHS, double *RHS)

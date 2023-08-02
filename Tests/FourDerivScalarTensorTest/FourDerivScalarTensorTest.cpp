@@ -7,9 +7,9 @@
 #include "Coordinates.hpp"
 #include "CouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
-#include "EsGB.hpp"
-#include "MatterModCCZ4RHS.hpp"
-#include "ModGauge.hpp"
+#include "FourDerivScalarTensor.hpp"
+#include "ModifiedCCZ4RHS.hpp"
+#include "ModifiedGauge.hpp"
 #include "Tensor.hpp"
 #include <iostream>
 
@@ -29,22 +29,22 @@ template <class data_t> struct Vars : public CCZ4::Vars<data_t>
     }
 };
 
-typedef MatterModCCZ4RHS<EsGB<CouplingAndPotential>, MovingPunctureGauge,
-                     FourthOrderDerivatives, ModGauge> MyModGravClass;
+typedef ModifiedCCZ4RHS<FourDerivScalarTensor<CouplingAndPotential>, MovingPunctureGauge,
+                     FourthOrderDerivatives, ModifiedGauge> MyModifiedGravityClass;
 
 int main(int argc, char *argv[])
 {
     int failed = 0;
 
     CCZ4::params_t m_params;
-    ModGauge::params_t m_params_mod_gauge;
+    ModifiedGauge::params_t m_params_modified_gauge;
     CouplingAndPotential::params_t m_params_coupling_and_potential;    
 
-    MyModGravClass::Vars<double> rhs;
-    MyModGravClass::Vars<double> vars;
-    MyModGravClass::Vars<Tensor<1, double>> d1;
-    MyModGravClass::Diff2Vars<Tensor<2, double>> d2;
-    MyModGravClass::Vars<double> advec;
+    MyModifiedGravityClass::Vars<double> rhs;
+    MyModifiedGravityClass::Vars<double> vars;
+    MyModifiedGravityClass::Vars<Tensor<1, double>> d1;
+    MyModifiedGravityClass::Diff2Vars<Tensor<2, double>> d2;
+    MyModifiedGravityClass::Vars<double> advec;
 
 #include "values1.hpp" //Including the auto generated file with values    
     
@@ -60,23 +60,23 @@ int main(int argc, char *argv[])
     IntVect vect(ind);
     Coordinates<double> coords(vect, dx, {0., 0., 0.});
     
-    ModGauge mod_gauge(m_params_mod_gauge);
+    ModifiedGauge modified_gauge(m_params_modified_gauge);
     CouplingAndPotential coupling_and_potential(m_params_coupling_and_potential);
-    EsGB<CouplingAndPotential> esgb(coupling_and_potential);
-    MyModGravClass my_modccz4_matter(esgb, m_params, mod_gauge, dx, sigma, 0, 1./(16.*M_PI));
+    FourDerivScalarTensor<CouplingAndPotential> fdst(coupling_and_potential);
+    MyModifiedGravityClass my_modified_ccz4(fdst, m_params, modified_gauge, dx, sigma, 0, 1./(16.*M_PI));
 
     // add functions a(x) and b(x) of the modified gauge
-    my_modccz4_matter.add_a_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
+    my_modified_ccz4.add_a_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
     // add RHS matter terms from EM Tensor
-    my_modccz4_matter.add_emtensor_rhs<double>(rhs, vars, d1, d2, advec,
+    my_modified_ccz4.add_emtensor_rhs<double>(rhs, vars, d1, d2, advec,
                                                coords);
 
     // add evolution of matter fields themselves
-    esgb.add_matter_rhs<double>(rhs, vars, d1, d2, advec);
+    fdst.add_matter_rhs<double>(rhs, vars, d1, d2, advec);
 
     // solve linear system for the matter fields that require it (e.g. EsGB)
-    esgb.solve_lhs<double>(rhs, vars, d1, d2, advec);
+    fdst.solve_lhs<double>(rhs, vars, d1, d2, advec);
 
     // Compare
     double diff;
@@ -200,9 +200,9 @@ int main(int argc, char *argv[])
         }
     }
     if (failed == 0)
-        std::cout << "EsGB test passed..." << std::endl;
+        std::cout << "FourDerivScalarTensor test passed..." << std::endl;
     else
-        std::cout << "EsGB test failed..." << std::endl;
+        std::cout << "FourDerivScalarTensor test failed..." << std::endl;
 
     return failed;
 }

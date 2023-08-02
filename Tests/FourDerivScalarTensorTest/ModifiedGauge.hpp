@@ -3,12 +3,12 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef MODGAUGE_HPP_
-#define MODGAUGE_HPP_
+#ifndef MODIFIEDGAUGE_HPP_
+#define MODIFIEDGAUGE_HPP_
 
 #include "simd.hpp"
 
-class ModGauge
+class ModifiedGauge
 {
   public:
     struct params_t
@@ -24,11 +24,11 @@ class ModGauge
 
   public:
     //! The constructor
-    ModGauge(params_t a_params) : m_params(a_params) {}
+    ModifiedGauge(params_t a_params) : m_params(a_params) {}
 
     //! Set the modified gauge functions here
     template <class data_t, template <typename> class coords_t>
-    void compute_mod_gauge(data_t &a_of_x, data_t &b_of_x,
+    void compute_modified_gauge(data_t &a_of_x, data_t &b_of_x,
                            const coords_t<data_t> &coords) const
     {
         // a(x) from \tilde{g}^{\mu\nu} = g^{\mu\nu} - a(x)n^{\mu}n^{\nu}
@@ -39,4 +39,4 @@ class ModGauge
     }
 };
 
-#endif /* MODGAUGE_HPP_ */
+#endif /* MODIFIEDGAUGE_HPP_ */

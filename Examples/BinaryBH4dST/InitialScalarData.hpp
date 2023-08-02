@@ -8,8 +8,8 @@
 
 #include "Cell.hpp"
 #include "Coordinates.hpp"
-#include "EsGB.hpp"
-#include "MatterModCCZ4RHS.hpp"
+#include "FourDerivScalarTensor.hpp"
+#include "ModifiedCCZ4RHS.hpp"
 #include "Tensor.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS - total no. components
 #include "VarsTools.hpp"

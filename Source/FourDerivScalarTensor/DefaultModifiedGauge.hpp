@@ -3,21 +3,21 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef DEFAULTMODGAUGE_HPP_
-#define DEFAULTMODGAUGE_HPP_
+#ifndef DEFAULTMODIFIEDGAUGE_HPP_
+#define DEFAULTMODIFIEDGAUGE_HPP_
 
 #include "Tensor.hpp"
 #include "simd.hpp"
 
-class DefaultModGauge
+class DefaultModifiedGauge
 {
   public:
     //! The constructor
-    DefaultModGauge() {}
+    DefaultModifiedGauge() {}
 
     //! Set the modified gauge functions here to zero
     template <class data_t, template <typename> class coords_t>
-    void compute_mod_gauge(data_t &a_of_x, data_t &b_of_x,
+    void compute_modified_gauge(data_t &a_of_x, data_t &b_of_x,
                            const coords_t<data_t> &coords) const
     {
         // a(x) from \tilde{g}^{\mu\nu} = g^{\mu\nu} - a(x)n^{\mu}n^{\nu}
@@ -28,4 +28,4 @@ class DefaultModGauge
     }
 };
 
-#endif /* DEFAULTMODGAUGE_HPP_ */
+#endif /* DEFAULTMODIFIEDGAUGE_HPP_ */

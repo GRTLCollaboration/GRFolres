@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    107669,       3061]
-NotebookOptionsPosition[    107311,       3047]
-NotebookOutlinePosition[    107711,       3063]
-CellTagsIndexPosition[    107668,       3060]
+NotebookDataLength[    109221,       3097]
+NotebookOptionsPosition[    108864,       3083]
+NotebookOutlinePosition[    109263,       3099]
+CellTagsIndexPosition[    109220,       3096]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -35,10 +35,13 @@ Cell[BoxData[{
   RowBox[{"lapsecoeff", "=", "2"}], ";", 
   RowBox[{"lapsepower", "=", "1"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
+  RowBox[{"shiftadveccoeff", " ", "=", "1"}], ";", 
+  RowBox[{"shiftGammacoeff", "=", "0.75"}], ";", 
+  RowBox[{"\[Eta]", "=", 
+   RowBox[{"RandomReal", "[", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
   RowBox[{
-   RowBox[{"shiftadveccoeff", " ", "=", "1"}], ";", 
-   RowBox[{"shiftGammacoeff", "=", "0.75"}], ";", 
-   RowBox[{"\[Eta]", "=", 
+   RowBox[{"scalarmass", "=", 
     RowBox[{"RandomReal", "[", "]"}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
@@ -420,11 +423,11 @@ Cell[BoxData[{
       RowBox[{"{", 
        RowBox[{"j", ",", "1", ",", "3"}], "}"}], ",", 
       RowBox[{"{", 
-       RowBox[{"l", ",", "1", ",", "3"}], "}"}]}], "]"}]}], ";"}], "\n", 
-  "\[IndentingNewLine]", 
+       RowBox[{"l", ",", "1", ",", "3"}], "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{"Make", " ", "the", " ", "derivatives", " ", "symmetric"}], 
-   "*)"}]}], "\[IndentingNewLine]", 
+   "*)"}]}], "\n", 
  RowBox[{
   RowBox[{"Do", "[", 
    RowBox[{
@@ -496,7 +499,7 @@ Cell[BoxData[{
       RowBox[{"i", ",", "1", ",", "3"}], "}"}], ",", 
      RowBox[{"{", 
       RowBox[{"j", ",", "1", ",", "3"}], "}"}]}], "]"}], ";"}], 
-  "\n"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenWrite", "[", 
@@ -510,7 +513,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{
    RowBox[{"Close", "[", "stream", "]"}], ";"}], 
-  "\n"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenAppend", "[", 
@@ -1026,38 +1029,47 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_mod_gauge.a0 = \>\"", "<>", 
+    RowBox[{"\"\<m_params_modified_gauge.a0 = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{"a", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], "]"}], 
   ";"}], "\n", 
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_mod_gauge.b0 = \>\"", "<>", 
+    RowBox[{"\"\<m_params_modified_gauge.b0 = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{"b", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], "]"}], 
   ";"}], "\n", 
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_coupling.lambda_GB = \>\"", "<>", 
+    RowBox[{"\"\<m_params_coupling_and_potential.lambda_GB = \>\"", "<>", 
      RowBox[{"ToString", "[", 
-      RowBox[{"\[Alpha]GB", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}],
-    "]"}], ";"}], "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"\[Alpha]GB", "/", "4"}], "//", "InputForm"}], "]"}], "<>", 
+     "\"\<;\>\""}]}], "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_coupling.cutoff_GB = \>\"", "<>", 
+    RowBox[{"\"\<m_params_coupling_and_potential.cutoff_GB = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{"cutoffGB", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
    "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
+  RowBox[{
+   RowBox[{"WriteLine", "[", 
+    RowBox[{"stream", ",", 
+     RowBox[{"\"\<m_params_coupling_and_potential.factor_GB = \>\"", "<>", 
+      RowBox[{"ToString", "[", 
+       RowBox[{"factorGB", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
+    "]"}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_coupling.factor_GB = \>\"", "<>", 
+    RowBox[{"\"\<m_params_coupling_and_potential.scalar_mass = \>\"", "<>", 
      RowBox[{"ToString", "[", 
-      RowBox[{"factorGB", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
-   "]"}], ";"}], "\[IndentingNewLine]", 
+      RowBox[{"scalarmass", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}],
+    "]"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Close", "[", "stream", "]"}], ";"}], "\n", 
  RowBox[{
@@ -1103,10 +1115,10 @@ Cell[BoxData[{
         RowBox[{"{", 
          RowBox[{"1", ",", "4"}], "}"}], ",", 
         RowBox[{"{", 
-         RowBox[{"2", ",", "5"}], "}"}]}], "}"}]}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]", "\[IndentingNewLine]", 
+         RowBox[{"2", ",", "5"}], "}"}]}], "}"}]}], "]"}]}], ";"}], "\n", 
+  "\[IndentingNewLine]", 
   RowBox[{"(*", 
-   RowBox[{"Calculate", " ", "ricci"}], "*)"}]}], "\n", 
+   RowBox[{"Calculate", " ", "ricci"}], "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"dims", "=", "4"}], ";", 
   RowBox[{"\[Chi]", "=", "chi"}], ";", 
@@ -1310,8 +1322,8 @@ Cell[BoxData[{
    RowBox[{"ricciS", "=", 
     RowBox[{"Tr", "[", 
      RowBox[{"\[Chi]", " ", 
-      RowBox[{"hu", ".", "ricci"}]}], "]"}]}], ";"}], "\n", 
-  "\[IndentingNewLine]", 
+      RowBox[{"hu", ".", "ricci"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+  "\n", 
   RowBox[{"(*", 
    RowBox[{"define", " ", "variables"}], "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
@@ -1328,14 +1340,24 @@ Cell[BoxData[{
   RowBox[{"\[CapitalTheta]", "=", "Theta"}], ";", 
   RowBox[{"d\[CapitalTheta]", "=", "dTheta"}], ";"}], "\n", 
  RowBox[{
+  RowBox[{"\[Phi]", "=", "phi"}], ";", 
+  RowBox[{"d\[Phi]", "=", "dphi"}], ";", 
+  RowBox[{"d2\[Phi]", "=", "d2phi"}], ";", 
+  RowBox[{"K\[Phi]", "=", "Kphi"}], ";", 
+  RowBox[{"dK\[Phi]", "=", "dKphi"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
   RowBox[{
-   RowBox[{"\[Phi]", "=", "phi"}], ";", 
-   RowBox[{"d\[Phi]", "=", "dphi"}], ";", 
-   RowBox[{"d2\[Phi]", "=", "d2phi"}], ";", 
-   RowBox[{"K\[Phi]", "=", "Kphi"}], ";", 
-   RowBox[{"dK\[Phi]", "=", "dKphi"}], ";"}], "\[IndentingNewLine]", "\n", 
+   RowBox[{"Vofphi", "=", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"scalarmass", "^", "2"}], "/", "2"}], " ", "*", 
+     RowBox[{"\[Phi]", "^", "2"}]}]}], ";", 
+   RowBox[{"dVdphi", "=", 
+    RowBox[{
+     RowBox[{"scalarmass", "^", "2"}], "*", "\[Phi]"}]}], ";"}], 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
   RowBox[{"(*", 
-   RowBox[{"useful", " ", "computations"}], "*)"}]}], "\[IndentingNewLine]", 
+   RowBox[{"useful", " ", "computations"}], "*)"}]}], "\n", 
  RowBox[{
   RowBox[{"covd2lapse\[Chi]", "=", 
    RowBox[{
@@ -1691,7 +1713,7 @@ Cell[BoxData[{
            RowBox[{"2", ",", "5"}], "}"}], ",", 
           RowBox[{"{", 
            RowBox[{"3", ",", "6"}], "}"}]}], "}"}]}], "]"}]}]}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"SK\[Phi]", "=", 
@@ -2391,6 +2413,7 @@ Cell[BoxData[{
      RowBox[{
       RowBox[{"(", 
        RowBox[{
+        RowBox[{"2", "*", "Vofphi"}], "+", 
         RowBox[{"K\[Phi]", "^", "2"}], "+", 
         RowBox[{
          RowBox[{"(", 
@@ -2675,7 +2698,14 @@ Cell[BoxData[{
          RowBox[{"1", "+", "b"}], ")"}]}], ")"}]}], " ", 
      RowBox[{"(", 
       RowBox[{"1", "+", 
-       RowBox[{"b", "/", "4"}]}], ")"}]}], "+", 
+       RowBox[{"b", "/", "4"}]}], ")"}]}], "-", 
+    RowBox[{"3", 
+     RowBox[{"\[Alpha]", "/", "4"}], "Vofphi", 
+     RowBox[{"(", 
+      RowBox[{"1", "+", 
+       RowBox[{"1", "/", 
+        RowBox[{"(", 
+         RowBox[{"1", "+", "b"}], ")"}]}]}], ")"}]}], "+", 
     RowBox[{"\[Beta]", ".", "dK"}], "+", 
     RowBox[{"\[Alpha]GB", " ", 
      RowBox[{"(", 
@@ -2707,10 +2737,11 @@ Cell[BoxData[{
          RowBox[{"hu", ".", "d\[Phi]", ".", "d\[Chi]"}]}]}], ")"}]}], "-", 
      RowBox[{"\[Chi]", " ", 
       RowBox[{"hu", ".", "d\[Alpha]", ".", "d\[Phi]"}]}], "+", 
-     RowBox[{"\[Beta]", ".", "dK\[Phi]"}], "-", 
+     RowBox[{"\[Beta]", ".", "dK\[Phi]"}], "+", 
+     RowBox[{"\[Alpha]", "*", "dVdphi"}], "-", 
      RowBox[{"\[Alpha]GB", " ", "df", " ", 
-      RowBox[{"SK\[Phi]", "/", "4"}]}]}]}], ";"}], "\[IndentingNewLine]", 
-  "\n", 
+      RowBox[{"SK\[Phi]", "/", "4"}]}]}]}], ";"}], "\n", 
+  "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{
     RowBox[{"elements", " ", "of", " ", "the", " ", "matrix"}], "+"}], 
@@ -3041,12 +3072,17 @@ Cell[BoxData[{
    3.862991447718656*^9, 3.86299155698988*^9, {3.862992130874592*^9, 
    3.862992177807272*^9}, {3.862992248895063*^9, 3.862992266730219*^9}, 
    3.899879138298807*^9, 3.899879236931909*^9, {3.899879988151099*^9, 
-   3.899879988902936*^9}},
+   3.899879988902936*^9}, {3.899973840405263*^9, 3.8999739385731564`*^9}, {
+   3.8999744468774567`*^9, 3.899974460904941*^9}, 3.899974494801051*^9, {
+   3.899974613069875*^9, 3.899974702099072*^9}, {3.8999749104983*^9, 
+   3.899974915417636*^9}, {3.899975187463697*^9, 3.899975211588894*^9}, {
+   3.899975351574985*^9, 3.899975356876224*^9}, {3.8999753930961113`*^9, 
+   3.8999753968053226`*^9}, {3.899975512925466*^9, 3.899975515812492*^9}},
  CellLabel->
-  "In[184]:=",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
+  "In[1111]:=",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
 },
 WindowSize->{867.75, 669.75},
-WindowMargins->{{183.75, Automatic}, {27, Automatic}},
+WindowMargins->{{Automatic, 36}, {23.25, Automatic}},
 FrontEndVersion->"12.1 for Linux x86 (64-bit) (June 19, 2020)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"31a06584-caea-440a-af30-09e01591b2dc"
@@ -3062,7 +3098,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 106749, 3025, 6727, "Input",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
+Cell[558, 20, 108302, 3061, 6914, "Input",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
 }
 ]
 *)

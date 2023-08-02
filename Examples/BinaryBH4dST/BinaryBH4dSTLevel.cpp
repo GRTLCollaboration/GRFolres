@@ -3,7 +3,7 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#include "BinaryBHEsGBLevel.hpp"
+#include "BinaryBH4dSTLevel.hpp"
 #include "AMRReductions.hpp"
 #include "BinaryBH.hpp"
 #include "BoxLoops.hpp"
@@ -11,9 +11,9 @@
 #include "ChiExtractionTaggingCriterion.hpp"
 #include "ChiPunctureExtractionTaggingCriterion.hpp"
 #include "ComputePack.hpp"
-#include "MatterModCCZ4RHS.hpp"
+#include "ModifiedCCZ4RHS.hpp"
 #include "NanCheck.hpp"
-#include "NewMatterConstraints.hpp"
+#include "ModifiedGravityConstraints.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "PunctureTracker.hpp"
 #include "SetValue.hpp"
@@ -25,7 +25,7 @@
 #include "WeylExtraction.hpp"
 
 // Things to do during the advance step after RK4 steps
-void BinaryBHEsGBLevel::specificAdvance()
+void BinaryBH4dSTLevel::specificAdvance()
 {
     // Enforce the trace free A_ij condition and positive chi and alpha
     BoxLoops::loop(make_compute_pack(TraceARemoval(), PositiveChiAndAlpha()),
@@ -39,11 +39,11 @@ void BinaryBHEsGBLevel::specificAdvance()
 
 // This initial data uses an approximation for the metric which
 // is valid for small boosts
-void BinaryBHEsGBLevel::initialData()
+void BinaryBH4dSTLevel::initialData()
 {
-    CH_TIME("BinaryBHEsGBLevel::initialData");
+    CH_TIME("BinaryBH4dSTLevel::initialData");
     if (m_verbosity)
-        pout() << "BinaryBHEsGBLevel::initialData " << m_level << endl;
+        pout() << "BinaryBH4dSTLevel::initialData " << m_level << endl;
 #ifdef USE_TWOPUNCTURES
     TwoPuncturesInitialData two_punctures_initial_data(
         m_dx, m_p.center, m_tp_amr.m_two_punctures);
@@ -62,7 +62,7 @@ void BinaryBHEsGBLevel::initialData()
 }
 
 // Calculate RHS during RK4 substeps
-void BinaryBHEsGBLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
+void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                                         const double a_time)
 {
     // Enforce positive chi and alpha and trace free A
@@ -71,42 +71,42 @@ void BinaryBHEsGBLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
 
     // Calculate MatterModCCZ4 right hand side with matter_t = EsGB
     CouplingAndPotential coupling_and_potential(m_p.coupling_and_potential_params);
-    EsGBWithCoupling esgb(coupling_and_potential);
-    ModGauge mod_gauge(m_p.mod_gauge_params);
+    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
+    ModifiedGauge modified_gauge(m_p.modified_gauge_params);
     if (m_p.max_spatial_derivative_order == 4)
     {
-        MatterModCCZ4RHS<EsGBWithCoupling, MovingPunctureGauge,
-                         FourthOrderDerivatives, ModGauge>
-            my_modccz4_matter(esgb, m_p.ccz4_params, mod_gauge, m_dx, m_p.sigma,
+        ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential, MovingPunctureGauge,
+                         FourthOrderDerivatives, ModifiedGauge>
+            my_modified_ccz4(fdst, m_p.ccz4_params, modified_gauge, m_dx, m_p.sigma,
                               m_p.formulation, m_p.G_Newton);
-        BoxLoops::loop(my_modccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
+        BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
     else if (m_p.max_spatial_derivative_order == 6)
     {
-        MatterModCCZ4RHS<EsGBWithCoupling, MovingPunctureGauge,
-                         SixthOrderDerivatives, ModGauge>
-            my_modccz4_matter(esgb, m_p.ccz4_params, mod_gauge, m_dx, m_p.sigma,
+        ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential, MovingPunctureGauge,
+                         SixthOrderDerivatives, ModifiedGauge>
+            my_modified_ccz4(fdst, m_p.ccz4_params, modified_gauge, m_dx, m_p.sigma,
                               m_p.formulation, m_p.G_Newton);
-        BoxLoops::loop(my_modccz4_matter, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
+        BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
 }
 
 // enforce trace removal during RK4 substeps
-void BinaryBHEsGBLevel::specificUpdateODE(GRLevelData &a_soln,
+void BinaryBH4dSTLevel::specificUpdateODE(GRLevelData &a_soln,
                                           const GRLevelData &a_rhs, Real a_dt)
 {
     // Enforce the trace free A_ij condition
     BoxLoops::loop(TraceARemoval(), a_soln, a_soln, INCLUDE_GHOST_CELLS);
 }
 
-void BinaryBHEsGBLevel::preTagCells()
+void BinaryBH4dSTLevel::preTagCells()
 {
     // We only use chi in the tagging criterion so only fill the ghosts for chi
     fillAllGhosts(VariableType::evolution, Interval(c_chi, c_chi));
 }
 
 // specify the cells to tag
-void BinaryBHEsGBLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
+void BinaryBH4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                                 const FArrayBox &current_state)
 {
     if (m_p.track_punctures)
@@ -136,9 +136,9 @@ void BinaryBHEsGBLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
     }
 }
 
-void BinaryBHEsGBLevel::specificPostTimeStep()
+void BinaryBH4dSTLevel::specificPostTimeStep()
 {
-    CH_TIME("BinaryBHEsGBLevel::specificPostTimeStep");
+    CH_TIME("BinaryBH4dSTLevel::specificPostTimeStep");
 
     bool first_step =
         (m_time == 0.); // this form is used when 'specificPostTimeStep' was
@@ -179,10 +179,10 @@ void BinaryBHEsGBLevel::specificPostTimeStep()
     if (m_p.calculate_constraint_norms)
     {
         CouplingAndPotential coupling_and_potential(m_p.coupling_and_potential_params);
-        EsGBWithCoupling esgb(coupling_and_potential);
+        FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
         fillAllGhosts();
-        BoxLoops::loop(MatterConstraints<EsGBWithCoupling>(
-                           esgb, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
+        BoxLoops::loop(ModifiedGravityConstraints<FourDerivScalarTensorWithCouplingAndPotential>(
+                           fdst, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
                        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
         if (m_level == 0)
         {
@@ -215,17 +215,17 @@ void BinaryBHEsGBLevel::specificPostTimeStep()
 
 #ifdef CH_USE_HDF5
 // Things to do before a plot level - need to calculate the Weyl scalars
-void BinaryBHEsGBLevel::prePlotLevel()
+void BinaryBH4dSTLevel::prePlotLevel()
 {
     fillAllGhosts();
     if (m_p.activate_extraction == 1)
     {
         CouplingAndPotential coupling_and_potential(m_p.coupling_and_potential_params);
-        EsGBWithCoupling esgb(coupling_and_potential);
+        FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
         BoxLoops::loop(
             make_compute_pack(
                 Weyl4(m_p.extraction_params.center, m_dx, m_p.formulation),
-                MatterConstraints<EsGBWithCoupling>(esgb, m_dx, m_p.G_Newton, c_Ham,
+                ModifiedGravityConstraints<FourDerivScalarTensorWithCouplingAndPotential>(fdst, m_dx, m_p.G_Newton, c_Ham,
                                                     Interval(c_Mom1, c_Mom3))),
             m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
     }

@@ -15,7 +15,7 @@
 #include "BoostedBH.hpp"
 #include "CouplingAndPotential.hpp"
 #include "InitialScalarData.hpp"
-#include "ModGauge.hpp"
+#include "ModifiedGauge.hpp"
 #ifdef USE_TWOPUNCTURES
 #include "TP_Parameters.hpp"
 #endif
@@ -197,8 +197,8 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
         pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
         pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);
-        pp.load("a0", mod_gauge_params.a0, 0.);
-        pp.load("b0", mod_gauge_params.b0, 0.);
+        pp.load("a0", modified_gauge_params.a0, 0.);
+        pp.load("b0", modified_gauge_params.b0, 0.);
 
         // Initial data
         pp.load("massA", bh1_params.mass);
@@ -320,7 +320,7 @@ class SimulationParameters : public SimulationParametersBase
     double G_Newton;
     InitialScalarData::params_t initial_params;
     CouplingAndPotential::params_t coupling_and_potential_params;
-    ModGauge::params_t mod_gauge_params;
+    ModifiedGauge::params_t modified_gauge_params;
     BoostedBH::params_t bh2_params;
     BoostedBH::params_t bh1_params;
 

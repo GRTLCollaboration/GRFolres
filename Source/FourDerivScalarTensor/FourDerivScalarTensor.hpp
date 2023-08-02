@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef ESGB_HPP_
-#define ESGB_HPP_
+#ifndef FOURDERIVSCALARTENSOR_HPP_
+#define FOURDERIVSCALARTENSOR_HPP_
 
 #include "CCZ4Geometry.hpp"
 #include "DefaultCouplingAndPotential.hpp"
@@ -38,21 +38,21 @@ template <class data_t> struct rho_Si_t
     data_t rho;           //!< rho = T_ab n^a n^b
 };
 
-template <class coupling_and_potential_t = DefaultCouplingAndPotential> class EsGB
+template <class coupling_and_potential_t = DefaultCouplingAndPotential> class FourDerivScalarTensor
 {
   protected:
     //! The local copy of the coupling
     coupling_and_potential_t my_coupling_and_potential;
 
   public:
-    //!  Constructor of class EsGB, inputs are the matter parameters.
-    EsGB(const coupling_and_potential_t a_coupling_and_potential) : my_coupling_and_potential(a_coupling_and_potential) {}
+    //!  Constructor of class FourDerivScalarTensor, inputs are the matter parameters.
+    FourDerivScalarTensor(const coupling_and_potential_t a_coupling_and_potential) : my_coupling_and_potential(a_coupling_and_potential) {}
 
     //! Structure containing the rhs variables for the matter fields
     template <class data_t> struct Vars
     {
         data_t phi;  // the scalar field
-        data_t Kphi; // the curvature of the scalar field
+        data_t Kphi;   // conjugate momentum of the scalar field
 
         /// Defines the mapping between members of Vars and Chombo grid
         /// variables (enum in User_Variables)
@@ -161,6 +161,6 @@ class EsGB_lapack
     static void solve_system_lapack(const int N, data_t *LHS, data_t *RHS);
 };
 
-#include "EsGB.impl.hpp"
+#include "FourDerivScalarTensor.impl.hpp"
 
-#endif /* ESGB_HPP_ */
+#endif /* FOURDERIVSCALARTENSOR_HPP_ */

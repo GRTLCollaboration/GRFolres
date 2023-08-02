@@ -3,20 +3,20 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef BINARYBHESGBLEVEL_HPP_
-#define BINARYBHESGBLEVEL_HPP_
+#ifndef BINARYBH4DSTLEVEL_HPP_
+#define BINARYBH4DSTLEVEL_HPP_
 
 #include "CouplingAndPotential.hpp"
 #include "DefaultLevelFactory.hpp"
-#include "EsGB.hpp"
+#include "FourDerivScalarTensor.hpp"
 #include "GRAMRLevel.hpp"
-#include "ModGauge.hpp"
+#include "ModifiedGauge.hpp"
 // TPAMR.hpp includes BHAMR.hpp
 #include "TPAMR.hpp"
 
-class BinaryBHEsGBLevel : public GRAMRLevel
+class BinaryBH4dSTLevel : public GRAMRLevel
 {
-    friend class DefaultLevelFactory<BinaryBHEsGBLevel>;
+    friend class DefaultLevelFactory<BinaryBH4dSTLevel>;
     // Inherit the contructors from GRAMRLevel
     using GRAMRLevel::GRAMRLevel;
 
@@ -25,8 +25,8 @@ class BinaryBHEsGBLevel : public GRAMRLevel
     TPAMR &m_tp_amr = dynamic_cast<TPAMR &>(m_gr_amr);
 #endif /* USE_TWOPUNCTURES */
 
-    // Typedef for esgb
-    typedef EsGB<CouplingAndPotential> EsGBWithCoupling;
+    // Typedef for 4dST
+    typedef FourDerivScalarTensor<CouplingAndPotential> FourDerivScalarTensorWithCouplingAndPotential;
 
     /// Things to do at every full timestep
     ///(might include several substeps, e.g. in RK4)
@@ -61,4 +61,4 @@ class BinaryBHEsGBLevel : public GRAMRLevel
 #endif /* CH_USE_HDF5 */
 };
 
-#endif /* BINARYBHESGBLEVEL_HPP_ */
+#endif /* BINARYBH4DSTLEVEL_HPP_ */
