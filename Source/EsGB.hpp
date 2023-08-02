@@ -7,7 +7,7 @@
 #define ESGB_HPP_
 
 #include "CCZ4Geometry.hpp"
-#include "DefaultCoupling.hpp"
+#include "DefaultCouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "Tensor.hpp"
@@ -38,15 +38,15 @@ template <class data_t> struct rho_Si_t
     data_t rho;           //!< rho = T_ab n^a n^b
 };
 
-template <class coupling_t = DefaultCoupling> class EsGB
+template <class coupling_and_potential_t = DefaultCouplingAndPotential> class EsGB
 {
   protected:
     //! The local copy of the coupling
-    coupling_t my_coupling;
+    coupling_and_potential_t my_coupling_and_potential;
 
   public:
     //!  Constructor of class EsGB, inputs are the matter parameters.
-    EsGB(const coupling_t a_coupling) : my_coupling(a_coupling) {}
+    EsGB(const coupling_and_potential_t a_coupling_and_potential) : my_coupling_and_potential(a_coupling_and_potential) {}
 
     //! Structure containing the rhs variables for the matter fields
     template <class data_t> struct Vars

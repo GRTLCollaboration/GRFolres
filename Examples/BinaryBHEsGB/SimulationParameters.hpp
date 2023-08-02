@@ -13,7 +13,7 @@
 // Problem specific includes:
 #include "ArrayTools.hpp"
 #include "BoostedBH.hpp"
-#include "Coupling.hpp"
+#include "CouplingAndPotential.hpp"
 #include "InitialScalarData.hpp"
 #include "ModGauge.hpp"
 #ifdef USE_TWOPUNCTURES
@@ -193,9 +193,10 @@ class SimulationParameters : public SimulationParametersBase
         pp.load("G_Newton", G_Newton, 1.0);
         pp.load("scalar_amplitude", initial_params.amplitude, 0.);
         pp.load("scalar_width", initial_params.width, 1.0);
-        pp.load("lambda_GB", coupling_params.lambda_GB, 0.);
-        pp.load("cutoff_GB", coupling_params.cutoff_GB, 0.15);
-        pp.load("factor_GB", coupling_params.factor_GB, 100.);
+        pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
+        pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
+        pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
+        pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);
         pp.load("a0", mod_gauge_params.a0, 0.);
         pp.load("b0", mod_gauge_params.b0, 0.);
 
@@ -318,7 +319,7 @@ class SimulationParameters : public SimulationParametersBase
     // e.g. for puncture tracking/tagging
     double G_Newton;
     InitialScalarData::params_t initial_params;
-    Coupling::params_t coupling_params;
+    CouplingAndPotential::params_t coupling_and_potential_params;
     ModGauge::params_t mod_gauge_params;
     BoostedBH::params_t bh2_params;
     BoostedBH::params_t bh1_params;

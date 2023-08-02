@@ -11,21 +11,23 @@
 #define ESGB_IMPL_HPP_
 
 // Calculate the stress energy tensor elements
-template <class coupling_t>
+template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
+rho_Si_t<data_t> EsGB<coupling_and_potential_t>::compute_rho_Si(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2) const
 {
     rho_Si_t<data_t> out;
 
     // set the potential values
-    data_t dfGB = 0.0;
-    data_t df2GB = 0.0;
+    data_t dfdphi = 0.0;
+    data_t d2fdphi2 = 0.0;
+    data_t V_of_phi = 0.0;
+    data_t dVdphi = 0.0;
 
     // compute coupling
-    my_coupling.compute_coupling(dfGB, df2GB, vars);
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
 
     using namespace TensorAlgebra;
     const auto h_UU = compute_inverse_sym(vars.h);
@@ -40,6 +42,7 @@ rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
 
     // rho = n^a n^b T_ab
     out.rho = vars.Kphi * vars.Kphi + 0.5 * Vt;
+    out.rho += V_of_phi;
 
     // Compute useful quantities for the Gauss-Bonnet sector
     const auto ricci0 =
@@ -83,20 +86,20 @@ rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = dfGB * (covd2phi[i][j] -
+        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] -
                             vars.Kphi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-                    df2GB * d1.phi[i] * d1.phi[j];
+                    4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
     }
     data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
 
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = df2GB * vars.Kphi * d1.phi[i] +
-                dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += -dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        Ci[i] = 4. * d2fdphi2 * vars.Kphi * d1.phi[i] +
+                4. * dfdphi * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
     Tensor<2, data_t> Cij_UU = raise_all(Cij, h_UU); // raise all indexs
@@ -162,11 +165,11 @@ rho_Si_t<data_t> EsGB<coupling_t>::compute_rho_Si(
 }
 
 // Calculate the stress energy tensor elements
-template <class coupling_t>
+template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
 emtensor_t<data_t>
-EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
+EsGB<coupling_and_potential_t>::compute_emtensor(const vars_t<data_t> &vars,
                                    const vars_t<Tensor<1, data_t>> &d1,
                                    const diff2_vars_t<Tensor<2, data_t>> &d2,
                                    const vars_t<data_t> &advec) const
@@ -178,11 +181,13 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
     FOR(i) out.Si[i] = rho_Si.Si[i];
 
     // set the potential values
-    data_t dfGB = 0.0;
-    data_t df2GB = 0.0;
+    data_t dfdphi = 0.0;
+    data_t d2fdphi2 = 0.0;
+    data_t V_of_phi = 0.0;
+    data_t dVdphi = 0.0;
 
     // compute coupling
-    my_coupling.compute_coupling(dfGB, df2GB, vars);
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
 
     using namespace TensorAlgebra;
     const auto h_UU = compute_inverse_sym(vars.h);
@@ -199,6 +204,8 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
         out.Sij[i][j] =
             -0.5 * vars.h[i][j] * Vt / vars.chi + d1.phi[i] * d1.phi[j];
     }
+
+    FOR(i, j) { out.Sij[i][j] += -vars.h[i][j] * V_of_phi / vars.chi; }
 
     // S = Tr_S_ij
     out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij, h_UU);
@@ -246,20 +253,20 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = dfGB * (covd2phi[i][j] -
+        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] -
                             vars.Kphi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-                    df2GB * d1.phi[i] * d1.phi[j];
+                    4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
     }
     data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
 
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = df2GB * vars.Kphi * d1.phi[i] +
-                dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += -dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        Ci[i] = 4. * d2fdphi2 * vars.Kphi * d1.phi[i] +
+                4. * dfdphi * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
     Tensor<2, data_t> Cij_UU = raise_all(Cij, h_UU); // raise all indexs
@@ -383,12 +390,12 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
                (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
     }
 
-    data_t SGB = 4. / 3. * C * F + 4. * M * (-df2GB / 4. * Vt + C / 3.) -
-                 (out.rho - vars.Kphi * vars.Kphi - 0.5 * Vt);
+    data_t SGB = 4. / 3. * C * F + 4. * M * (- d2fdphi2 * Vt + C / 3.) -
+                 (out.rho - V_of_phi - vars.Kphi * vars.Kphi - 0.5 * Vt);
     FOR(i, j)
     SGB += - 2. * Cij_TF_UU[i][j] * vars.chi * (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
            4. * h_UU[i][j] * vars.chi * Ni[i] * Ci[j];
-    SGB += dfGB * dfGB / 4. * M * RGB;
+    SGB += 4. * dfdphi * dfdphi * M * RGB;
 
     Tensor<2, data_t> SijGB;
     FOR(i, j)
@@ -396,7 +403,7 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
         SijGB[i][j] =
             -2. / 3. * Cij_TF[i][j] * vars.chi *
                 (F + 2. * (tr_covd2lapse / lapse_regularised - tr_A2)) -
-            2. * vars.chi * Mij_TF[i][j] * (C - df2GB * Vt) - 2. * C / 3. * Fij_TF[i][j] +
+            2. * vars.chi * Mij_TF[i][j] * (C - 4. * d2fdphi2 * Vt) - 2. * C / 3. * Fij_TF[i][j] +
             2. * vars.chi * ((Ni[i] + d1.K[i] / 3.) * Ci[j] +
                         (Ni[j] + d1.K[j] / 3.) * Ci[i]);
         FOR(k, l)
@@ -413,7 +420,7 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
         }
         SijGB[i][j] += vars.h[i][j] * SGB / 3.;
         SijGB[i][j] /= chi_regularised;
-        SijGB[i][j] += -dfGB * dfGB / 2. * Mij_TF[i][j] * RGB;
+        SijGB[i][j] += -8. * dfdphi * dfdphi * Mij_TF[i][j] * RGB;
     }
 
     out.S += SGB;
@@ -423,11 +430,11 @@ EsGB<coupling_t>::compute_emtensor(const vars_t<data_t> &vars,
 }
 
 // Adds in the RHS for the matter vars
-template <class coupling_t>
+template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
           template <typename> class rhs_vars_t>
-void EsGB<coupling_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
+void EsGB<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
                                       const vars_t<data_t> &vars,
                                       const vars_t<Tensor<1, data_t>> &d1,
                                       const diff2_vars_t<Tensor<2, data_t>> &d2,
@@ -438,9 +445,13 @@ void EsGB<coupling_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
     // work for more multiple fields
 
     // set the potential values
-    data_t dfGB = 0.0;
-    data_t df2GB = 0.0;
-    my_coupling.compute_coupling(dfGB, df2GB, vars);
+    data_t dfdphi = 0.0;
+    data_t d2fdphi2 = 0.0;
+    data_t V_of_phi = 0.0;
+    data_t dVdphi = 0.0;
+
+    // compute coupling
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
 
     using namespace TensorAlgebra;
 
@@ -597,14 +608,15 @@ void EsGB<coupling_t>::add_matter_rhs(rhs_vars_t<data_t> &rhs,
             covd_Aphys_times_chi[l][m][n] *
             (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
     }
-    rhs.Kphi += -dfGB * RGB_times_lapse / 4.;
+    rhs.Kphi += - dfdphi * RGB_times_lapse;
+    rhs.Kphi += vars.lapse * dVdphi;
 }
 
 // Adds in the RHS for the matter vars
-template <class coupling_t>
+template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
+void EsGB<coupling_and_potential_t>::compute_lhs(const int N, data_t *LHS,
                                    const vars_t<data_t> &vars,
                                    const vars_t<Tensor<1, data_t>> &d1,
                                    const diff2_vars_t<Tensor<2, data_t>> &d2,
@@ -617,9 +629,13 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
     // work for more multiple fields
 
     // set the potential values
-    data_t dfGB = 0.0;
-    data_t df2GB = 0.0;
-    my_coupling.compute_coupling(dfGB, df2GB, vars);
+    data_t dfdphi = 0.0;
+    data_t d2fdphi2 = 0.0;
+    data_t V_of_phi = 0.0;
+    data_t dVdphi = 0.0;
+
+    // compute coupling
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
 
     using namespace TensorAlgebra;
 
@@ -669,20 +685,20 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
     Tensor<2, data_t> Cij; // C_{ij} = \gamma^a_{~i}\gamma^b_{~j}C_{ab}
     FOR(i, j)
     {
-        Cij[i][j] = dfGB * (covd2phi[i][j] -
+        Cij[i][j] = 4. * dfdphi * (covd2phi[i][j] -
                             vars.Kphi / chi_regularised *
                                 (vars.A[i][j] +
                                  vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-                    df2GB * d1.phi[i] * d1.phi[j];
+                    4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
     }
     data_t C = vars.chi * compute_trace(Cij, h_UU); // trace of Cij
 
     Tensor<1, data_t> Ci; // C_i = -\gamma^a_{~i}n^bC_{ab}
     FOR(i)
     {
-        Ci[i] = df2GB * vars.Kphi * d1.phi[i] +
-                dfGB * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-        FOR(j, k) { Ci[i] += -dfGB * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
+        Ci[i] = 4. * d2fdphi2 * vars.Kphi * d1.phi[i] +
+                4. * dfdphi * (d1.Kphi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+        FOR(j, k) { Ci[i] += - 4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j]; }
     }
 
     Tensor<2, data_t> Mij_TF = Mij;
@@ -714,7 +730,7 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
             LHS_mat[n1][n2] =
                 -2.0 * vars.chi *
                 (1. / 3. * vars.h[a2][b2] * Cij_TF_UU[a1][b1] +
-                 dfGB * dfGB * Mij_TF[a2][b2] * Mij_TF_UU[a1][b1] * vars.chi);
+                 16. * dfdphi * dfdphi * Mij_TF[a2][b2] * Mij_TF_UU[a1][b1] * vars.chi);
             if (a1 == a2)
             {
                 if (b1 == b2)
@@ -730,7 +746,7 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
                 LHS_mat[n1][n2] +=
                     -2.0 * vars.chi *
                     (1. / 3. * vars.h[a2][b2] * Cij_TF_UU[b1][a1] +
-                     dfGB * dfGB * Mij_TF[a2][b2] * Mij_TF_UU[b1][a1] *
+                     16. * dfdphi * dfdphi * Mij_TF[a2][b2] * Mij_TF_UU[b1][a1] *
                          vars.chi);
                 if (a1 == b2)
                 {
@@ -757,19 +773,19 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
             continue;
 
         LHS_mat[N - 2][n1] =
-            vars.chi / 3. * (-Cij_TF[a][b] + dfGB * dfGB * M * Mij_TF[a][b]);
+            vars.chi / 3. * (-Cij_TF[a][b] + 16. * dfdphi * dfdphi * M * Mij_TF[a][b]);
 
         LHS_mat[n1][N - 2] =
             vars.chi / 2. *
-            (Cij_TF_UU[a][b] - dfGB * dfGB * M * Mij_TF_UU[a][b]);
+            (Cij_TF_UU[a][b] - 16. * dfdphi * dfdphi * M * Mij_TF_UU[a][b]);
         if (a != b)
             LHS_mat[n1][N - 2] +=
                 vars.chi / 2. *
-                (Cij_TF_UU[b][a] - dfGB * dfGB * M * Mij_TF_UU[b][a]);
+                (Cij_TF_UU[b][a] - 16. * dfdphi * dfdphi * M * Mij_TF_UU[b][a]);
         ++n1;
     }
 
-    LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-C + 1. / 4. * dfGB * dfGB * M * M);
+    LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-C + dfdphi * 4. * dfdphi * M * M);
 
     n1 = 0;
     FOR(a, b)
@@ -778,13 +794,13 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
             continue;
 
         LHS_mat[N - 1][n1] = 0.;
-        LHS_mat[n1][N - 1] = 0.5 * dfGB * Mij_TF_UU[a][b] * vars.chi;
+        LHS_mat[n1][N - 1] = 2. * dfdphi * Mij_TF_UU[a][b] * vars.chi;
         if (a != b)
-            LHS_mat[n1][N - 1] += 0.5 * dfGB * Mij_TF_UU[b][a] * vars.chi;
+            LHS_mat[n1][N - 1] += 2. * dfdphi * Mij_TF_UU[b][a] * vars.chi;
         ++n1;
     }
     LHS_mat[N - 1][N - 2] = 0.;
-    LHS_mat[N - 2][N - 1] = -1. / 12. * dfGB * M;
+    LHS_mat[N - 2][N - 1] = -1. / 3. * dfdphi * M;
     LHS_mat[N - 1][N - 1] = 1.;
 
     for (int n1 = 0; n1 < N; ++n1)
@@ -797,11 +813,11 @@ void EsGB<coupling_t>::compute_lhs(const int N, data_t *LHS,
 }
 
 // Function to add in EM Tensor matter terms to CCZ4 rhs
-template <class coupling_t>
+template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
           template <typename> class rhs_vars_t>
-void EsGB<coupling_t>::solve_lhs(rhs_vars_t<data_t> &rhs,
+void EsGB<coupling_and_potential_t>::solve_lhs(rhs_vars_t<data_t> &rhs,
                                  const vars_t<data_t> &vars,
                                  const vars_t<Tensor<1, data_t>> &d1,
                                  const diff2_vars_t<Tensor<2, data_t>> &d2,
