@@ -18,16 +18,14 @@
  * This object inherits from BHAMR and adds members relevant to TwoPunctures
  * initial data
  */
-class TPAMR : public BHAMR
-{
-  public:
-    TP::TwoPunctures m_two_punctures;
+class TPAMR : public BHAMR {
+public:
+  TP::TwoPunctures m_two_punctures;
 
-    void set_two_punctures_parameters(const TP::Parameters &params)
-    {
-        // explicitly invoke copy constructor of base Parameters class
-        m_two_punctures.Parameters::operator=(params);
-    }
+  void set_two_punctures_parameters(const TP::Parameters &params) {
+    // explicitly invoke copy constructor of base Parameters class
+    m_two_punctures.Parameters::operator=(params);
+  }
 };
 
 #endif /* USE_TWOPUNCTURES */

@@ -7,19 +7,17 @@
 #define DIAGNOSTICVARIABLES_HPP
 
 // assign an enum to each variable
-enum
-{
-    c_Ham,
+enum {
+  c_Ham,
 
-    c_Mom1,
-    c_Mom2,
-    c_Mom3,
+  c_Mom1,
+  c_Mom2,
+  c_Mom3,
 
-    NUM_DIAGNOSTIC_VARS
+  NUM_DIAGNOSTIC_VARS
 };
 
-namespace DiagnosticVariables
-{
+namespace DiagnosticVariables {
 static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     "Ham",
 

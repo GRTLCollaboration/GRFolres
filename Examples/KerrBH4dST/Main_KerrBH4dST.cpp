@@ -22,54 +22,52 @@
 // Chombo namespace
 #include "UsingNamespace.H"
 
-int runGRChombo(int argc, char *argv[])
-{
-    // Load the parameter file and construct the SimulationParameter class
-    // To add more parameters edit the SimulationParameters file.
-    char *in_file = argv[1];
-    GRParmParse pp(argc - 2, argv + 2, NULL, in_file);
-    SimulationParameters sim_params(pp);
+int runGRChombo(int argc, char *argv[]) {
+  // Load the parameter file and construct the SimulationParameter class
+  // To add more parameters edit the SimulationParameters file.
+  char *in_file = argv[1];
+  GRParmParse pp(argc - 2, argv + 2, NULL, in_file);
+  SimulationParameters sim_params(pp);
 
-    if (sim_params.just_check_params)
-        return 0;
-
-    // The line below selects the problem that is simulated
-    // (To simulate a different problem, define a new child of AMRLevel
-    // and an associated LevelFactory)
-    BHAMR bh_amr;
-    DefaultLevelFactory<KerrBH4dSTLevel> kerr_bh_level_fact(bh_amr, sim_params);
-    setupAMRObject(bh_amr, kerr_bh_level_fact);
-
-    using Clock = std::chrono::steady_clock;
-    using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
-
-    std::chrono::time_point<Clock> start_time = Clock::now();
-
-    // Engage! Run the evolution
-    bh_amr.run(sim_params.stop_time, sim_params.max_steps);
-
-    auto now = Clock::now();
-    auto duration = std::chrono::duration_cast<Minutes>(now - start_time);
-    pout() << "Total simulation time (mins): " << duration.count() << ".\n";
-
-    bh_amr.conclude();
-
-    CH_TIMER_REPORT(); // Report results when running with Chombo timers.
-
+  if (sim_params.just_check_params)
     return 0;
+
+  // The line below selects the problem that is simulated
+  // (To simulate a different problem, define a new child of AMRLevel
+  // and an associated LevelFactory)
+  BHAMR bh_amr;
+  DefaultLevelFactory<KerrBH4dSTLevel> kerr_bh_level_fact(bh_amr, sim_params);
+  setupAMRObject(bh_amr, kerr_bh_level_fact);
+
+  using Clock = std::chrono::steady_clock;
+  using Minutes = std::chrono::duration<double, std::ratio<60, 1>>;
+
+  std::chrono::time_point<Clock> start_time = Clock::now();
+
+  // Engage! Run the evolution
+  bh_amr.run(sim_params.stop_time, sim_params.max_steps);
+
+  auto now = Clock::now();
+  auto duration = std::chrono::duration_cast<Minutes>(now - start_time);
+  pout() << "Total simulation time (mins): " << duration.count() << ".\n";
+
+  bh_amr.conclude();
+
+  CH_TIMER_REPORT(); // Report results when running with Chombo timers.
+
+  return 0;
 }
 
-int main(int argc, char *argv[])
-{
-    mainSetup(argc, argv);
+int main(int argc, char *argv[]) {
+  mainSetup(argc, argv);
 
-    int status = runGRChombo(argc, argv);
+  int status = runGRChombo(argc, argv);
 
-    if (status == 0)
-        pout() << "GRChombo finished." << std::endl;
-    else
-        pout() << "GRChombo failed with return code " << status << std::endl;
+  if (status == 0)
+    pout() << "GRChombo finished." << std::endl;
+  else
+    pout() << "GRChombo failed with return code " << status << std::endl;
 
-    mainFinalize();
-    return status;
+  mainFinalize();
+  return status;
 }

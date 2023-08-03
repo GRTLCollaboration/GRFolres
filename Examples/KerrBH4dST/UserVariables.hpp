@@ -11,18 +11,16 @@
 #include "DiagnosticVariables.hpp"
 
 /// This enum gives the index of every variable stored in the grid
-enum
-{
-    // Note that it is important that the first enum value is set to 1 more than
-    // the last CCZ4 var enum
-    c_phi = NUM_CCZ4_VARS, // scalar field added
-    c_Pi,                  // conjugate momentum of the scalar field
+enum {
+  // Note that it is important that the first enum value is set to 1 more than
+  // the last CCZ4 var enum
+  c_phi = NUM_CCZ4_VARS, // scalar field added
+  c_Pi,                  // conjugate momentum of the scalar field
 
-    NUM_VARS
+  NUM_VARS
 };
 
-namespace UserVariables
-{
+namespace UserVariables {
 static const std::array<std::string, NUM_VARS - NUM_CCZ4_VARS>
     user_variable_names = {"phi", "Pi"};
 
