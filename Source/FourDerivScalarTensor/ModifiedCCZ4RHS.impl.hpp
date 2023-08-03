@@ -14,10 +14,11 @@
 template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
 ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::ModifiedCCZ4RHS(
     matter_t a_matter, CCZ4_params_t<typename gauge_t::params_t> a_params,
-    modified_gauge_t a_modified_gauge, double a_dx, double a_sigma, int a_formulation, double a_G_Newton)
+    modified_gauge_t a_modified_gauge, double a_dx, double a_sigma, 
+    const std::array<double, CH_SPACEDIM> a_center, int a_formulation, double a_G_Newton)
     : CCZ4RHS<gauge_t, deriv_t>(a_params, a_dx, a_sigma, a_formulation,
                                 0.0 /*No cosmological constant*/),
-      my_matter(a_matter), my_modified_gauge(a_modified_gauge), m_G_Newton(a_G_Newton)
+      my_matter(a_matter), my_modified_gauge(a_modified_gauge), m_center(a_center), m_G_Newton(a_G_Newton)
 {
 }
 
@@ -37,7 +38,7 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::compute(
     Vars<data_t> matter_rhs;
     this->rhs_equation(matter_rhs, matter_vars, d1, d2, advec);
 
-    Coordinates<data_t> coords{current_cell, this->m_deriv.m_dx};
+    Coordinates<data_t> coords{current_cell, this->m_deriv.m_dx, m_center};
 
     // add functions a(x) and b(x) of the modified gauge
     add_a_b_rhs(matter_rhs, matter_vars, d1, d2, advec, coords);
@@ -46,10 +47,10 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::compute(
     add_emtensor_rhs(matter_rhs, matter_vars, d1, d2, advec, coords);
 
     // add evolution of matter fields themselves
-    my_matter.add_matter_rhs(matter_rhs, matter_vars, d1, d2, advec);
+    my_matter.add_matter_rhs(matter_rhs, matter_vars, d1, d2, advec, coords);
 
-    // solve linear system for the matter fields that require it (e.g. EsGB)
-    my_matter.solve_lhs(matter_rhs, matter_vars, d1, d2, advec);
+    // solve linear system for the matter fields that require it (e.g. 4dST)
+    my_matter.solve_lhs(matter_rhs, matter_vars, d1, d2, advec, coords);
 
     // Add dissipation to all terms
     this->m_deriv.add_dissipation(matter_rhs, current_cell, this->m_sigma);
@@ -205,7 +206,7 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
 
     // Calculate elements of the decomposed stress energy tensor
     const auto emtensor =
-        my_matter.compute_emtensor(matter_vars, d1, d2, advec);
+        my_matter.compute_emtensor(matter_vars, d1, d2, advec, coords);
 
     data_t a_of_x = 0.;
     data_t b_of_x = 0.;

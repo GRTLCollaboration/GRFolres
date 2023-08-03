@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef COUPLING_HPP_
-#define COUPLING_HPP_
+#ifndef COUPLINGANDPOTENTIAL_HPP_
+#define COUPLINGANDPOTENTIAL_HPP_
 
 #include "simd.hpp"
 
@@ -29,24 +29,22 @@ class CouplingAndPotential
 
     //! Set the EsGB coupling function fhere
     template <class data_t, template <typename> class vars_t>
-    void compute_coupling_and_potential(data_t &dfdphi, data_t &df2dphi2, data_t &V_of_phi, data_t &dVdphi,
-                          const vars_t<data_t> &vars) const
+    void compute_coupling_and_potential(data_t &dfdphi, data_t &d2fdphi2, data_t &V_of_phi, data_t &dVdphi,
+                          const vars_t<data_t> &vars, const Coordinates<data_t> &coords) const
     {
-        // The first derivative of the coupling
-        // It is set to 0 to the interior of the BH with a smooth function
+        //excision setting the coupling to 0 in the interior of the BH with a smooth function
+        data_t cutoff_factor = 1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
+
+        // The first derivative of the GB coupling function
         dfdphi =
-            m_params.lambda_GB /
-            (1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB)));
-
-        // The second derivative of the coupling
-        df2dphi2 = M_PI * m_params.lambda_GB /
-            (1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB)));
-
+            m_params.lambda_GB / cutoff_factor;
+        // The second derivative of the GB coupling function
+        d2fdphi2 = M_PI * m_params.lambda_GB / cutoff_factor;
+        // The potential of the scalar field
         V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
-
+        // The first derivative of the potential
         dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
-
     }
 };
 
-#endif /* COUPLING_HPP_ */
+#endif /* COUPLINGANDPOTENTIAL_HPP_ */

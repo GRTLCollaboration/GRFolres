@@ -58,7 +58,7 @@ void KerrBH4dSTLevel::prePlotLevel()
     FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
     fillAllGhosts();
     BoxLoops::loop(ModifiedGravityConstraints<FourDerivScalarTensorWithCouplingAndPotential>(
-                       fdst, m_dx, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
+                       fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham, Interval(c_Mom1, c_Mom3)),
                    m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
 }
 #endif /* CH_USE_HDF5 */
@@ -79,7 +79,7 @@ void KerrBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential, MovingPunctureGauge,
                          FourthOrderDerivatives, ModifiedGauge>
             my_modified_ccz4(fdst, m_p.ccz4_params, modified_gauge, m_dx, m_p.sigma,
-                              m_p.formulation);
+                              m_p.center, m_p.formulation, m_p.G_Newton);
         BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
     else if (m_p.max_spatial_derivative_order == 6)
@@ -87,7 +87,7 @@ void KerrBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
         ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential, MovingPunctureGauge,
                          SixthOrderDerivatives, ModifiedGauge>
             my_modified_ccz4(fdst, m_p.ccz4_params, modified_gauge, m_dx, m_p.sigma,
-                              m_p.formulation);
+                              m_p.center, m_p.formulation, m_p.G_Newton);
         BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
     }
 }

@@ -13,11 +13,11 @@ class CouplingAndPotential
   public:
     struct params_t
     {
-        double lambda_GB; // Gauss-Bonnet coupling
-        double cutoff_GB; // cutoff for switching off the Gauss-Bonnet terms
-                          // inside the BH
-        double factor_GB; // factor for the function smoothening the GB cutoff
-	double scalar_mass;
+        double lambda_GB;   // Gauss-Bonnet coupling
+        double cutoff_GB;   // cutoff for switching off the Gauss-Bonnet terms
+                            // inside the BH
+        double factor_GB;   // factor for the function smoothening the GB cutoff
+	double scalar_mass; // mass in the potential
     };
 
   private:
@@ -30,19 +30,20 @@ class CouplingAndPotential
     //! Set the EsGB coupling function fhere
     template <class data_t, template <typename> class vars_t>
     void compute_coupling_and_potential(data_t &dfdphi, data_t &d2fdphi2, data_t &V_of_phi, data_t &dVdphi,
-                          const vars_t<data_t> &vars) const
+                          const vars_t<data_t> &vars, const Coordinates<data_t> &coords) const
     {
-        // The first derivative of the coupling
-        // It is set to 0 to the interior of the BH with a smooth function
-        dfdphi =
-            m_params.lambda_GB /
-            (1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB)));
+        //excision setting the coupling to 0 in the interior of the BH with a smooth function
+        //data_t r = coords.get_radius();
+        data_t cutoff_factor = 1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
+        //data_t cutoff_factor = 1. + exp(-m_params.factor_GB * (r - m_params.cutoff_GB));
 
-        // The second derivative of the coupling
+        // The first derivative of the GB coupling function
+        dfdphi = m_params.lambda_GB / cutoff_factor;
+        // The second derivative of the GB coupling function
         d2fdphi2 = 0.;
-
-	V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
-
+        // The potential of the scalar field
+        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
+        // The first derivative of the potential
         dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
     }
 };

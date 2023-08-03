@@ -8,6 +8,7 @@
 
 #include "CCZ4Geometry.hpp"
 #include "Cell.hpp"
+#include "Coordinates.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GRInterval.hpp"
 #include "NewConstraints.hpp"
@@ -51,7 +52,9 @@ template <class matter_t> class ModifiedGravityConstraints : public Constraints
         Can specify the vars of the constraint vars instead of using the
         hardcoded ones.
     */
-    ModifiedGravityConstraints(const matter_t a_matter, double dx, double G_Newton, int a_c_Ham,
+    ModifiedGravityConstraints(const matter_t a_matter, double dx, 
+		      const std::array<double, CH_SPACEDIM> a_center,
+		      double G_Newton, int a_c_Ham,
                       const Interval &a_c_Moms, int a_c_Ham_abs_terms = -1,
                       const Interval &a_c_Moms_abs_terms = Interval());
 
@@ -60,7 +63,8 @@ template <class matter_t> class ModifiedGravityConstraints : public Constraints
     template <class data_t> void compute(Cell<data_t> current_cell) const;
 
   protected:
-    matter_t my_matter; //!< The matter object, e.g. EsGB
+    matter_t my_matter; //!< The matter object, e.g. 4dST
+    const std::array<double, CH_SPACEDIM> m_center; //!< The center of the grid
     double m_G_Newton;
 };
 

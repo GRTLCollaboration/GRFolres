@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
     ModifiedGauge modified_gauge(m_params_modified_gauge);
     CouplingAndPotential coupling_and_potential(m_params_coupling_and_potential);
     FourDerivScalarTensor<CouplingAndPotential> fdst(coupling_and_potential);
-    MyModifiedGravityClass my_modified_ccz4(fdst, m_params, modified_gauge, dx, sigma, 0, 1./(16.*M_PI));
+    MyModifiedGravityClass my_modified_ccz4(fdst, m_params, modified_gauge, dx, sigma, {0., 0., 0.}, 0, 1./(16.*M_PI));
 
     // add functions a(x) and b(x) of the modified gauge
     my_modified_ccz4.add_a_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
@@ -73,10 +73,10 @@ int main(int argc, char *argv[])
                                                coords);
 
     // add evolution of matter fields themselves
-    fdst.add_matter_rhs<double>(rhs, vars, d1, d2, advec);
+    fdst.add_matter_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
-    // solve linear system for the matter fields that require it (e.g. EsGB)
-    fdst.solve_lhs<double>(rhs, vars, d1, d2, advec);
+    // solve linear system for the matter fields that require it (e.g. 4dST)
+    fdst.solve_lhs<double>(rhs, vars, d1, d2, advec, coords);
 
     // Compare
     double diff;

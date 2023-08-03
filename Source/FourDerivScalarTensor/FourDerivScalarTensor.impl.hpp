@@ -16,7 +16,8 @@ template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
 rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
-    const diff2_vars_t<Tensor<2, data_t>> &d2) const
+    const diff2_vars_t<Tensor<2, data_t>> &d2,
+    const Coordinates<data_t> &coords) const
 {
     rho_Si_t<data_t> out;
 
@@ -27,7 +28,7 @@ rho_Si_t<data_t> FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si
     data_t dVdphi = 0.0;
 
     // compute coupling
-    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars, coords);
 
     using namespace TensorAlgebra;
     const auto h_UU = compute_inverse_sym(vars.h);
@@ -170,11 +171,12 @@ emtensor_t<data_t>
 FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<data_t> &vars,
                                    const vars_t<Tensor<1, data_t>> &d1,
                                    const diff2_vars_t<Tensor<2, data_t>> &d2,
-                                   const vars_t<data_t> &advec) const
+                                   const vars_t<data_t> &advec,
+				   const Coordinates<data_t> &coords) const
 {
     emtensor_t<data_t> out;
 
-    rho_Si_t<data_t> rho_Si = compute_rho_Si(vars, d1, d2);
+    rho_Si_t<data_t> rho_Si = compute_rho_Si(vars, d1, d2, coords);
     out.rho = rho_Si.rho;
     FOR(i) out.Si[i] = rho_Si.Si[i];
 
@@ -185,7 +187,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(const vars_t<d
     data_t dVdphi = 0.0;
 
     // compute coupling
-    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars, coords);
 
     using namespace TensorAlgebra;
     const auto h_UU = compute_inverse_sym(vars.h);
@@ -434,7 +436,8 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<
                                       const vars_t<data_t> &vars,
                                       const vars_t<Tensor<1, data_t>> &d1,
                                       const diff2_vars_t<Tensor<2, data_t>> &d2,
-                                      const vars_t<data_t> &advec) const
+                                      const vars_t<data_t> &advec,
+				      const Coordinates<data_t> &coords) const
 {
     // first get the non potential part of the rhs
     // this may seem a bit long winded, but it makes the function
@@ -447,7 +450,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(rhs_vars_t<
     data_t dVdphi = 0.0;
 
     // compute coupling
-    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars, coords);
 
     using namespace TensorAlgebra;
 
@@ -614,7 +617,8 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
                                    const vars_t<data_t> &vars,
                                    const vars_t<Tensor<1, data_t>> &d1,
                                    const diff2_vars_t<Tensor<2, data_t>> &d2,
-                                   const vars_t<data_t> &advec) const
+                                   const vars_t<data_t> &advec,
+				   const Coordinates<data_t> &coords) const
 {
     data_t LHS_mat[N][N];
 
@@ -629,7 +633,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(const int N, d
     data_t dVdphi = 0.0;
 
     // compute coupling
-    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars);
+    my_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, vars, coords);
 
     using namespace TensorAlgebra;
 
@@ -813,12 +817,13 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(rhs_vars_t<data_
                                  const vars_t<data_t> &vars,
                                  const vars_t<Tensor<1, data_t>> &d1,
                                  const diff2_vars_t<Tensor<2, data_t>> &d2,
-                                 const vars_t<data_t> &advec) const
+                                 const vars_t<data_t> &advec,
+				 const Coordinates<data_t> &coords) const
 {
     const int N = GR_SPACEDIM * (GR_SPACEDIM + 1) / 2 + 2;
     data_t LHS[N][N];
 
-    compute_lhs(N, (&LHS[0][0]), vars, d1, d2, advec);
+    compute_lhs(N, (&LHS[0][0]), vars, d1, d2, advec, coords);
 
     data_t RHS[N];
 

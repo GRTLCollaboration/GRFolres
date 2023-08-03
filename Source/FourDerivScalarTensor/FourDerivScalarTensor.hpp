@@ -7,6 +7,7 @@
 #define FOURDERIVSCALARTENSOR_HPP_
 
 #include "CCZ4Geometry.hpp"
+#include "Coordinates.hpp"
 #include "DefaultCouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "FourthOrderDerivatives.hpp"
@@ -92,8 +93,9 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential> class Fo
         const vars_t<data_t> &vars,          //!< the value of the variables
         const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>>
-            &d2 //!< the value of the 2nd derivs
-    ) const;
+            &d2, //!< the value of the 2nd derivs
+	const Coordinates<data_t> &coords)
+    	const; //!< the value of the coordinates
 
     //! The function which calculates the EM Tensor, given the vars and
     //! derivatives, for the given coupling function
@@ -104,8 +106,9 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential> class Fo
         const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>>
             &d2, //!< the value of the 2nd derivs
-        const vars_t<data_t> &advec)
-        const; //!< the value of the advection terms
+        const vars_t<data_t> &advec,         //!< the value of the advection terms
+	const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates
 
     //! The function which adds in the RHS for the matter field vars,
     //! given the coupling function
@@ -113,13 +116,14 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential> class Fo
               template <typename> class diff2_vars_t,
               template <typename> class rhs_vars_t>
     void add_matter_rhs(
-        rhs_vars_t<data_t> &rhs,    //!< the value of the RHS for all vars
-        const vars_t<data_t> &vars, //!< the value of the variables
+        rhs_vars_t<data_t> &rhs,             //!< the value of the RHS for all vars
+        const vars_t<data_t> &vars,          //!< the value of the variables
         const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>>
             &d2, //!< the value of the 2nd derivs
-        const vars_t<data_t> &advec)
-        const; //!< the value of the advection terms
+        const vars_t<data_t> &advec,	     //!< the value of the coordinates
+	const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates
 
     //! The function which computes the LHS matrix for some of the vars, which
     //! are A, K and Kphi for this EsGB example
@@ -132,8 +136,9 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential> class Fo
         const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>>
             &d2, //!< the value of the 2nd derivs
-        const vars_t<data_t> &advec)
-        const; //!< the value of the advection terms
+        const vars_t<data_t> &advec,	     //!< the value of the advection terms
+	const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates
 
     //! The function which solves the linear system using the LHS matrix
     //! computed in compute_lhs and the RHS calculated before
@@ -144,9 +149,11 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential> class Fo
         rhs_vars_t<data_t> &rhs,             //!< value of the RHS for all vars
         const vars_t<data_t> &vars,          //!< value of the variables
         const vars_t<Tensor<1, data_t>> &d1, //!< value of the 1st derivs
-        const diff2_vars_t<Tensor<2, data_t>> &d2, //!< value of the 2nd derivs
-        const vars_t<data_t> &advec)
-        const; //!< the value of the advection terms
+        const diff2_vars_t<Tensor<2, data_t>> 
+	   &d2, //!< value of the 2nd derivs
+        const vars_t<data_t> &advec,	     //!< the value of the advection terms
+	const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates
 };
 
 //! Class for the function that solves the linear system (included in

@@ -97,7 +97,9 @@ class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
     */
     ModifiedCCZ4RHS(matter_t a_matter, params_t a_params,
                      modified_gauge_t a_modified_gauge, double a_dx, double a_sigma,
-                     int a_formulation = CCZ4RHS<>::USE_CCZ4, double a_G_Newton = 1.0);
+		     const std::array<double, CH_SPACEDIM> a_center, 
+		     int a_formulation = CCZ4RHS<>::USE_CCZ4, 
+		     double a_G_Newton = 1.0);
 
     //!  The compute member which calculates the RHS at each point in the box
     //!  \sa matter_rhs_equation()
@@ -138,6 +140,7 @@ class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
     // Class members
     matter_t my_matter;       //!< The matter object, e.g. EsGB.
     modified_gauge_t my_modified_gauge; //!< The modified gauge object, i.e a(x) and b(x)
+    const std::array<double, CH_SPACEDIM> m_center; //!< The center of the grid
     double m_G_Newton;
 };
 
