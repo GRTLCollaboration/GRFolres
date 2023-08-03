@@ -43,10 +43,14 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
 
   // S_i (note lower index) = - n^a T_ai
   FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi; }
+  
+  FOR(i) { out.Si[i] += g2 * Vt * vars.Pi * d1.phi[i]; }
 
   // rho = n^a n^b T_ab
   out.rho = vars.Pi * vars.Pi + 0.5 * Vt;
   out.rho += V_of_phi;
+
+  out.rho += -g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi);
 
   // Compute useful quantities for the Gauss-Bonnet sector
   const auto ricci0 =
@@ -116,17 +120,17 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
   Tensor<2, data_t> covd_Aphys_times_chi[CH_SPACEDIM];
 
   FOR(i, j, k) {
-    covdtilde_A[i][j][k] = d1.A[j][k][i];
+    covdtilde_A[j][k][i] = d1.A[j][k][i];
     FOR(l) {
-      covdtilde_A[i][j][k] += -chris.ULL[l][i][j] * vars.A[l][k] -
+      covdtilde_A[j][k][i] += -chris.ULL[l][i][j] * vars.A[l][k] -
                               chris.ULL[l][i][k] * vars.A[l][j];
     }
-    covd_Aphys_times_chi[i][j][k] =
-        covdtilde_A[i][j][k] +
+    covd_Aphys_times_chi[j][k][i] =
+        covdtilde_A[j][k][i] +
         (vars.A[i][k] * d1.chi[j] + vars.A[i][j] * d1.chi[k]) /
             (2. * chi_regularised);
     FOR(l, m) {
-      covd_Aphys_times_chi[i][j][k] -=
+      covd_Aphys_times_chi[j][k][i] -=
           h_UU[l][m] * d1.chi[m] / (2. * chi_regularised) *
           (vars.h[i][j] * vars.A[k][l] + vars.h[i][k] * vars.A[j][l]);
     }
@@ -137,7 +141,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
   FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
   FOR(i, j, k) {
     Ni[i] += h_UU[j][k] *
-             (covdtilde_A[k][j][i] -
+             (covdtilde_A[j][i][k] -
               GR_SPACEDIM * vars.A[i][j] * d1.chi[k] / (2. * chi_regularised));
   }
 
@@ -151,7 +155,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
       FOR(l, m) {
         JGB[i] +=
             2 * h_UU[j][l] * h_UU[k][m] * Omega_ij[l][m] * vars.chi *
-            (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[j][i][k]);
+            (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][k][j]);
       }
     }
   }
@@ -192,6 +196,8 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
   const auto h_UU = compute_inverse_sym(vars.h);
   const auto chris = compute_christoffel(d1.h, h_UU);
 
+  const data_t chi_regularised = simd_max(vars.chi, 1e-6);
+
   // Useful quantity Vt
   data_t Vt = -vars.Pi * vars.Pi;
   FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
@@ -199,10 +205,14 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
   // Calculate components of EM Tensor for the non-Gauss-Bonnet sector
   // S_ij = T_ij
   FOR(i, j) {
-    out.Sij[i][j] = -0.5 * vars.h[i][j] * Vt / vars.chi + d1.phi[i] * d1.phi[j];
+    out.Sij[i][j] = -0.5 * vars.h[i][j] * Vt / chi_regularised + d1.phi[i] * d1.phi[j];
   }
 
-  FOR(i, j) { out.Sij[i][j] += -vars.h[i][j] * V_of_phi / vars.chi; }
+  FOR(i, j) { out.Sij[i][j] += -vars.h[i][j] * V_of_phi / chi_regularised; }
+
+  FOR(i, j) { 
+     out.Sij[i][j] += g2 * Vt * (-d1.phi[i] * d1.phi[j] + vars.h[i][j] / chi_regularised * Vt / 4.); 
+  }
 
   // S = Tr_S_ij
   out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij, h_UU);
@@ -211,8 +221,6 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
 
   const auto ricci0 =
       CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-
-  const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
   Tensor<2, data_t> Mij; // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
   FOR(i, j) {
@@ -283,21 +291,21 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
   // note that they have been raised with the conformal metric
 
   // other useful quantities
-  Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
-  Tensor<2, data_t> covd_Aphys_times_chi[CH_SPACEDIM];
+  Tensor<3, data_t> covdtilde_A;
+  Tensor<3, data_t> covd_Aphys_times_chi;
 
   FOR(i, j, k) {
-    covdtilde_A[i][j][k] = d1.A[j][k][i];
+    covdtilde_A[j][k][i] = d1.A[j][k][i];
     FOR(l) {
-      covdtilde_A[i][j][k] += -chris.ULL[l][i][j] * vars.A[l][k] -
+      covdtilde_A[j][k][i] += -chris.ULL[l][i][j] * vars.A[l][k] -
                               chris.ULL[l][i][k] * vars.A[l][j];
     }
-    covd_Aphys_times_chi[i][j][k] =
-        covdtilde_A[i][j][k] +
+    covd_Aphys_times_chi[j][k][i] =
+        covdtilde_A[j][k][i] +
         (vars.A[i][k] * d1.chi[j] + vars.A[i][j] * d1.chi[k]) /
             (2. * chi_regularised);
     FOR(l, m) {
-      covd_Aphys_times_chi[i][j][k] -=
+      covd_Aphys_times_chi[j][k][i] -=
           h_UU[l][m] * d1.chi[m] / (2. * chi_regularised) *
           (vars.h[i][j] * vars.A[k][l] + vars.h[i][k] * vars.A[j][l]);
     }
@@ -308,7 +316,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
   FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
   FOR(i, j, k) {
     Ni[i] += h_UU[j][k] *
-             (covdtilde_A[k][j][i] -
+             (covdtilde_A[j][i][k] -
               GR_SPACEDIM * vars.A[i][j] * d1.chi[k] / (2. * chi_regularised));
   }
 
@@ -373,8 +381,8 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
                (Ni[j] + 1. / 3. * d1.K[j]);
     FOR(k, l, m, n)
     RGB -= 8. * vars.chi * h_UU[i][l] * h_UU[j][m] * h_UU[k][n] *
-           covd_Aphys_times_chi[l][m][n] *
-           (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
+           covd_Aphys_times_chi[m][n][l] *
+           (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][j][k]);
   }
 
   data_t SGB = 4. / 3. * Omega * F + 4. * M * (-d2fdphi2 * Vt + Omega / 3.) -
@@ -398,9 +406,9 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
       SijGB[i][j] +=
           2. * vars.chi * h_UU[k][l] *
               (Omega_ij_TF[i][k] * Fij[l][j] + Omega_ij_TF[j][k] * Fij[l][i] -
-               Omega_i[l] * (2. * covd_Aphys_times_chi[k][i][j] -
-                             covd_Aphys_times_chi[i][j][k] -
-                             covd_Aphys_times_chi[j][k][i])) -
+               Omega_i[l] * (2. * covd_Aphys_times_chi[i][j][k] -
+                             covd_Aphys_times_chi[j][k][i] -
+                             covd_Aphys_times_chi[k][i][j])) -
           4. / 3. * vars.h[i][j] * vars.chi *
               (Omega_ij_TF_UU[k][l] * Fij[k][l] +
                h_UU[k][l] * Omega_i[k] * (2. * Ni[l] + d1.K[l]));
@@ -539,21 +547,21 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
       -advec.K + tr_covd2lapse - vars.lapse * (tr_A2 + vars.K * vars.K / 3.);
 
   // other useful quantities
-  Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
-  Tensor<2, data_t> covd_Aphys_times_chi[CH_SPACEDIM];
+  Tensor<3, data_t> covdtilde_A;
+  Tensor<3, data_t> covd_Aphys_times_chi;
 
   FOR(i, j, k) {
-    covdtilde_A[i][j][k] = d1.A[j][k][i];
+    covdtilde_A[j][k][i] = d1.A[j][k][i];
     FOR(l) {
-      covdtilde_A[i][j][k] += -chris.ULL[l][i][j] * vars.A[l][k] -
+      covdtilde_A[j][k][i] += -chris.ULL[l][i][j] * vars.A[l][k] -
                               chris.ULL[l][i][k] * vars.A[l][j];
     }
-    covd_Aphys_times_chi[i][j][k] =
-        covdtilde_A[i][j][k] +
+    covd_Aphys_times_chi[j][k][i] =
+        covdtilde_A[j][k][i] +
         (vars.A[i][k] * d1.chi[j] + vars.A[i][j] * d1.chi[k]) /
             (2. * chi_regularised);
     FOR(l, m) {
-      covd_Aphys_times_chi[i][j][k] -=
+      covd_Aphys_times_chi[j][k][i] -=
           h_UU[l][m] * d1.chi[m] / (2. * chi_regularised) *
           (vars.h[i][j] * vars.A[k][l] + vars.h[i][k] * vars.A[j][l]);
     }
@@ -564,7 +572,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
   FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
   FOR(i, j, k) {
     Ni[i] += h_UU[j][k] *
-             (covdtilde_A[k][j][i] -
+             (covdtilde_A[j][i][k] -
               GR_SPACEDIM * vars.A[i][j] * d1.chi[k] / (2. * chi_regularised));
   }
 
@@ -576,8 +584,8 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
     FOR(k, l, m, n)
     RGB_times_lapse -=
         8. * vars.chi * vars.lapse * h_UU[i][l] * h_UU[j][m] * h_UU[k][n] *
-        covd_Aphys_times_chi[l][m][n] *
-        (covd_Aphys_times_chi[i][j][k] - covd_Aphys_times_chi[k][i][j]);
+        covd_Aphys_times_chi[m][n][l] *
+        (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][j][k]);
   }
   rhs.Pi += dfdphi * RGB_times_lapse;
   rhs.Pi += -vars.lapse * dVdphi;
