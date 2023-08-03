@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    109364,       3101]
-NotebookOptionsPosition[    109005,       3087]
-NotebookOutlinePosition[    109406,       3103]
-CellTagsIndexPosition[    109363,       3100]
+NotebookDataLength[    112012,       3169]
+NotebookOptionsPosition[    111659,       3155]
+NotebookOutlinePosition[    112054,       3171]
+CellTagsIndexPosition[    112011,       3168]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -52,7 +52,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{
    RowBox[{"df", "=", "1"}], ";", 
-   RowBox[{"d2f", "=", "\[Pi]"}], ";"}], "\n"}], "\[IndentingNewLine]", 
+   RowBox[{"d2f", "=", "\[Pi]"}], ";"}], "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"chi", "=", 
    RowBox[{"RandomReal", "[", "]"}]}], ";", 
@@ -424,10 +424,10 @@ Cell[BoxData[{
        RowBox[{"j", ",", "1", ",", "3"}], "}"}], ",", 
       RowBox[{"{", 
        RowBox[{"l", ",", "1", ",", "3"}], "}"}]}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]", "\[IndentingNewLine]", 
+  "\[IndentingNewLine]", "\n", 
   RowBox[{"(*", 
    RowBox[{"Make", " ", "the", " ", "derivatives", " ", "symmetric"}], 
-   "*)"}]}], "\n", 
+   "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Do", "[", 
    RowBox[{
@@ -499,7 +499,7 @@ Cell[BoxData[{
       RowBox[{"i", ",", "1", ",", "3"}], "}"}], ",", 
      RowBox[{"{", 
       RowBox[{"j", ",", "1", ",", "3"}], "}"}]}], "]"}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenWrite", "[", 
@@ -513,7 +513,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{
    RowBox[{"Close", "[", "stream", "]"}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenAppend", "[", 
@@ -1031,21 +1031,88 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_modified_gauge.a0 = \>\"", "<>", 
+    RowBox[{"\"\<m_modified_ccz4_params.kappa1 = \>\"", "<>", 
+     RowBox[{"ToString", "[", 
+      RowBox[{"\[Kappa]1", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
+   "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"WriteLine", "[", 
+   RowBox[{"stream", ",", 
+    RowBox[{"\"\<m_modified_ccz4_params.kappa2 = \>\"", "<>", 
+     RowBox[{"ToString", "[", 
+      RowBox[{"\[Kappa]2", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
+   "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"WriteLine", "[", 
+    RowBox[{"stream", ",", 
+     RowBox[{"\"\<m_modified_ccz4_params.kappa3 = \>\"", "<>", 
+      RowBox[{"ToString", "[", 
+       RowBox[{"\[Kappa]3", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}],
+     "]"}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"WriteLine", "[", 
+   RowBox[{"stream", ",", 
+    RowBox[{"\"\<m_modified_ccz4_params.lapse_advec_coeff = \>\"", "<>", 
+     RowBox[{"ToString", "[", 
+      RowBox[{"lapseadveccoeff", "//", "InputForm"}], "]"}], "<>", 
+     "\"\<;\>\""}]}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"WriteLine", "[", 
+   RowBox[{"stream", ",", 
+    RowBox[{"\"\<m_modified_ccz4_params.lapse_coeff = \>\"", "<>", 
+     RowBox[{"ToString", "[", 
+      RowBox[{"lapsecoeff", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}],
+    "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"WriteLine", "[", 
+    RowBox[{"stream", ",", 
+     RowBox[{"\"\<m_modified_ccz4_params.lapse_power = \>\"", "<>", 
+      RowBox[{"ToString", "[", 
+       RowBox[{"lapsepower", "//", "InputForm"}], "]"}], "<>", 
+      "\"\<;\>\""}]}], "]"}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"WriteLine", "[", 
+   RowBox[{"stream", ",", 
+    RowBox[{"\"\<m_modified_ccz4_params.shift_advec_coeff = \>\"", "<>", 
+     RowBox[{"ToString", "[", 
+      RowBox[{"shiftadveccoeff", "//", "InputForm"}], "]"}], "<>", 
+     "\"\<;\>\""}]}], "]"}], ";"}], "\n", 
+ RowBox[{
+  RowBox[{"WriteLine", "[", 
+   RowBox[{"stream", ",", 
+    RowBox[{"\"\<m_modified_ccz4_params.shift_Gamma_coeff = \>\"", "<>", 
+     RowBox[{"ToString", "[", 
+      RowBox[{"shiftGammacoeff", "//", "InputForm"}], "]"}], "<>", 
+     "\"\<;\>\""}]}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"WriteLine", "[", 
+    RowBox[{"stream", ",", 
+     RowBox[{"\"\<m_modified_ccz4_params.eta = \>\"", "<>", 
+      RowBox[{"ToString", "[", 
+       RowBox[{"\[Eta]", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
+    "]"}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"WriteLine", "[", 
+   RowBox[{"stream", ",", 
+    RowBox[{"\"\<m_modified_ccz4_params.a0 = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{"a", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], "]"}], 
   ";"}], "\n", 
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_modified_gauge.b0 = \>\"", "<>", 
+    RowBox[{"\"\<m_modified_ccz4_params.b0 = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{"b", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], "]"}], 
   ";"}], "\n", 
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_coupling_and_potential.lambda_GB = \>\"", "<>", 
+    RowBox[{"\"\<m_coupling_and_potential_params.lambda_GB = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{
        RowBox[{"\[Alpha]GB", "/", "4"}], "//", "InputForm"}], "]"}], "<>", 
@@ -1053,7 +1120,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_coupling_and_potential.cutoff_GB = \>\"", "<>", 
+    RowBox[{"\"\<m_coupling_and_potential_params.cutoff_GB = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{"cutoffGB", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
    "]"}], ";"}], "\[IndentingNewLine]", 
@@ -1061,14 +1128,14 @@ Cell[BoxData[{
   RowBox[{
    RowBox[{"WriteLine", "[", 
     RowBox[{"stream", ",", 
-     RowBox[{"\"\<m_params_coupling_and_potential.factor_GB = \>\"", "<>", 
+     RowBox[{"\"\<m_coupling_and_potential_params.factor_GB = \>\"", "<>", 
       RowBox[{"ToString", "[", 
        RowBox[{"factorGB", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}], 
     "]"}], ";"}], "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
-    RowBox[{"\"\<m_params_coupling_and_potential.scalar_mass = \>\"", "<>", 
+    RowBox[{"\"\<m_coupling_and_potential_params.scalar_mass = \>\"", "<>", 
      RowBox[{"ToString", "[", 
       RowBox[{"scalarmass", "//", "InputForm"}], "]"}], "<>", "\"\<;\>\""}]}],
     "]"}], ";"}], "\[IndentingNewLine]", 
@@ -1088,7 +1155,7 @@ Cell[BoxData[{
          RowBox[{"-", "factorGB"}], 
          RowBox[{"(", 
           RowBox[{"chi", "-", "cutoffGB"}], ")"}]}], "]"}]}], ")"}]}]}], 
-   ";"}], "\n"}], "\[IndentingNewLine]", 
+   ";"}], "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"chris", "=", 
    RowBox[{
@@ -1118,9 +1185,9 @@ Cell[BoxData[{
          RowBox[{"1", ",", "4"}], "}"}], ",", 
         RowBox[{"{", 
          RowBox[{"2", ",", "5"}], "}"}]}], "}"}]}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]", "\n", 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
   RowBox[{"(*", 
-   RowBox[{"Calculate", " ", "ricci"}], "*)"}]}], "\[IndentingNewLine]", 
+   RowBox[{"Calculate", " ", "ricci"}], "*)"}]}], "\n", 
  RowBox[{
   RowBox[{"dims", "=", "4"}], ";", 
   RowBox[{"\[Chi]", "=", "chi"}], ";", 
@@ -1324,10 +1391,10 @@ Cell[BoxData[{
    RowBox[{"ricciS", "=", 
     RowBox[{"Tr", "[", 
      RowBox[{"\[Chi]", " ", 
-      RowBox[{"hu", ".", "ricci"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+      RowBox[{"hu", ".", "ricci"}]}], "]"}]}], ";"}], "\n", 
   "\[IndentingNewLine]", 
   RowBox[{"(*", 
-   RowBox[{"define", " ", "variables"}], "*)"}]}], "\n", 
+   RowBox[{"define", " ", "variables"}], "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Aa", "=", "A"}], ";", 
   RowBox[{"\[Alpha]", "=", "lapse"}], ";", 
@@ -1356,8 +1423,8 @@ Cell[BoxData[{
      RowBox[{"\[Phi]", "^", "2"}]}]}], ";", 
    RowBox[{"dVdphi", "=", 
     RowBox[{
-     RowBox[{"scalarmass", "^", "2"}], "*", "\[Phi]"}]}], ";"}], "\n", 
-  "\[IndentingNewLine]", 
+     RowBox[{"scalarmass", "^", "2"}], "*", "\[Phi]"}]}], ";"}], 
+  "\[IndentingNewLine]", "\n", 
   RowBox[{"(*", 
    RowBox[{"useful", " ", "computations"}], "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
@@ -1589,11 +1656,11 @@ Cell[BoxData[{
      RowBox[{"Transpose", "[", 
       RowBox[{"covdA\[Chi]", ",", 
        RowBox[{"{", 
-        RowBox[{"2", ",", "1", ",", "3"}], "}"}]}], "]"}]}]}], ";"}], 
-  "\[IndentingNewLine]", "\[IndentingNewLine]", 
+        RowBox[{"2", ",", "1", ",", "3"}], "}"}]}], "]"}]}]}], ";"}], "\n", 
+  "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{"Calculate", " ", "\[Rho]GB", " ", "and", " ", "JGB"}], 
-   "*)"}]}], "\n", 
+   "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"\[Rho]GB", "=", 
    RowBox[{
@@ -1648,9 +1715,10 @@ Cell[BoxData[{
            RowBox[{"1", ",", "4"}], "}"}], ",", 
           RowBox[{"{", 
            RowBox[{"2", ",", "5"}], "}"}]}], "}"}]}], "]"}]}]}]}], ";"}], 
-  "\[IndentingNewLine]", "\[IndentingNewLine]", 
+  "\n", "\[IndentingNewLine]", 
   RowBox[{"(*", 
-   RowBox[{"calculate", " ", "S", " ", "terms"}], "*)"}]}], "\n", 
+   RowBox[{"calculate", " ", "S", " ", "terms"}], 
+   "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"L\[Beta]A", "=", 
    RowBox[{
@@ -1714,7 +1782,7 @@ Cell[BoxData[{
            RowBox[{"2", ",", "5"}], "}"}], ",", 
           RowBox[{"{", 
            RowBox[{"3", ",", "6"}], "}"}]}], "}"}]}], "]"}]}]}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{
    RowBox[{"SK\[Phi]", "=", 
@@ -2742,12 +2810,12 @@ Cell[BoxData[{
      RowBox[{"\[Beta]", ".", "dK\[Phi]"}], "+", 
      RowBox[{"\[Alpha]", "*", "dVdphi"}], "-", 
      RowBox[{"\[Alpha]GB", " ", "df", " ", 
-      RowBox[{"SK\[Phi]", "/", "4"}]}]}]}], ";"}], "\[IndentingNewLine]", 
+      RowBox[{"SK\[Phi]", "/", "4"}]}]}]}], ";"}], "\n", 
   "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{
     RowBox[{"elements", " ", "of", " ", "the", " ", "matrix"}], "+"}], 
-   "*)"}]}], "\n", 
+   "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Xijkl", "=", 
    RowBox[{
@@ -2868,7 +2936,7 @@ Cell[BoxData[{
          RowBox[{"{", 
           RowBox[{"Flatten", "[", "XK\[Phi]", "]"}], "}"}], ",", "YK\[Phi]", 
          ",", "1"}], "}"}]}], "}"}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"vec", "=", 
    RowBox[{"Flatten", "[", 
@@ -2895,7 +2963,7 @@ Cell[BoxData[{
    RowBox[{"dK\[Phi]dt", "=", 
     RowBox[{"sol", "[", 
      RowBox[{"[", "11", "]"}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenAppend", "[", 
@@ -3081,12 +3149,12 @@ Cell[BoxData[{
    3.899974915417636*^9}, {3.899975187463697*^9, 3.899975211588894*^9}, {
    3.899975351574985*^9, 3.899975356876224*^9}, {3.8999753930961113`*^9, 
    3.8999753968053226`*^9}, {3.899975512925466*^9, 3.899975515812492*^9}, {
-   3.8999785714707327`*^9, 3.899978650697033*^9}},
- CellLabel->
-  "In[1483]:=",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
+   3.8999785714707327`*^9, 3.899978650697033*^9}, {3.900067428085208*^9, 
+   3.900067553793976*^9}},ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-\
+300cdefd8c2e"]
 },
-WindowSize->{867.75, 669.75},
-WindowMargins->{{194.25, Automatic}, {7.5, Automatic}},
+WindowSize->{1002.75, 669.75},
+WindowMargins->{{194.25, 189.}, {0, Automatic}},
 FrontEndVersion->"12.1 for Linux x86 (64-bit) (June 19, 2020)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"31a06584-caea-440a-af30-09e01591b2dc"
@@ -3102,7 +3170,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 108443, 3065, 6914, "Input",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
+Cell[558, 20, 111097, 3133, 6446, "Input",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
 }
 ]
 *)

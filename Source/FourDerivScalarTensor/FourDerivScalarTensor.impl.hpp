@@ -810,9 +810,6 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(
       continue;
 
     RHS[n1] = rhs.A[a1][b1];
-    if (a1 != b1)
-      RHS[n1] = rhs.A[b1][a1];
-
     ++n1;
   }
   RHS[N - 2] = rhs.K;

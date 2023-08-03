@@ -39,7 +39,8 @@ void KerrBH4dSTLevel::initialData() {
   // First set everything to zero then calculate initial data  Get the Kerr
   // solution in the variables, then calculate the \tilde\Gamma^i numerically
   // as these are non zero and not calculated in the Kerr ICs
-  BoxLoops::loop(make_compute_pack(SetValue(0.), KerrBH(m_p.kerr_params, m_dx)),
+  BoxLoops::loop(make_compute_pack(SetValue(0.), KerrBH(m_p.kerr_params, m_dx),
+                                   InitialScalarData(m_p.initial_params, m_dx)),
                  m_state_new, m_state_new, INCLUDE_GHOST_CELLS);
 
   fillAllGhosts();
@@ -72,18 +73,20 @@ void KerrBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
   CouplingAndPotential coupling_and_potential(
       m_p.coupling_and_potential_params);
   FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
-  ModifiedGauge modified_gauge(m_p.modified_gauge_params);
+  ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
   if (m_p.max_spatial_derivative_order == 4) {
     ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential,
-                    MovingPunctureGauge, FourthOrderDerivatives, ModifiedGauge>
-        my_modified_ccz4(fdst, m_p.ccz4_params, modified_gauge, m_dx, m_p.sigma,
-                         m_p.center, m_p.formulation, m_p.G_Newton);
+                    ModifiedPunctureGauge, FourthOrderDerivatives>
+        my_modified_ccz4(fdst, m_p.modified_ccz4_params,
+                         modified_puncture_gauge, m_dx, m_p.sigma, m_p.center,
+                         m_p.formulation, m_p.G_Newton);
     BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
   } else if (m_p.max_spatial_derivative_order == 6) {
     ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential,
-                    MovingPunctureGauge, SixthOrderDerivatives, ModifiedGauge>
-        my_modified_ccz4(fdst, m_p.ccz4_params, modified_gauge, m_dx, m_p.sigma,
-                         m_p.center, m_p.formulation, m_p.G_Newton);
+                    ModifiedPunctureGauge, SixthOrderDerivatives>
+        my_modified_ccz4(fdst, m_p.modified_ccz4_params,
+                         modified_puncture_gauge, m_dx, m_p.sigma, m_p.center,
+                         m_p.formulation, m_p.G_Newton);
     BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
   }
 }

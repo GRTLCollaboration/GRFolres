@@ -12,7 +12,7 @@
 #include "Coordinates.hpp"
 #include "DefaultModifiedGauge.hpp"
 #include "FourthOrderDerivatives.hpp"
-#include "MovingPunctureGauge.hpp"
+#include "ModifiedPunctureGauge.hpp"
 #include "Tensor.hpp"
 #include "TensorAlgebra.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS - total number of components
@@ -47,15 +47,14 @@ template <class data_t> struct Sij_TF_and_S_t {
   data_t S;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
 };
 
-template <class matter_t, class gauge_t = MovingPunctureGauge,
-          class deriv_t = FourthOrderDerivatives,
-          class modified_gauge_t = DefaultModifiedGauge>
+template <class matter_t, class gauge_t = ModifiedPunctureGauge,
+          class deriv_t = FourthOrderDerivatives>
 class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t> {
 public:
   // Use this alias for the same template instantiation as this class
   using CCZ4 = CCZ4RHS<gauge_t, deriv_t>;
 
-  using params_t = CCZ4_params_t<typename gauge_t::params_t>;
+  using modified_params_t = CCZ4_params_t<typename gauge_t::params_t>;
 
   template <class data_t>
   using MatterVars = typename matter_t::template Vars<data_t>;
@@ -99,9 +98,8 @@ public:
      dissipation parameter sigma, and allows the formulation to be toggled
      between CCZ4 and BSSN. The default is CCZ4.
   */
-  ModifiedCCZ4RHS(matter_t a_matter, params_t a_params,
-                  modified_gauge_t a_modified_gauge, double a_dx,
-                  double a_sigma,
+  ModifiedCCZ4RHS(matter_t a_matter, modified_params_t a_params,
+                  gauge_t a_gauge, double a_dx, double a_sigma,
                   const std::array<double, CH_SPACEDIM> a_center,
                   int a_formulation = CCZ4RHS<>::USE_CCZ4,
                   double a_G_Newton = 1.0);
@@ -143,9 +141,8 @@ public:
       const; //!< the value of the coordinates for computing a(x), b(x).
 
   // Class members
-  matter_t my_matter; //!< The matter object, e.g. EsGB.
-  modified_gauge_t
-      my_modified_gauge; //!< The modified gauge object, i.e a(x) and b(x)
+  matter_t my_matter; //!< The matter object, e.g. 4dST.
+  gauge_t my_gauge;   //!< The gauge object, which includes a(x) and b(x)
   const std::array<double, CH_SPACEDIM> m_center; //!< The center of the grid
   double m_G_Newton;
 };

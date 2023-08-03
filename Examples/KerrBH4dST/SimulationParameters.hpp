@@ -12,9 +12,10 @@
 
 // Problem specific includes:
 #include "CouplingAndPotential.hpp"
+#include "FourDerivScalarTensor.hpp"
 #include "InitialScalarData.hpp"
 #include "KerrBH.hpp"
-#include "ModifiedGauge.hpp"
+#include "ModifiedPunctureGauge.hpp"
 
 class SimulationParameters : public SimulationParametersBase {
 public:
@@ -35,8 +36,18 @@ public:
     pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
     pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);
     // Modified gauge
-    pp.load("a0", modified_gauge_params.a0, 0.);
-    pp.load("b0", modified_gauge_params.b0, 0.);
+    pp.load("a0", modified_ccz4_params.a0, 0.);
+    pp.load("b0", modified_ccz4_params.b0, 0.);
+    pp.load("lapse_advec_coeff", modified_ccz4_params.lapse_advec_coeff, 0.);
+    pp.load("lapse_power", modified_ccz4_params.lapse_power, 1.);
+    pp.load("lapse_coeff", modified_ccz4_params.lapse_coeff, 2.);
+    pp.load("shift_Gamma_coeff", modified_ccz4_params.shift_Gamma_coeff, 0.75);
+    pp.load("shift_advec_coeff", modified_ccz4_params.shift_advec_coeff, 0.);
+    pp.load("eta", modified_ccz4_params.eta, 1.);
+    modified_ccz4_params.kappa1 = ccz4_base_params.kappa1;
+    modified_ccz4_params.kappa2 = ccz4_base_params.kappa2;
+    modified_ccz4_params.kappa3 = ccz4_base_params.kappa3;
+    modified_ccz4_params.covariantZ4 = ccz4_base_params.covariantZ4;
 
     // Initial Kerr data
     pp.load("kerr_mass", kerr_params.mass);
@@ -64,7 +75,9 @@ public:
   double G_Newton;
   InitialScalarData::params_t initial_params;
   CouplingAndPotential::params_t coupling_and_potential_params;
-  ModifiedGauge::params_t modified_gauge_params;
+  ModifiedCCZ4RHS<
+      FourDerivScalarTensor<CouplingAndPotential>, ModifiedPunctureGauge,
+      FourthOrderDerivatives>::modified_params_t modified_ccz4_params;
   KerrBH::params_t kerr_params;
 };
 

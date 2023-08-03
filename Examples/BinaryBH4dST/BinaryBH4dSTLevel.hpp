@@ -10,7 +10,7 @@
 #include "DefaultLevelFactory.hpp"
 #include "FourDerivScalarTensor.hpp"
 #include "GRAMRLevel.hpp"
-#include "ModifiedGauge.hpp"
+#include "ModifiedPunctureGauge.hpp"
 // TPAMR.hpp includes BHAMR.hpp
 #include "TPAMR.hpp"
 

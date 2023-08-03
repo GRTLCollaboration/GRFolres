@@ -11,7 +11,7 @@
 #include "DefaultLevelFactory.hpp"
 #include "FourDerivScalarTensor.hpp"
 #include "GRAMRLevel.hpp"
-#include "ModifiedGauge.hpp"
+#include "ModifiedPunctureGauge.hpp"
 
 class KerrBH4dSTLevel : public GRAMRLevel {
   friend class DefaultLevelFactory<KerrBH4dSTLevel>;

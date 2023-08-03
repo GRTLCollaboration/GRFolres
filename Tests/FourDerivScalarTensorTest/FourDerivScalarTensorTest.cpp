@@ -9,7 +9,7 @@
 #include "CouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "ModifiedCCZ4RHS.hpp"
-#include "ModifiedGauge.hpp"
+#include "ModifiedPunctureGauge.hpp"
 #include "Tensor.hpp"
 #include <iostream>
 
@@ -28,16 +28,15 @@ template <class data_t> struct Vars : public CCZ4::Vars<data_t> {
 };
 
 typedef ModifiedCCZ4RHS<FourDerivScalarTensor<CouplingAndPotential>,
-                        MovingPunctureGauge, FourthOrderDerivatives,
-                        ModifiedGauge>
+                        ModifiedPunctureGauge, FourthOrderDerivatives>
     MyModifiedGravityClass;
 
 int main(int argc, char *argv[]) {
   int failed = 0;
 
   CCZ4::params_t m_params;
-  ModifiedGauge::params_t m_params_modified_gauge;
-  CouplingAndPotential::params_t m_params_coupling_and_potential;
+  CouplingAndPotential::params_t m_coupling_and_potential_params;
+  MyModifiedGravityClass::modified_params_t m_modified_ccz4_params;
 
   MyModifiedGravityClass::Vars<double> rhs;
   MyModifiedGravityClass::Vars<double> vars;
@@ -59,12 +58,12 @@ int main(int argc, char *argv[]) {
   IntVect vect(ind);
   Coordinates<double> coords(vect, dx, {0., 0., 0.});
 
-  ModifiedGauge modified_gauge(m_params_modified_gauge);
-  CouplingAndPotential coupling_and_potential(m_params_coupling_and_potential);
+  ModifiedPunctureGauge modified_puncture_gauge(m_modified_ccz4_params);
+  CouplingAndPotential coupling_and_potential(m_coupling_and_potential_params);
   FourDerivScalarTensor<CouplingAndPotential> fdst(coupling_and_potential);
-  MyModifiedGravityClass my_modified_ccz4(fdst, m_params, modified_gauge, dx,
-                                          sigma, {0., 0., 0.}, 0,
-                                          1. / (16. * M_PI));
+  MyModifiedGravityClass my_modified_ccz4(fdst, m_modified_ccz4_params,
+                                          modified_puncture_gauge, dx, sigma,
+                                          {0., 0., 0.}, 0, 1. / (16. * M_PI));
 
   // add functions a(x) and b(x) of the modified gauge
   my_modified_ccz4.add_a_and_b_rhs<double>(rhs, vars, d1, d2, advec, coords);

@@ -11,20 +11,19 @@
 #define MODIFIEDCCZ4RHS_IMPL_HPP_
 #include "DimensionDefinitions.hpp"
 
-template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
-ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::ModifiedCCZ4RHS(
-    matter_t a_matter, CCZ4_params_t<typename gauge_t::params_t> a_params,
-    modified_gauge_t a_modified_gauge, double a_dx, double a_sigma,
-    const std::array<double, CH_SPACEDIM> a_center, int a_formulation,
-    double a_G_Newton)
+template <class matter_t, class gauge_t, class deriv_t>
+ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t>::ModifiedCCZ4RHS(
+    matter_t a_matter, modified_params_t a_params, gauge_t a_gauge, double a_dx,
+    double a_sigma, const std::array<double, CH_SPACEDIM> a_center,
+    int a_formulation, double a_G_Newton)
     : CCZ4RHS<gauge_t, deriv_t>(a_params, a_dx, a_sigma, a_formulation,
                                 0.0 /*No cosmological constant*/),
-      my_matter(a_matter), my_modified_gauge(a_modified_gauge),
-      m_center(a_center), m_G_Newton(a_G_Newton) {}
+      my_matter(a_matter), my_gauge(a_gauge), m_center(a_center),
+      m_G_Newton(a_G_Newton) {}
 
-template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
+template <class matter_t, class gauge_t, class deriv_t>
 template <class data_t>
-void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::compute(
+void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t>::compute(
     Cell<data_t> current_cell) const {
   // copy data from chombo gridpoint into local variables
   const auto matter_vars = current_cell.template load_vars<Vars>();
@@ -59,18 +58,16 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::compute(
 }
 
 // Function to add in EM Tensor matter terms to CCZ4 rhs
-template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
+template <class matter_t, class gauge_t, class deriv_t>
 template <class data_t>
-void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
-    add_a_and_b_rhs(Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
-                    const Vars<Tensor<1, data_t>> &d1,
-                    const Diff2Vars<Tensor<2, data_t>> &d2,
-                    const Vars<data_t> &advec,
-                    const Coordinates<data_t> &coords) const {
+void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t>::add_a_and_b_rhs(
+    Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
+    const Vars<Tensor<1, data_t>> &d1, const Diff2Vars<Tensor<2, data_t>> &d2,
+    const Vars<data_t> &advec, const Coordinates<data_t> &coords) const {
   data_t a_of_x = 0.;
   data_t b_of_x = 0.;
 
-  my_modified_gauge.compute_modified_gauge(a_of_x, b_of_x, coords);
+  my_gauge.compute_a_and_b(a_of_x, b_of_x, coords);
 
   const data_t chi_regularised = simd_max(1e-6, matter_vars.chi);
   using namespace TensorAlgebra;
@@ -173,14 +170,12 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
 }
 
 // Function to add in EM Tensor matter terms to CCZ4 rhs
-template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
+template <class matter_t, class gauge_t, class deriv_t>
 template <class data_t>
-void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
-    add_emtensor_rhs(Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
-                     const Vars<Tensor<1, data_t>> &d1,
-                     const Diff2Vars<Tensor<2, data_t>> &d2,
-                     const Vars<data_t> &advec,
-                     const Coordinates<data_t> &coords) const {
+void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t>::add_emtensor_rhs(
+    Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
+    const Vars<Tensor<1, data_t>> &d1, const Diff2Vars<Tensor<2, data_t>> &d2,
+    const Vars<data_t> &advec, const Coordinates<data_t> &coords) const {
   using namespace TensorAlgebra;
 
   const auto h_UU = compute_inverse_sym(matter_vars.h);
@@ -195,7 +190,7 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
   data_t a_of_x = 0.;
   data_t b_of_x = 0.;
 
-  my_modified_gauge.compute_modified_gauge(a_of_x, b_of_x, coords);
+  my_gauge.compute_a_and_b(a_of_x, b_of_x, coords);
 
   // Update RHS for K and Theta depending on formulation
   if (this->m_formulation == CCZ4RHS<>::USE_BSSN) {
