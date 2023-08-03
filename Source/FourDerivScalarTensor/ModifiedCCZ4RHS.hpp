@@ -37,6 +37,16 @@
 //! the coupling for the matter terms are taken into account into the matter
 //! class itself
 
+template <class data_t> struct rho_and_Si_t {
+  Tensor<1, data_t> Si; //!< S_i = T_ia_n^a
+  data_t rho;           //!< rho = T_ab n^a n^b
+};
+
+template <class data_t> struct Sij_TF_and_S_t {
+  Tensor<2, data_t> Sij_TF; //!< S_ij_TF = (T_ab\gamma_i^a\gamma_j^b)^TF
+  data_t S;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
+};
+
 template <class matter_t, class gauge_t = MovingPunctureGauge,
           class deriv_t = FourthOrderDerivatives,
           class modified_gauge_t = DefaultModifiedGauge>
@@ -105,7 +115,7 @@ public:
 
   //! The function which add in the modified gauge terms to the CCZ4 rhs
   template <class data_t>
-  void add_a_b_rhs(
+  void add_a_and_b_rhs(
       Vars<data_t>
           &matter_rhs, //!< the RHS data for each variable at that point.
       const Vars<data_t> &vars, //!< the value of the variables at the point.

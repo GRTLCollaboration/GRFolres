@@ -40,7 +40,7 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::compute(
   Coordinates<data_t> coords{current_cell, this->m_deriv.m_dx, m_center};
 
   // add functions a(x) and b(x) of the modified gauge
-  add_a_b_rhs(matter_rhs, matter_vars, d1, d2, advec, coords);
+  add_a_and_b_rhs(matter_rhs, matter_vars, d1, d2, advec, coords);
 
   // add RHS matter terms from EM Tensor
   add_emtensor_rhs(matter_rhs, matter_vars, d1, d2, advec, coords);
@@ -61,10 +61,12 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::compute(
 // Function to add in EM Tensor matter terms to CCZ4 rhs
 template <class matter_t, class gauge_t, class deriv_t, class modified_gauge_t>
 template <class data_t>
-void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::add_a_b_rhs(
-    Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
-    const Vars<Tensor<1, data_t>> &d1, const Diff2Vars<Tensor<2, data_t>> &d2,
-    const Vars<data_t> &advec, const Coordinates<data_t> &coords) const {
+void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
+    add_a_and_b_rhs(Vars<data_t> &matter_rhs, const Vars<data_t> &matter_vars,
+                    const Vars<Tensor<1, data_t>> &d1,
+                    const Diff2Vars<Tensor<2, data_t>> &d2,
+                    const Vars<data_t> &advec,
+                    const Coordinates<data_t> &coords) const {
   data_t a_of_x = 0.;
   data_t b_of_x = 0.;
 
@@ -185,8 +187,10 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
   const auto chris = compute_christoffel(d1.h, h_UU);
 
   // Calculate elements of the decomposed stress energy tensor
-  const auto emtensor =
-      my_matter.compute_emtensor(matter_vars, d1, d2, advec, coords);
+  rho_and_Si_t<data_t> rho_and_Si =
+      my_matter.compute_rho_and_Si(matter_vars, d1, d2, coords);
+  Sij_TF_and_S_t<data_t> Sij_TF_and_S =
+      my_matter.compute_Sij_TF_and_S(matter_vars, d1, d2, advec, coords);
 
   data_t a_of_x = 0.;
   data_t b_of_x = 0.;
@@ -196,33 +200,27 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t, modified_gauge_t>::
   // Update RHS for K and Theta depending on formulation
   if (this->m_formulation == CCZ4RHS<>::USE_BSSN) {
     matter_rhs.K += 4. * M_PI * m_G_Newton * matter_vars.lapse *
-                    (emtensor.S + emtensor.rho / (1. + b_of_x));
+                    (Sij_TF_and_S.S + rho_and_Si.rho / (1. + b_of_x));
     matter_rhs.Theta += 0.0;
   } else {
     matter_rhs.K += 4.0 * M_PI * m_G_Newton * matter_vars.lapse *
-                    (emtensor.S - 3 * emtensor.rho / (1. + b_of_x));
+                    (Sij_TF_and_S.S - 3 * rho_and_Si.rho / (1. + b_of_x));
     matter_rhs.Theta += -8. * M_PI * m_G_Newton * matter_vars.lapse *
-                        emtensor.rho / (1. + b_of_x);
+                        rho_and_Si.rho / (1. + b_of_x);
   }
 
   // Update RHS for other variables
-  Tensor<2, data_t> Sij_TF = emtensor.Sij;
-  make_trace_free(Sij_TF, matter_vars.h, h_UU);
 
   FOR(i, j) {
-    // matter_rhs.A[i][j] += -matter_vars.chi *
-    //                      matter_vars.lapse * Sij_TF[i][j];
-    matter_rhs.A[i][j] +=
-        -8. * M_PI * m_G_Newton * matter_vars.lapse *
-        (matter_vars.chi * emtensor.Sij[i][j] -
-         matter_vars.h[i][j] * emtensor.S / (double)GR_SPACEDIM);
+    matter_rhs.A[i][j] += -8. * M_PI * m_G_Newton * matter_vars.lapse *
+                          matter_vars.chi * Sij_TF_and_S.Sij_TF[i][j];
   }
 
   FOR(i) {
     data_t matter_term_Gamma = 0.0;
     FOR(j) {
       matter_term_Gamma += -16. * M_PI * m_G_Newton * matter_vars.lapse *
-                           h_UU[i][j] * emtensor.Si[j] / (1. + b_of_x);
+                           h_UU[i][j] * rho_and_Si.Si[j] / (1. + b_of_x);
     }
 
     matter_rhs.Gamma[i] += matter_term_Gamma;

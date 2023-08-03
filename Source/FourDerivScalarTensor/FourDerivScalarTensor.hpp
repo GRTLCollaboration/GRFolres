@@ -11,6 +11,7 @@
 #include "DefaultCouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "FourthOrderDerivatives.hpp"
+#include "ModifiedCCZ4RHS.hpp"
 #include "Tensor.hpp"
 #include "TensorAlgebra.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS, total num of components
@@ -33,10 +34,6 @@
      +f(\phi)/4{\mathcal L}_{GB}\right)
      \sa MatterCCZ4(), ConstraintsMatter()
 */
-template <class data_t> struct rho_Si_t {
-  Tensor<1, data_t> Si; //!< S_i = T_ia_n^a
-  data_t rho;           //!< rho = T_ab n^a n^b
-};
 
 template <class coupling_and_potential_t = DefaultCouplingAndPotential>
 class FourDerivScalarTensor {
@@ -86,7 +83,7 @@ public:
   //! specify the gauge variables
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t>
-  rho_Si_t<data_t> compute_rho_Si(
+  rho_and_Si_t<data_t> compute_rho_and_Si(
       const vars_t<data_t> &vars,          //!< the value of the variables
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
       const diff2_vars_t<Tensor<2, data_t>>
@@ -98,7 +95,7 @@ public:
   //! derivatives, for the given coupling function
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t>
-  emtensor_t<data_t> compute_emtensor(
+  Sij_TF_and_S_t<data_t> compute_Sij_TF_and_S(
       const vars_t<data_t> &vars,          //!< the value of the variables
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
       const diff2_vars_t<Tensor<2, data_t>>
@@ -118,7 +115,7 @@ public:
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
       const diff2_vars_t<Tensor<2, data_t>>
           &d2,                     //!< the value of the 2nd derivs
-      const vars_t<data_t> &advec, //!< the value of the coordinates
+      const vars_t<data_t> &advec, //!< the value of the advection terms
       const Coordinates<data_t> &coords)
       const; //!< the value of the coordinates
 

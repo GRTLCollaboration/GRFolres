@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
                                           1. / (16. * M_PI));
 
   // add functions a(x) and b(x) of the modified gauge
-  my_modified_ccz4.add_a_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
+  my_modified_ccz4.add_a_and_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
   // add RHS matter terms from EM Tensor
   my_modified_ccz4.add_emtensor_rhs<double>(rhs, vars, d1, d2, advec, coords);

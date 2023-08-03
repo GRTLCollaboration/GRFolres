@@ -42,19 +42,20 @@ void ModifiedGravityConstraints<matter_t>::compute(
   Vars<data_t> out = constraint_equations(vars, d1, d2, h_UU, chris);
 
   // Energy Momentum Tensor
-  rho_Si_t<data_t> rho_Si = my_matter.compute_rho_Si(vars, d1, d2, coords);
+  rho_and_Si_t<data_t> rho_and_Si =
+      my_matter.compute_rho_and_Si(vars, d1, d2, coords);
 
   // Hamiltonian constraint
   if (m_c_Ham >= 0 || m_c_Ham_abs_terms >= 0) {
-    out.Ham += -16. * M_PI * m_G_Newton * rho_Si.rho;
-    out.Ham_abs_terms += 16. * M_PI * m_G_Newton * abs(rho_Si.rho);
+    out.Ham += -16. * M_PI * m_G_Newton * rho_and_Si.rho;
+    out.Ham_abs_terms += 16. * M_PI * m_G_Newton * abs(rho_and_Si.rho);
   }
 
   // Momentum constraints
   if (m_c_Moms.size() > 0 || m_c_Moms_abs_terms.size() > 0) {
     FOR(i) {
-      out.Mom[i] += -8. * M_PI * m_G_Newton * rho_Si.Si[i];
-      out.Mom_abs_terms[i] += 8. * M_PI * m_G_Newton * abs(rho_Si.Si[i]);
+      out.Mom[i] += -8. * M_PI * m_G_Newton * rho_and_Si.Si[i];
+      out.Mom_abs_terms[i] += 8. * M_PI * m_G_Newton * abs(rho_and_Si.Si[i]);
     }
   }
   // Write the constraints into the output FArrayBox

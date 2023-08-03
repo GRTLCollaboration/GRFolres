@@ -14,12 +14,12 @@
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-rho_Si_t<data_t>
-FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
+rho_and_Si_t<data_t>
+FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_and_Si(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2,
     const Coordinates<data_t> &coords) const {
-  rho_Si_t<data_t> out;
+  rho_and_Si_t<data_t> out;
 
   // set the coupling and potential values
   data_t dfdphi = 0.;
@@ -43,7 +43,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
 
   // S_i (note lower index) = - n^a T_ai
   FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi; }
-  
+
   FOR(i) { out.Si[i] += g2 * Vt * vars.Pi * d1.phi[i]; }
 
   // rho = n^a n^b T_ab
@@ -169,16 +169,14 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_Si(
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-emtensor_t<data_t>
-FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
+Sij_TF_and_S_t<data_t>
+FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
     const Coordinates<data_t> &coords) const {
-  emtensor_t<data_t> out;
+  Sij_TF_and_S_t<data_t> out;
 
-  rho_Si_t<data_t> rho_Si = compute_rho_Si(vars, d1, d2, coords);
-  out.rho = rho_Si.rho;
-  FOR(i) out.Si[i] = rho_Si.Si[i];
+  rho_and_Si_t<data_t> rho_and_Si = compute_rho_and_Si(vars, d1, d2, coords);
 
   // set the coupling and potential values
   data_t dfdphi = 0.;
@@ -205,17 +203,22 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
   // Calculate components of EM Tensor for the non-Gauss-Bonnet sector
   // S_ij = T_ij
   FOR(i, j) {
-    out.Sij[i][j] = -0.5 * vars.h[i][j] * Vt / chi_regularised + d1.phi[i] * d1.phi[j];
+    out.Sij_TF[i][j] =
+        -0.5 * vars.h[i][j] * Vt / chi_regularised + d1.phi[i] * d1.phi[j];
   }
 
-  FOR(i, j) { out.Sij[i][j] += -vars.h[i][j] * V_of_phi / chi_regularised; }
+  FOR(i, j) { out.Sij_TF[i][j] += -vars.h[i][j] * V_of_phi / chi_regularised; }
 
-  FOR(i, j) { 
-     out.Sij[i][j] += g2 * Vt * (-d1.phi[i] * d1.phi[j] + vars.h[i][j] / chi_regularised * Vt / 4.); 
+  FOR(i, j) {
+    out.Sij_TF[i][j] +=
+        g2 * Vt *
+        (-d1.phi[i] * d1.phi[j] + vars.h[i][j] / chi_regularised * Vt / 4.);
   }
 
   // S = Tr_S_ij
-  out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij, h_UU);
+  out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij_TF, h_UU);
+
+  make_trace_free(out.Sij_TF, vars.h, h_UU); // make matter part trace-free
 
   // Compute useful quantities for the Gauss-Bonnet sector
 
@@ -386,7 +389,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
   }
 
   data_t SGB = 4. / 3. * Omega * F + 4. * M * (-d2fdphi2 * Vt + Omega / 3.) -
-               (out.rho - V_of_phi - vars.Pi * vars.Pi - 0.5 * Vt);
+               (rho_and_Si.rho - V_of_phi - vars.Pi * vars.Pi - 0.5 * Vt);
   FOR(i, j)
   SGB += -2. * Omega_ij_TF_UU[i][j] * vars.chi *
              (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
@@ -413,13 +416,12 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_emtensor(
               (Omega_ij_TF_UU[k][l] * Fij[k][l] +
                h_UU[k][l] * Omega_i[k] * (2. * Ni[l] + d1.K[l]));
     }
-    SijGB[i][j] += vars.h[i][j] * SGB / 3.;
     SijGB[i][j] /= chi_regularised;
     SijGB[i][j] += -8. * dfdphi * dfdphi * Mij_TF[i][j] * RGB;
   }
 
   out.S += SGB;
-  FOR(i, j) out.Sij[i][j] += SijGB[i][j];
+  FOR(i, j) out.Sij_TF[i][j] += SijGB[i][j];
 
   return out;
 }
