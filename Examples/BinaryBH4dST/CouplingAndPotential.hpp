@@ -13,6 +13,7 @@ class CouplingAndPotential {
 public:
   struct params_t {
     double lambda_GB;   // Gauss-Bonnet coupling
+    double g2;          // coupling to the square of the kinetic term
     double cutoff_GB;   // cutoff for switching off the Gauss-Bonnet terms
                         // inside the BH
     double factor_GB;   // factor for the function smoothening the GB cutoff
@@ -38,12 +39,14 @@ public:
     data_t cutoff_factor =
         1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
 
+    // Shift-symmetric coupling: f(\phi) = \lambda^{GB}\phi
+
     // The first derivative of the GB coupling function
     dfdphi = m_params.lambda_GB / cutoff_factor;
     // The second derivative of the GB coupling function
     d2fdphi2 = 0.;
     // The coupling to the square of the kinetic term
-    g2 = 0.;
+    g2 = m_params.g2;
     // The first derivative of the g2 coupling
     dg2dphi = 0.;
     // The potential of the scalar field

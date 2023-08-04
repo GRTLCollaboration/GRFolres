@@ -216,7 +216,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   // S = Tr_S_ij
   out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij_TF, h_UU);
 
-  make_trace_free(out.Sij_TF, vars.h, h_UU); // make matter part trace-free
+  make_trace_free(out.Sij_TF, vars.h, h_UU); // make Sij trace-free
 
   // Compute useful quantities for the Gauss-Bonnet sector
 
@@ -429,12 +429,12 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   return out;
 }
 
-// Adds in the RHS for the matter vars
+// Adds in the RHS for the theory vars
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
           template <typename> class rhs_vars_t>
-void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
+void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
     rhs_vars_t<data_t> &rhs, const vars_t<data_t> &vars,
     const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
@@ -497,7 +497,9 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
   }
   data_t M =
       vars.chi *
-      compute_trace(Mij, h_UU); // trace of M_{ij} (which is the Einstein Ham)
+      compute_trace(
+          Mij,
+          h_UU); // trace of M_{ij} (which is the GR Hamiltonian Constraint)
 
   Tensor<2, data_t> Mij_TF = Mij;
   make_trace_free(Mij_TF, vars.h, h_UU);
@@ -641,7 +643,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
   }
 }
 
-// Adds in the RHS for the matter vars
+// Computes the LHS matrix
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
@@ -841,7 +843,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
   }
 }
 
-// Function to add in EM Tensor matter terms to CCZ4 rhs
+// Function to solve LHS from the rhs and the LHS matrix
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
@@ -869,7 +871,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(
   RHS[N - 2] = rhs.K;
   RHS[N - 1] = rhs.Pi;
 
-  EsGB_lapack::solve_system_lapack(N, (&LHS[0][0]), RHS);
+  LinearSolver::solve_linear_system(N, (&LHS[0][0]), RHS);
 
   n1 = 0;
   FOR(a1, b1) {

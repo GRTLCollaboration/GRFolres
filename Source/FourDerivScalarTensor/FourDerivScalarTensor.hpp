@@ -11,28 +11,29 @@
 #include "DefaultCouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "FourthOrderDerivatives.hpp"
+#include "LinearSolver.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "Tensor.hpp"
 #include "TensorAlgebra.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS, total num of components
 #include "VarsTools.hpp"
 
-//!  Calculates the matter type specific elements such as the EMTensor and
-//   matter evolution
+//!  Calculates the theory type specific elements such as the EMTensor and
+//   theory evolution
 /*!
-     This class is an example of a matter_t object which calculates the
-     matter type specific elements for the RHS update and the evaluation
+     This class is an example of a theory_t object which calculates the
+     theory type specific elements for the RHS update and the evaluation
      of the constraints. This includes the Energy Momentum Tensor, and
-     the matter evolution terms. In this case, a scalar field coupled to
-     the Gauss-Bonnet invariant, the matter elements are phi and its
+     the theory evolution terms. In this case, a scalar field coupled to
+     the Gauss-Bonnet invariant, the theory elements are phi and its
      conjugate momentum, Pi.
      It is templated over a coupling function coupling_t which the
      user must specify in a class, although a default is provided which
      sets dfdphi and df2dphi2 to zero.
      It assumes a scalar field without potential, coming from the action
-     S=\frac{1}{8\pi G}\int d^4x\left(R - 1/2\nabla_{\mu}\nabla^{\mu}\phi
-     +f(\phi)/4{\mathcal L}_{GB}\right)
-     \sa MatterCCZ4(), ConstraintsMatter()
+     S=\int d^4x\left(R/16\pi G - 1/2\nabla_{\mu}\phi\nabla^{\mu}\phi
+     +f(\phi)/4{\mathcal R}_{GB}\right)
+     \sa ModifiedCCZ4RHS(), ModifiedGravityConstraints()
 */
 
 template <class coupling_and_potential_t = DefaultCouplingAndPotential>
@@ -42,12 +43,12 @@ protected:
   coupling_and_potential_t my_coupling_and_potential;
 
 public:
-  //!  Constructor of class FourDerivScalarTensor, inputs are the matter
+  //!  Constructor of class FourDerivScalarTensor, inputs are the theory
   //!  parameters.
   FourDerivScalarTensor(const coupling_and_potential_t a_coupling_and_potential)
       : my_coupling_and_potential(a_coupling_and_potential) {}
 
-  //! Structure containing the rhs variables for the matter fields
+  //! Structure containing the rhs variables for the theory fields
   template <class data_t> struct Vars {
     data_t phi; // the scalar field
     data_t Pi;  // conjugate momentum of the scalar field
@@ -61,7 +62,7 @@ public:
     }
   };
 
-  //! Structure containing the rhs variables for the matter fields requiring
+  //! Structure containing the rhs variables for the theory fields requiring
   //!  2nd derivs
   template <class data_t> struct Diff2Vars {
     data_t phi;
@@ -104,12 +105,12 @@ public:
       const Coordinates<data_t> &coords)
       const; //!< the value of the coordinates
 
-  //! The function which adds in the RHS for the matter field vars,
+  //! The function which adds in the RHS for the theory field vars,
   //! given the coupling function
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t,
             template <typename> class rhs_vars_t>
-  void add_matter_rhs(
+  void add_theory_rhs(
       rhs_vars_t<data_t> &rhs,    //!< the value of the RHS for all vars
       const vars_t<data_t> &vars, //!< the value of the variables
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
@@ -120,12 +121,12 @@ public:
       const; //!< the value of the coordinates
 
   //! The function which computes the LHS matrix for some of the vars, which
-  //! are A, K and Kphi for this EsGB example
+  //! are A, K and Pi for this 4dST example
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t>
   void compute_lhs(
       const int N,
-      data_t *LHS, //!< the LHS matrix for some vars (namely A, K and Kphi)
+      data_t *LHS, //!< the LHS matrix for some vars (namely A, K and Pi)
       const vars_t<data_t> &vars,          //!< the value of the variables
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
       const diff2_vars_t<Tensor<2, data_t>>
@@ -147,17 +148,6 @@ public:
       const vars_t<data_t> &advec, //!< the value of the advection terms
       const Coordinates<data_t> &coords)
       const; //!< the value of the coordinates
-};
-
-//! Class for the function that solves the linear system (included in
-//! lapack.cpp) A separate class has been needed to be defined because of the
-//! explicit specialization of this function, which does not work for a class
-//! with an extra template argument (namely the coupling for the EsGB class)
-class EsGB_lapack {
-public:
-  EsGB_lapack() {}
-  template <class data_t>
-  static void solve_system_lapack(const int N, data_t *LHS, data_t *RHS);
 };
 
 #include "FourDerivScalarTensor.impl.hpp"

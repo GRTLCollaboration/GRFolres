@@ -44,8 +44,10 @@ public:
     pp.load("G_Newton", G_Newton, 1.0);
     pp.load("scalar_amplitude", initial_params.amplitude, 0.);
     pp.load("scalar_width", initial_params.width, 1.0);
+    pp.load("scalar_r0", initial_params.r0, 0.);
     // Coupling and potential
     pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
+    pp.load("g2", coupling_and_potential_params.g2, 0.);
     pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
     pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
     pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);

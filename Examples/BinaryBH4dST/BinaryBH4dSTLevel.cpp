@@ -69,7 +69,7 @@ void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
   BoxLoops::loop(make_compute_pack(TraceARemoval(), PositiveChiAndAlpha()),
                  a_soln, a_soln, INCLUDE_GHOST_CELLS);
 
-  // Calculate ModifiedCCZ4 right hand side with matter_t =
+  // Calculate ModifiedCCZ4 right hand side with theory_t =
   // FourDerivScalarTensor
   CouplingAndPotential coupling_and_potential(
       m_p.coupling_and_potential_params);

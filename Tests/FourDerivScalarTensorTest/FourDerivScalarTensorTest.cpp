@@ -67,13 +67,13 @@ int main(int argc, char *argv[]) {
   // add functions a(x) and b(x) of the modified gauge
   my_modified_ccz4.add_a_and_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
-  // add RHS matter terms from EM Tensor
+  // add RHS theory terms from EM Tensor
   my_modified_ccz4.add_emtensor_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
-  // add evolution of matter fields themselves
-  fdst.add_matter_rhs<double>(rhs, vars, d1, d2, advec, coords);
+  // add evolution of the theory fields themselves
+  fdst.add_theory_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
-  // solve linear system for the matter fields that require it (e.g. 4dST)
+  // solve linear system for the theory fields that require it (e.g. 4dST)
   fdst.solve_lhs<double>(rhs, vars, d1, d2, advec, coords);
 
   // Compare

@@ -15,16 +15,17 @@
 #include "VarsTools.hpp"
 #include "simd.hpp"
 
-//! Class which sets the initial scalar field matter config
+//! Class which sets the initial scalar field config
 class InitialScalarData {
 public:
   //! A structure for the input params for scalar field properties and initial
   //! conditions
   struct params_t {
-    double amplitude; //!< Amplitude of bump in initial SF bubble
+    double amplitude; //!< Amplitude of the Gaussian pulse
     std::array<double, CH_SPACEDIM>
-        center;   //!< Centre of perturbation in initial SF bubble
-    double width; //!< Width of bump in initial SF bubble
+        center;   //!< Centre of perturbation in the initial SF
+    double width; //!< Width of the Gaussian pulse
+    double r0; //!< The radial coordinate of the position of the Gaussian pulse
   };
 
   //! The constructor
@@ -40,7 +41,7 @@ public:
 
     // calculate the field value
     data_t phi = m_params.amplitude *
-                 (1.0 + 0.01 * rr2 * exp(-pow(rr / m_params.width, 2.0)));
+                 exp(-pow((rr - m_params.r0) / m_params.width, 2.0));
 
     // store the vars
     current_cell.store_vars(phi, c_phi);
@@ -49,7 +50,7 @@ public:
 
 protected:
   double m_dx;
-  const params_t m_params; //!< The matter initial condition params
+  const params_t m_params; //!< The theory variables initial condition params
 };
 
 #endif /* INITIALSCALARDATA_HPP_ */

@@ -18,23 +18,20 @@
 #include "VarsTools.hpp"
 #include "simd.hpp"
 
-//!  Calculates RHS using CCZ4 in the modified gauge including matter terms,
-//!  and matter variable evolution
+//!  Calculates RHS using CCZ4 in the modified gauge including theory terms,
+//!  and theory variable evolution
 /*!
      The class calculates the RHS evolution for all the variables. It inherits
-   from the CCZ4RHS class, which it uses to do the non matter evolution of
+   from the CCZ4RHS class, which it uses to do the evolution of the CCZ4
    variables. It then adds in the terms depending on the a(x) and b(x) functions
-   of the modified gauge (which are included through the class mod_gauge_t).
-   Next, it included the additional matter terms to the CCZ4 evolution
+   of the modified gauge (which are included through the class gauge_t).
+   Next, it included the additional theory terms to the CCZ4 evolution
    (those including the stress energy tensor), and calculates the evolution of
-   the matter variables. It does not assume a specific form of matter but is
-   templated over a matter class matter_t. Please see the class EsGB as
-   an example of a matter_t. \sa CCZ4RHS(), EsGB()
+   the theory variables. It does not assume a specific form of theory but is
+   templated over a theory class theory_t. Please see the class
+   FourDerivScalarTensor as an example of a theory_t. \sa ModifiedCCZ4RHS(),
+   FourDerivScalarTensor()
 */
-
-//! NOTE: In contrast with MatterCCZ4RHS, the quantity 8\pi G has been to 1 and
-//! the coupling for the matter terms are taken into account into the matter
-//! class itself
 
 template <class data_t> struct rho_and_Si_t {
   Tensor<1, data_t> Si; //!< S_i = T_ia_n^a
@@ -46,7 +43,7 @@ template <class data_t> struct Sij_TF_and_S_t {
   data_t S;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
 };
 
-template <class matter_t, class gauge_t = ModifiedPunctureGauge,
+template <class theory_t, class gauge_t = ModifiedPunctureGauge,
           class deriv_t = FourthOrderDerivatives>
 class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t> {
 public:
@@ -56,55 +53,55 @@ public:
   using modified_params_t = CCZ4_params_t<typename gauge_t::params_t>;
 
   template <class data_t>
-  using MatterVars = typename matter_t::template Vars<data_t>;
+  using TheoryVars = typename theory_t::template Vars<data_t>;
 
   template <class data_t>
-  using MatterDiff2Vars = typename matter_t::template Diff2Vars<data_t>;
+  using TheoryDiff2Vars = typename theory_t::template Diff2Vars<data_t>;
 
   template <class data_t> using CCZ4Vars = typename CCZ4::template Vars<data_t>;
 
   template <class data_t>
   using CCZ4Diff2Vars = typename CCZ4::template Diff2Vars<data_t>;
 
-  // Inherit the variable definitions from CCZ4RHS + matter_t
+  // Inherit the variable definitions from CCZ4RHS + theory_t
   template <class data_t>
-  struct Vars : public CCZ4Vars<data_t>, public MatterVars<data_t> {
+  struct Vars : public CCZ4Vars<data_t>, public TheoryVars<data_t> {
     /// Defines the mapping between members of Vars and Chombo grid
     /// variables (enum in User_Variables)
     template <typename mapping_function_t>
     void enum_mapping(mapping_function_t mapping_function) {
       CCZ4Vars<data_t>::enum_mapping(mapping_function);
-      MatterVars<data_t>::enum_mapping(mapping_function);
+      TheoryVars<data_t>::enum_mapping(mapping_function);
     }
   };
 
   template <class data_t>
   struct Diff2Vars : public CCZ4Diff2Vars<data_t>,
-                     public MatterDiff2Vars<data_t> {
+                     public TheoryDiff2Vars<data_t> {
     /// Defines the mapping between members of Vars and Chombo grid
     /// variables (enum in User_Variables)
     template <typename mapping_function_t>
     void enum_mapping(mapping_function_t mapping_function) {
       CCZ4Diff2Vars<data_t>::enum_mapping(mapping_function);
-      MatterDiff2Vars<data_t>::enum_mapping(mapping_function);
+      TheoryDiff2Vars<data_t>::enum_mapping(mapping_function);
     }
   };
 
   //!  Constructor of class ModifiedCCZ4RHS
   /*!
      Inputs are the grid spacing, plus the CCZ4 evolution parameters, the
-     modified gauge functions and a matter object. It also takes the
+     modified gauge functions and a theory object. It also takes the
      dissipation parameter sigma, and allows the formulation to be toggled
      between CCZ4 and BSSN. The default is CCZ4.
   */
-  ModifiedCCZ4RHS(matter_t a_matter, modified_params_t a_params,
+  ModifiedCCZ4RHS(theory_t a_theory, modified_params_t a_params,
                   gauge_t a_gauge, double a_dx, double a_sigma,
                   const std::array<double, CH_SPACEDIM> a_center,
                   int a_formulation = CCZ4RHS<>::USE_CCZ4,
                   double a_G_Newton = 1.0);
 
   //!  The compute member which calculates the RHS at each point in the box
-  //!  \sa matter_rhs_equation()
+  //!  \sa theory_rhs_equation()
   template <class data_t> void compute(Cell<data_t> current_cell) const;
 
   //! Same change as in CCZ4RHS.hpp
@@ -114,7 +111,7 @@ public:
   template <class data_t>
   void add_a_and_b_rhs(
       Vars<data_t>
-          &matter_rhs, //!< the RHS data for each variable at that point.
+          &theory_rhs, //!< the RHS data for each variable at that point.
       const Vars<data_t> &vars, //!< the value of the variables at the point.
       const Vars<Tensor<1, data_t>>
           &d1, //!< the value of the first derivatives of the variables.
@@ -129,7 +126,7 @@ public:
   template <class data_t>
   void add_emtensor_rhs(
       Vars<data_t>
-          &matter_rhs, //!< the RHS data for each variable at that point.
+          &theory_rhs, //!< the RHS data for each variable at that point.
       const Vars<data_t> &vars, //!< the value of the variables at the point.
       const Vars<Tensor<1, data_t>>
           &d1, //!< the value of the first derivatives of the variables.
@@ -140,7 +137,7 @@ public:
       const; //!< the value of the coordinates.
 
   // Class members
-  matter_t my_matter; //!< The matter object, e.g. 4dST.
+  theory_t my_theory; //!< The theory object, e.g. 4dST.
   gauge_t my_gauge;   //!< The gauge object, which includes a(x) and b(x)
   const std::array<double, CH_SPACEDIM> m_center; //!< The center of the grid
   double m_G_Newton;

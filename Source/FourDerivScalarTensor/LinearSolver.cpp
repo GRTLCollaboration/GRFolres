@@ -1,3 +1,8 @@
+/* GRChombo
+ * Copyright 2012 The GRChombo collaboration.
+ * Please refer to LICENSE in GRChombo's root directory.
+ */
+
 // __has_include requires C++17
 // This tests whether or not MKL library was used in compilation
 // (for example when using Intel compilers)
@@ -12,10 +17,12 @@
 #include <lapacke.h>
 #endif
 
-#include "FourDerivScalarTensor.hpp"
+#include "LinearSolver.hpp"
+#include "parstream.H"
+#include "simd.hpp"
 
 template <>
-void EsGB_lapack::solve_system_lapack(const int N, double *LHS, double *RHS) {
+void LinearSolver::solve_linear_system(const int N, double *LHS, double *RHS) {
   int nrhs = 1;
   int lda = N;
   int ldb = N;
@@ -38,8 +45,8 @@ void EsGB_lapack::solve_system_lapack(const int N, double *LHS, double *RHS) {
 }
 
 template <>
-void EsGB_lapack::solve_system_lapack(const int N, simd<double> *LHS,
-                                      simd<double> *RHS) {
+void LinearSolver::solve_linear_system(const int N, simd<double> *LHS,
+                                       simd<double> *RHS) {
   int simd_len = simd_traits<double>::simd_len;
 
   double LHS_arr[simd_len][N][N];
@@ -60,7 +67,7 @@ void EsGB_lapack::solve_system_lapack(const int N, simd<double> *LHS,
   }
 
   for (int s = 0; s < simd_len; ++s)
-    solve_system_lapack(N, (double *)(&LHS_arr[s][0][0]),
+    solve_linear_system(N, (double *)(&LHS_arr[s][0][0]),
                         (double *)(RHS_arr[s]));
 
   for (int n1 = 0; n1 < N; ++n1) {

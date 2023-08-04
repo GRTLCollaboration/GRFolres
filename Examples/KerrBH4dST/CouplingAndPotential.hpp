@@ -11,9 +11,11 @@
 class CouplingAndPotential {
 public:
   struct params_t {
-    double lambda_GB;   // Gauss-Bonnet coupling
-    double cutoff_GB;   // cutoff for switching off the Gauss-Bonnet terms
-                        // inside the BH
+    double lambda_GB;        // Gauss-Bonnet coupling
+    double quadratic_factor; // phi^2 factor in the GB exponential coupling
+    double quartic_factor;   // phi^4 factor in the GB exponential coupling
+    double cutoff_GB;        // cutoff for switching off the Gauss-Bonnet terms
+                             // inside the BH
     double factor_GB;   // factor for the function smoothening the GB cutoff
     double scalar_mass; // mass in the potential
   };
@@ -39,10 +41,22 @@ public:
     // data_t cutoff_factor = 1. + exp(-m_params.factor_GB * (r -
     // m_params.cutoff_GB));
 
-    // The first derivative of the GB coupling function
-    dfdphi = m_params.lambda_GB / cutoff_factor;
+    // Exponential coupling: f(\phi) = \lambda^{GB} / (2\beta)
+    // (1-e^{-\beta\phi^2(1+\kappa\phi^2)}) The first derivative of the GB
+    // coupling function
+    dfdphi = m_params.lambda_GB / cutoff_factor *
+             exp(-m_params.quadratic_factor * vars.phi * vars.phi *
+                 (1. + m_params.quartic_factor * vars.phi * vars.phi)) *
+             vars.phi *
+             (1. + 2. * m_params.quadratic_factor * vars.phi * vars.phi);
     // The second derivative of the GB coupling function
-    d2fdphi2 = 0.;
+    d2fdphi2 = m_params.lambda_GB / cutoff_factor *
+               exp(-m_params.quadratic_factor * vars.phi * vars.phi *
+                   (1. + m_params.quartic_factor * vars.phi * vars.phi)) *
+               (1. + 3. * m_params.quartic_factor * vars.phi * vars.phi -
+                2. * m_params.quadratic_factor * vars.phi * vars.phi *
+                    (1. + 2. * m_params.quartic_factor * vars.phi * vars.phi) *
+                    (1. + 2. * m_params.quartic_factor * vars.phi * vars.phi));
     // The coupling to the square of the kinetic term
     g2 = 0.;
     // The first derivative of the g2 coupling
