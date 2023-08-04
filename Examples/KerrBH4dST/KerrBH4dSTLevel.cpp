@@ -8,6 +8,7 @@
 #include "CCZ4RHS.hpp"
 #include "ChiTaggingCriterion.hpp"
 #include "ComputePack.hpp"
+#include "InitialScalarData.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "ModifiedGravityConstraints.hpp"
 #include "NanCheck.hpp"

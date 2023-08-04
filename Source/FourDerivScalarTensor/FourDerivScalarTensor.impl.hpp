@@ -236,7 +236,9 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   }
   data_t M =
       vars.chi *
-      compute_trace(Mij, h_UU); // trace of M_{ij} (which is the Einstein Ham)
+      compute_trace(
+          Mij,
+          h_UU); // trace of M_{ij} (which is the GR Hamiltonian Constraint)
 
   Tensor<2, data_t> covdtilde2phi;
   Tensor<2, data_t> covd2phi;
@@ -315,7 +317,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   }
 
   Tensor<1, data_t>
-      Ni; // N_i = D^jK_{ij} - D_iK (which is the Einstein Momentum)
+      Ni; // N_i = D^jK_{ij} - D_iK (which is the GR Momentum Constraint)
   FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
   FOR(i, j, k) {
     Ni[i] += h_UU[j][k] *
@@ -457,6 +459,10 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
   const auto h_UU = compute_inverse_sym(vars.h);
   const auto chris = compute_christoffel(d1.h, h_UU);
 
+  // Useful quantity Vt
+  data_t Vt = -vars.Pi * vars.Pi;
+  FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
+
   // evolution equations for scalar field and (minus) its conjugate momentum
   rhs.phi = vars.lapse * vars.Pi + advec.phi;
   rhs.Pi = vars.lapse * vars.K * vars.Pi + advec.Pi;
@@ -570,7 +576,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
   }
 
   Tensor<1, data_t>
-      Ni; // N_i = D^jK_{ij} - D_iK (which is the Einstein Momentum)
+      Ni; // N_i = D^jK_{ij} - D_iK (which is the GR Momentum Constraint)
   FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
   FOR(i, j, k) {
     Ni[i] += h_UU[j][k] *
@@ -590,7 +596,48 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_matter_rhs(
         (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][j][k]);
   }
   rhs.Pi += dfdphi * RGB_times_lapse;
+
   rhs.Pi += -vars.lapse * dVdphi;
+
+  // g2 contribution
+
+  rhs.Pi += -3. / 4. * vars.lapse * dg2dphi * Vt * Vt -
+            vars.lapse * vars.K * vars.Pi * g2 * Vt +
+            advec.Pi * g2 * (2. * vars.Pi * vars.Pi - Vt);
+
+  FOR(i, j) {
+    // includes non conformal parts of chris not included in chris_ULL
+    rhs.Pi += g2 * Vt * h_UU[i][j] *
+              (0.5 * d1.chi[j] * vars.lapse * d1.phi[i] -
+               vars.chi * vars.lapse * d2.phi[i][j]);
+    FOR(k) {
+      rhs.Pi += g2 * Vt * vars.chi * vars.lapse * h_UU[i][j] *
+                chris.ULL[k][i][j] * d1.phi[k];
+    }
+    rhs.Pi += g2 * h_UU[i][j] * vars.chi * d1.lapse[i] * d1.phi[j] *
+              (2. * vars.Pi * vars.Pi - Vt);
+  }
+
+  data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
+  Tensor<2, data_t> covdtilde2phi;
+  Tensor<2, data_t> covd2phi;
+  FOR(k, l) {
+    covdtilde2phi[k][l] = d2.phi[k][l];
+    FOR(m) covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m];
+    covd2phi[k][l] = vars.chi * covdtilde2phi[k][l] +
+                     0.5 * (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
+                            vars.h[k][l] * dphi_dot_dchi);
+  }
+
+  rhs.Pi +=
+      2. / 3. * g2 * vars.lapse * vars.Pi * vars.K * (Vt + vars.Pi * vars.Pi);
+  FOR(i, j) {
+    rhs.Pi += 4. * g2 * h_UU[i][j] * vars.chi * d1.phi[j] * vars.lapse *
+              vars.Pi * d1.Pi[i];
+    FOR(k, l)
+    rhs.Pi += 2. * g2 * vars.lapse * h_UU[i][k] * h_UU[j][l] * vars.chi *
+              d1.phi[k] * d1.phi[l] * (vars.Pi * vars.A[i][j] - covd2phi[i][j]);
+  }
 }
 
 // Adds in the RHS for the matter vars
@@ -625,6 +672,10 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
   const auto h_UU = compute_inverse_sym(vars.h);
   const auto chris = compute_christoffel(d1.h, h_UU);
 
+  // Useful quantity Vt
+  data_t Vt = -vars.Pi * vars.Pi;
+  FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
+
   // Compute useful quantities for the Gauss-Bonnet sector
 
   const auto ricci0 =
@@ -643,7 +694,9 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
   }
   data_t M =
       vars.chi *
-      compute_trace(Mij, h_UU); // trace of M_{ij} (which is the Einstein Ham)
+      compute_trace(
+          Mij,
+          h_UU); // trace of M_{ij} (which is the GR Hamiltonian Constraint)
 
   Tensor<2, data_t> covdtilde2phi;
   Tensor<2, data_t> covd2phi;
@@ -778,7 +831,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
   }
   LHS_mat[N - 1][N - 2] = 0.;
   LHS_mat[N - 2][N - 1] = 1. / 3. * dfdphi * M;
-  LHS_mat[N - 1][N - 1] = 1.;
+  LHS_mat[N - 1][N - 1] = 1. + g2 * (2. * vars.Pi * vars.Pi - Vt);
 
   for (int n1 = 0; n1 < N; ++n1) {
     for (int n2 = 0; n2 < N; ++n2) {

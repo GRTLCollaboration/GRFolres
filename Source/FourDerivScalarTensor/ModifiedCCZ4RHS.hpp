@@ -10,7 +10,6 @@
 #include "CCZ4RHS.hpp"
 #include "Cell.hpp"
 #include "Coordinates.hpp"
-#include "DefaultModifiedGauge.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "ModifiedPunctureGauge.hpp"
 #include "Tensor.hpp"
@@ -123,7 +122,7 @@ public:
           &d2, //!< the value of the second derivatives of the variables.
       const Vars<data_t> &advec, //!< the value of the advection terms.
       const Coordinates<data_t> &coords)
-      const; //!< the value of the coordinates for computing a(x), b(x).
+      const; //!< the value of the coordinates.
 
   //! The function which adds in the EM Tensor terms to the CCZ4 rhs \sa
   //! compute()
@@ -138,7 +137,7 @@ public:
           &d2, //!< the value of the second derivatives of the variables.
       const Vars<data_t> &advec, //!< the value of the advection terms.
       const Coordinates<data_t> &coords)
-      const; //!< the value of the coordinates for computing a(x), b(x).
+      const; //!< the value of the coordinates.
 
   // Class members
   matter_t my_matter; //!< The matter object, e.g. 4dST.

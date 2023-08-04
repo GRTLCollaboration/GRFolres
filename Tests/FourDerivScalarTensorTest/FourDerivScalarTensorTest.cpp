@@ -34,7 +34,6 @@ typedef ModifiedCCZ4RHS<FourDerivScalarTensor<CouplingAndPotential>,
 int main(int argc, char *argv[]) {
   int failed = 0;
 
-  CCZ4::params_t m_params;
   CouplingAndPotential::params_t m_coupling_and_potential_params;
   MyModifiedGravityClass::modified_params_t m_modified_ccz4_params;
 
@@ -50,8 +49,8 @@ int main(int argc, char *argv[]) {
   double sigma = 1.;
   double cosmological_constant = 0.;
 
-  CCZ4RHS<MovingPunctureGauge, FourthOrderDerivatives> obj(
-      m_params, dx, sigma, 0, cosmological_constant);
+  CCZ4RHS<ModifiedPunctureGauge, FourthOrderDerivatives> obj(
+      m_modified_ccz4_params, dx, sigma, 0, cosmological_constant);
   obj.rhs_equation(rhs, vars, d1, d2, advec);
 
   const IndexTM<int, 3> ind = {0, 0, 0};

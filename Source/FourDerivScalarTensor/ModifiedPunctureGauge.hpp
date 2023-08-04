@@ -56,10 +56,9 @@ public:
                     (vars.K - 2 * vars.Theta);
     FOR(i) {
       rhs.shift[i] = m_params.shift_advec_coeff * advec.shift[i] +
-                     m_params.shift_Gamma_coeff * vars.B[i];
-      rhs.B[i] = m_params.shift_advec_coeff * advec.B[i] -
-                 m_params.shift_advec_coeff * advec.Gamma[i] + rhs.Gamma[i] -
-                 m_params.eta * vars.B[i];
+                     m_params.shift_Gamma_coeff * vars.Gamma[i] -
+                     m_params.eta * vars.shift[i];
+      rhs.B[i] = 0.;
     }
   }
 

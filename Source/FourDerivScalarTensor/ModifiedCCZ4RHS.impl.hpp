@@ -152,7 +152,6 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t>::add_a_and_b_rhs(
       }
     }
     matter_rhs.Gamma[i] += b_term_gamma;
-    matter_rhs.B[i] += b_term_gamma;
   }
 
   matter_rhs.lapse += a_of_x / (1. + a_of_x) * this->m_params.lapse_coeff *
@@ -161,7 +160,8 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t>::add_a_and_b_rhs(
 
   FOR(i) {
     matter_rhs.shift[i] -= a_of_x / (1. + a_of_x) *
-                           this->m_params.shift_Gamma_coeff * matter_vars.B[i];
+                           this->m_params.shift_Gamma_coeff *
+                           matter_vars.Gamma[i];
     FOR(j) {
       matter_rhs.shift[i] -= a_of_x / (1. + a_of_x) * matter_vars.lapse *
                              matter_vars.chi * h_UU[i][j] * d1.lapse[j];
@@ -211,15 +211,9 @@ void ModifiedCCZ4RHS<matter_t, gauge_t, deriv_t>::add_emtensor_rhs(
                           matter_vars.chi * Sij_TF_and_S.Sij_TF[i][j];
   }
 
-  FOR(i) {
-    data_t matter_term_Gamma = 0.0;
-    FOR(j) {
-      matter_term_Gamma += -16. * M_PI * m_G_Newton * matter_vars.lapse *
+  FOR(i, j) {
+    matter_rhs.Gamma[i] += -16. * M_PI * m_G_Newton * matter_vars.lapse *
                            h_UU[i][j] * rho_and_Si.Si[j] / (1. + b_of_x);
-    }
-
-    matter_rhs.Gamma[i] += matter_term_Gamma;
-    matter_rhs.B[i] += matter_term_Gamma;
   }
 }
 
