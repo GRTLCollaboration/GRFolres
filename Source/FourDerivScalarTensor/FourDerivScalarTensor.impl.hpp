@@ -176,8 +176,6 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     const Coordinates<data_t> &coords) const {
   Sij_TF_and_S_t<data_t> out;
 
-  rho_and_Si_t<data_t> rho_and_Si = compute_rho_and_Si(vars, d1, d2, coords);
-
   // set the coupling and potential values
   data_t dfdphi = 0.;
   data_t d2fdphi2 = 0.;
@@ -390,8 +388,11 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
            (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][j][k]);
   }
 
-  data_t SGB = 4. / 3. * Omega * F + 4. * M * (-d2fdphi2 * Vt + Omega / 3.) -
-               (rho_and_Si.rho - V_of_phi - vars.Pi * vars.Pi - 0.5 * Vt);
+  data_t rhoGB = Omega * M; // rho = n^a n^b T_ab
+  FOR(i, j) rhoGB -= 2. * vars.chi * Mij[i][j] * vars.chi * Omega_ij_UU[i][j];
+
+  data_t SGB =
+      4. / 3. * Omega * F + 4. * M * (-d2fdphi2 * Vt + Omega / 3.) - rhoGB;
   FOR(i, j)
   SGB += -2. * Omega_ij_TF_UU[i][j] * vars.chi *
              (vars.chi * Mij_TF[i][j] + Fij[i][j]) -

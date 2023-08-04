@@ -15,6 +15,7 @@ public:
     double cutoff_GB; // cutoff for switching off the Gauss-Bonnet terms
                       // inside the BH
     double factor_GB; // factor for the function smoothening the GB cutoff
+    double g2;        // coupling to the square of the kinetic term
     double scalar_mass;
   };
 
@@ -42,7 +43,7 @@ public:
     // The second derivative of the GB coupling function
     d2fdphi2 = M_PI * m_params.lambda_GB / cutoff_factor;
     // The coupling to the square of the kinetic term
-    g2 = 0.;
+    g2 = m_params.g2;
     // The first derivative of the g2 coupling
     dg2dphi = 0.;
     // The potential of the scalar field
