@@ -110,10 +110,10 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_and_Si(
   }
 
   Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
+  FOR(i, j) Omega_ij_UU[i][j] *= vars.chi * vars.chi;
 
   data_t rhoGB = Omega * M; // rho = n^a n^b T_ab
-  FOR(i, j) rhoGB -= 2. * vars.chi * Mij[i][j] * vars.chi * Omega_ij_UU[i][j];
+  FOR(i, j) rhoGB -= 2. * Mij[i][j] * Omega_ij_UU[i][j];
 
   // other useful quantities
   Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
@@ -276,23 +276,6 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     }
   }
 
-  Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
-
-  Tensor<2, data_t> Mij_UU = raise_all(Mij, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
-
-  Tensor<2, data_t> Mij_TF = Mij;
-  make_trace_free(Mij_TF, vars.h, h_UU);
-  Tensor<2, data_t> Mij_TF_UU = raise_all(Mij_TF, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
-
-  Tensor<2, data_t> Omega_ij_TF = Omega_ij;
-  make_trace_free(Omega_ij_TF, vars.h, h_UU);
-  Tensor<2, data_t> Omega_ij_TF_UU =
-      raise_all(Omega_ij_TF, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
-
   // other useful quantities
   Tensor<3, data_t> covdtilde_A;
   Tensor<3, data_t> covd_Aphys_times_chi;
@@ -327,11 +310,11 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   data_t dlapse_dot_dchi = compute_dot_product(d1.lapse, d1.chi, h_UU);
 
   Tensor<2, data_t> covdtilde2lapse;
-  Tensor<2, data_t> covd2lapse;
+  Tensor<2, data_t> covd2lapse_times_chi;
   FOR(k, l) {
     covdtilde2lapse[k][l] = d2.lapse[k][l];
     FOR(m) covdtilde2lapse[k][l] -= chris.ULL[m][k][l] * d1.lapse[m];
-    covd2lapse[k][l] =
+    covd2lapse_times_chi[k][l] =
         vars.chi * covdtilde2lapse[k][l] +
         0.5 * (d1.lapse[k] * d1.chi[l] + d1.chi[k] * d1.lapse[l] -
                vars.h[k][l] * dlapse_dot_dchi);
@@ -353,19 +336,18 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   // F_{ij} = \chi{\mathcal L}_nAphys_{ij}/\alpha + \chi D_iD_j\alpha/\alpha
   //+ A_{ik}A^k_{~j}) - \partial_tA_{ij}/\alpha
 
-  data_t lapse_regularised = simd_max(1e-4, vars.lapse);
+  data_t one_over_lapse = 1. / simd_max(1e-4, vars.lapse);
   Tensor<2, data_t> Fij;
   FOR(i, j) {
-    Fij[i][j] = -advec.A[i][j] -
-                2. / 3. * vars.A[i][j] * (vars.lapse * vars.K - divshift) +
-                covd2lapse[i][j];
+    Fij[i][j] = (-advec.A[i][j] + covd2lapse_times_chi[i][j]) * one_over_lapse -
+                2. / 3. * vars.A[i][j] * (vars.K - divshift * one_over_lapse);
     FOR(k) {
       FOR(l)
-      Fij[i][j] += vars.lapse * h_UU[k][l] * vars.A[i][k] * vars.A[l][j];
+      Fij[i][j] += h_UU[k][l] * vars.A[i][k] * vars.A[l][j];
       Fij[i][j] -=
-          (vars.A[k][i] * d1.shift[k][j] + vars.A[k][j] * d1.shift[k][i]);
+          (vars.A[k][i] * d1.shift[k][j] + vars.A[k][j] * d1.shift[k][i]) *
+          one_over_lapse;
     }
-    Fij[i][j] /= lapse_regularised;
   }
 
   Tensor<2, data_t> Fij_TF = Fij;
@@ -373,13 +355,18 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
 
   // F = {\mathcal L}_nK/\alpha + D^i_D_i\alpha/\alpha - K_{ij}K^{ij}) -
   // \partial_tK/\alpha
-  data_t F =
-      -advec.K + tr_covd2lapse - vars.lapse * (tr_A2 + vars.K * vars.K / 3.);
-  F /= lapse_regularised;
+  data_t F = one_over_lapse * (-advec.K + tr_covd2lapse) - tr_A2 -
+             vars.K * vars.K / 3.;
+
+  Tensor<2, data_t> Mij_TF = Mij;
+  make_trace_free(Mij_TF, vars.h, h_UU);
+  Tensor<2, data_t> Mij_TF_UU_over_chi =
+      raise_all(Mij_TF, h_UU); // raise all indexs
+  FOR(i, j) Mij_TF_UU_over_chi[i][j] *= vars.chi;
 
   data_t RGB = -4. / 3. * M * F; // RHS terms of the Gauss-Bonnet curvature
   FOR(i, j) {
-    RGB += 8. * Mij_TF_UU[i][j] * Fij[i][j] * vars.chi +
+    RGB += 8. * Mij_TF_UU_over_chi[i][j] * Fij[i][j] +
            16. / 3. * vars.chi * h_UU[i][j] * d1.K[i] *
                (Ni[j] + 1. / 3. * d1.K[j]);
     FOR(k, l, m, n)
@@ -388,9 +375,13 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
            (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][j][k]);
   }
 
+  Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
+  FOR(i, j) Omega_ij_UU[i][j] *= vars.chi * vars.chi;
   data_t rhoGB = Omega * M; // rho = n^a n^b T_ab
-  FOR(i, j) rhoGB -= 2. * vars.chi * Mij[i][j] * vars.chi * Omega_ij_UU[i][j];
+  FOR(i, j) rhoGB -= 2. * Mij[i][j] * Omega_ij_UU[i][j];
 
+  // terms depending on g2 and V(phi) coming from having inserted the equation
+  // for Pi in Sij and S
   data_t quadratic_terms = -dVdphi - 3. / 4. * dg2dphi * Vt * Vt -
                            2. * g2 * vars.Pi * vars.K * vars.Pi * vars.Pi;
   FOR(i, j) {
@@ -413,10 +404,15 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   }
   quadratic_terms *= dfdphi / (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
 
+  Tensor<2, data_t> Omega_ij_TF = Omega_ij;
+  make_trace_free(Omega_ij_TF, vars.h, h_UU);
+  Tensor<2, data_t> Omega_ij_TF_UU_over_chi2 =
+      raise_all(Omega_ij_TF, h_UU); // raise all indexs
+
   data_t SGB = 4. / 3. * Omega * F +
                4. * M * (-d2fdphi2 * Vt + quadratic_terms + Omega / 3.) - rhoGB;
   FOR(i, j)
-  SGB += -2. * Omega_ij_TF_UU[i][j] * vars.chi *
+  SGB += -2. * Omega_ij_TF_UU_over_chi2[i][j] * vars.chi *
              (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
          4. * h_UU[i][j] * vars.chi * Ni[i] * Omega_i[j];
   SGB += 4. * dfdphi * dfdphi * M * RGB /
@@ -424,26 +420,24 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
 
   Tensor<2, data_t> SijGB;
   FOR(i, j) {
-    SijGB[i][j] = -2. / 3. * Omega_ij_TF[i][j] * vars.chi *
-                      (F + 2. * (tr_covd2lapse / lapse_regularised - tr_A2)) -
-                  2. * vars.chi * Mij_TF[i][j] *
+    SijGB[i][j] = -2. / 3. * Omega_ij_TF[i][j] *
+                      (F + 2. * (tr_covd2lapse * one_over_lapse - tr_A2)) -
+                  2. * Mij_TF[i][j] *
                       (Omega - 4. * d2fdphi2 * Vt + 4. * quadratic_terms) -
-                  2. * Omega / 3. * Fij_TF[i][j] +
-                  2. * vars.chi *
-                      ((Ni[i] + d1.K[i] / 3.) * Omega_i[j] +
-                       (Ni[j] + d1.K[j] / 3.) * Omega_i[i]);
+                  2. * Omega / 3. * Fij_TF[i][j] / chi_regularised +
+                  2. * ((Ni[i] + d1.K[i] / 3.) * Omega_i[j] +
+                        (Ni[j] + d1.K[j] / 3.) * Omega_i[i]);
     FOR(k, l) {
       SijGB[i][j] +=
-          2. * vars.chi * h_UU[k][l] *
+          2. * h_UU[k][l] *
               (Omega_ij_TF[i][k] * Fij[l][j] + Omega_ij_TF[j][k] * Fij[l][i] -
                Omega_i[l] * (2. * covd_Aphys_times_chi[i][j][k] -
                              covd_Aphys_times_chi[j][k][i] -
                              covd_Aphys_times_chi[k][i][j])) -
-          4. / 3. * vars.h[i][j] * vars.chi *
-              (Omega_ij_TF_UU[k][l] * Fij[k][l] +
+          4. / 3. * vars.h[i][j] *
+              (Omega_ij_TF_UU_over_chi2[k][l] * Fij[k][l] +
                h_UU[k][l] * Omega_i[k] * (2. * Ni[l] + d1.K[l]));
     }
-    SijGB[i][j] /= chi_regularised;
     SijGB[i][j] += -8. * dfdphi * dfdphi * Mij_TF[i][j] * RGB /
                    (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
   }
@@ -464,9 +458,6 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
     const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
     const Coordinates<data_t> &coords) const {
-  // first get the non potential part of the rhs
-  // this may seem a bit long winded, but it makes the function
-  // work for more multiple fields
 
   // set the coupling and potential values
   data_t dfdphi = 0.;
@@ -526,20 +517,15 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
           Mij,
           h_UU); // trace of M_{ij} (which is the GR Hamiltonian Constraint)
 
-  Tensor<2, data_t> Mij_TF = Mij;
-  make_trace_free(Mij_TF, vars.h, h_UU);
-  Tensor<2, data_t> Mij_TF_UU = raise_all(Mij_TF, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
-
   data_t divshift = compute_trace(d1.shift);
   data_t dlapse_dot_dchi = compute_dot_product(d1.lapse, d1.chi, h_UU);
 
   Tensor<2, data_t> covdtilde2lapse;
-  Tensor<2, data_t> covd2lapse;
+  Tensor<2, data_t> covd2lapse_times_chi;
   FOR(k, l) {
     covdtilde2lapse[k][l] = d2.lapse[k][l];
     FOR(m) covdtilde2lapse[k][l] -= chris.ULL[m][k][l] * d1.lapse[m];
-    covd2lapse[k][l] =
+    covd2lapse_times_chi[k][l] =
         vars.chi * covdtilde2lapse[k][l] +
         0.5 * (d1.lapse[k] * d1.chi[l] + d1.chi[k] * d1.lapse[l] -
                vars.h[k][l] * dlapse_dot_dchi);
@@ -561,13 +547,11 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
   // F_{ij} = \chi{\mathcal L}_nAphys_{ij} + \chi D_iD_j\alpha
   //+ \alphaA_{ik}A^k_{~j}) - \partial_tA_{ij}
 
-  data_t lapse_regularised = simd_max(1e-4, vars.lapse);
   Tensor<2, data_t> Fij_times_lapse;
   FOR(i, j) {
     Fij_times_lapse[i][j] =
-        -advec.A[i][j] -
-        2. / 3. * vars.A[i][j] * (vars.lapse * vars.K - divshift) +
-        covd2lapse[i][j];
+        -advec.A[i][j] + covd2lapse_times_chi[i][j] -
+        2. / 3. * vars.A[i][j] * (vars.lapse * vars.K - divshift);
     FOR(k) {
       Fij_times_lapse[i][j] -=
           (vars.A[k][i] * d1.shift[k][j] + vars.A[k][j] * d1.shift[k][i]);
@@ -612,9 +596,15 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
               GR_SPACEDIM * vars.A[i][j] * d1.chi[k] / (2. * chi_regularised));
   }
 
+  Tensor<2, data_t> Mij_TF = Mij;
+  make_trace_free(Mij_TF, vars.h, h_UU);
+  Tensor<2, data_t> Mij_TF_UU_over_chi =
+      raise_all(Mij_TF, h_UU); // raise all indexs
+  FOR(i, j) Mij_TF_UU_over_chi[i][j] *= vars.chi;
+
   data_t RGB_times_lapse = -4. / 3. * M * F_times_lapse;
   FOR(i, j) {
-    RGB_times_lapse += 8 * Mij_TF_UU[i][j] * Fij_times_lapse[i][j] * vars.chi +
+    RGB_times_lapse += 8 * Mij_TF_UU_over_chi[i][j] * Fij_times_lapse[i][j] +
                        16. / 3. * vars.chi * vars.lapse * h_UU[i][j] * d1.K[i] *
                            (Ni[j] + 1. / 3. * d1.K[j]);
     FOR(k, l, m, n)
@@ -648,13 +638,14 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
 
   data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
   Tensor<2, data_t> covdtilde2phi;
-  Tensor<2, data_t> covd2phi;
+  Tensor<2, data_t> covd2phi_times_chi;
   FOR(k, l) {
     covdtilde2phi[k][l] = d2.phi[k][l];
     FOR(m) covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m];
-    covd2phi[k][l] = vars.chi * covdtilde2phi[k][l] +
-                     0.5 * (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
-                            vars.h[k][l] * dphi_dot_dchi);
+    covd2phi_times_chi[k][l] =
+        vars.chi * covdtilde2phi[k][l] +
+        0.5 * (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
+               vars.h[k][l] * dphi_dot_dchi);
   }
 
   rhs.Pi +=
@@ -664,7 +655,8 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
               vars.Pi * d1.Pi[i];
     FOR(k, l)
     rhs.Pi += 2. * g2 * vars.lapse * h_UU[i][k] * h_UU[j][l] * vars.chi *
-              d1.phi[k] * d1.phi[l] * (vars.Pi * vars.A[i][j] - covd2phi[i][j]);
+              d1.phi[k] * d1.phi[l] *
+              (vars.Pi * vars.A[i][j] - covd2phi_times_chi[i][j]);
   }
 }
 
@@ -762,104 +754,104 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
 
   Tensor<2, data_t> Mij_TF = Mij;
   make_trace_free(Mij_TF, vars.h, h_UU);
-  Tensor<2, data_t> Mij_TF_UU = raise_all(Mij_TF, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
+  Tensor<2, data_t> Mij_TF_UU_over_chi =
+      raise_all(Mij_TF, h_UU); // raise all indexs
+  FOR(i, j) Mij_TF_UU_over_chi[i][j] *= vars.chi;
 
   Tensor<2, data_t> Omega_ij_TF = Omega_ij;
   make_trace_free(Omega_ij_TF, vars.h, h_UU);
-  Tensor<2, data_t> Omega_ij_TF_UU =
+  Tensor<2, data_t> Omega_ij_TF_UU_over_chi =
       raise_all(Omega_ij_TF, h_UU); // raise all indexs
-  // note that they have been raised with the conformal metric
+  FOR(i, j) Omega_ij_TF_UU_over_chi[i][j] *= vars.chi;
 
   data_t dfdphi2 = dfdphi * dfdphi / (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
+  // comes from inserting the equation for Pi in Sij and S
 
-  int n1 = 0;
+  int row = 0;
   FOR(i1, j1) {
     if (i1 > j1) // lower diagonal
       continue;
 
-    int n2 = 0;
+    int col = 0;
     FOR(i2, j2) {
       if (i2 > j2) // lower diagonal
         continue;
-      // minus sign because the 2nd time derivative are moved from the RHS
-      // to the LHS
       // Lapack LHS argument has row-by-row layout
-      // n1 is the 'line' (multiplying variables 'x' in A.x = b), 'n2' is
+      // 'row' is the 'line' (multiplying variables 'x' in A.x = b), 'col' is
       // the column (which equation)
-      LHS_mat[n1][n2] =
-          -2.0 * vars.chi *
-          (1. / 3. * vars.h[i2][j2] * Omega_ij_TF_UU[i1][j1] +
-           16. * dfdphi2 * Mij_TF[i2][j2] * Mij_TF_UU[i1][j1] * vars.chi);
+      LHS_mat[row][col] =
+          -2. * (1. / 3. * vars.h[i2][j2] * Omega_ij_TF_UU_over_chi[i1][j1] +
+                 16. * vars.chi * dfdphi2 * Mij_TF[i2][j2] *
+                     Mij_TF_UU_over_chi[i1][j1]);
       if (i1 == i2) {
         if (j1 == j2)
-          LHS_mat[n1][n2] += 1. - Omega / 3.;
+          LHS_mat[row][col] += 1. - Omega / 3.;
         FOR(k)
-        LHS_mat[n1][n2] += vars.chi * h_UU[j1][k] * Omega_ij_TF[j2][k];
+        LHS_mat[row][col] += vars.chi * h_UU[j1][k] * Omega_ij_TF[j2][k];
       }
       if (j1 == j2)
         FOR(k)
-      LHS_mat[n1][n2] += vars.chi * h_UU[i1][k] * Omega_ij_TF[i2][k];
+      LHS_mat[row][col] += vars.chi * h_UU[i1][k] * Omega_ij_TF[i2][k];
       if (i1 != j1) {
-        LHS_mat[n1][n2] +=
-            -2.0 * vars.chi *
-            (1. / 3. * vars.h[i2][j2] * Omega_ij_TF_UU[j1][i1] +
-             16. * dfdphi2 * Mij_TF[i2][j2] * Mij_TF_UU[j1][i1] * vars.chi);
+        LHS_mat[row][col] +=
+            -2. * (1. / 3. * vars.h[i2][j2] * Omega_ij_TF_UU_over_chi[j1][i1] +
+                   16. * vars.chi * dfdphi2 * Mij_TF[i2][j2] *
+                       Mij_TF_UU_over_chi[j1][i1]);
         if (i1 == j2) {
           if (i2 == j1)
-            LHS_mat[n1][n2] += 1. - Omega / 3.;
+            LHS_mat[row][col] += 1. - Omega / 3.;
           FOR(k)
-          LHS_mat[n1][n2] += vars.chi * h_UU[j1][k] * Omega_ij_TF[i2][k];
+          LHS_mat[row][col] += vars.chi * h_UU[j1][k] * Omega_ij_TF[i2][k];
         }
         if (i2 == j1)
           FOR(k)
-        LHS_mat[n1][n2] += vars.chi * h_UU[i1][k] * Omega_ij_TF[j2][k];
+        LHS_mat[row][col] += vars.chi * h_UU[i1][k] * Omega_ij_TF[j2][k];
       }
 
-      ++n2;
+      ++col;
     }
 
-    ++n1;
+    ++row;
   }
 
-  n1 = 0;
+  int idx = 0;
   FOR(i, j) {
     if (i > j) // lower diagonal
       continue;
 
-    LHS_mat[N - 2][n1] =
+    LHS_mat[N - 2][idx] =
         vars.chi / 3. * (-Omega_ij_TF[i][j] + 16. * dfdphi2 * M * Mij_TF[i][j]);
 
-    LHS_mat[n1][N - 2] =
-        vars.chi / 2. *
-        (Omega_ij_TF_UU[i][j] - 16. * dfdphi2 * M * Mij_TF_UU[i][j]);
+    LHS_mat[idx][N - 2] = 1. / 2. *
+                          (Omega_ij_TF_UU_over_chi[i][j] -
+                           16. * dfdphi2 * M * Mij_TF_UU_over_chi[i][j]);
     if (i != j)
-      LHS_mat[n1][N - 2] +=
-          vars.chi / 2. *
-          (Omega_ij_TF_UU[j][i] - 16. * dfdphi2 * M * Mij_TF_UU[j][i]);
-    ++n1;
+      LHS_mat[idx][N - 2] += 1. / 2. *
+                             (Omega_ij_TF_UU_over_chi[j][i] -
+                              16. * dfdphi2 * M * Mij_TF_UU_over_chi[j][i]);
+    ++idx;
   }
 
   LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-Omega + 4. * dfdphi2 * M * M);
 
-  n1 = 0;
+  idx = 0;
   FOR(i, j) {
     if (i > j) // lower diagonal
       continue;
 
-    LHS_mat[N - 1][n1] = 0.;
-    LHS_mat[n1][N - 1] = -2. * dfdphi * Mij_TF_UU[i][j] * vars.chi;
+    LHS_mat[N - 1][idx] = 0.;
+    LHS_mat[idx][N - 1] = -2. * dfdphi * Mij_TF_UU_over_chi[i][j];
     if (i != j)
-      LHS_mat[n1][N - 1] += -2. * dfdphi * Mij_TF_UU[j][i] * vars.chi;
-    ++n1;
+      LHS_mat[idx][N - 1] += -2. * dfdphi * Mij_TF_UU_over_chi[j][i];
+    ++idx;
   }
   LHS_mat[N - 1][N - 2] = 0.;
   LHS_mat[N - 2][N - 1] = 1. / 3. * dfdphi * M;
   LHS_mat[N - 1][N - 1] = 1. + g2 * (2. * vars.Pi * vars.Pi - Vt);
 
-  for (int n1 = 0; n1 < N; ++n1) {
-    for (int n2 = 0; n2 < N; ++n2) {
-      LHS[n1 * N + n2] = LHS_mat[n1][n2];
+  for (int row = 0; row < N; ++row) {
+    for (int col = 0; col < N; ++col) {
+      LHS[row * N + col] = LHS_mat[row][col];
     }
   }
 }
@@ -881,29 +873,29 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(
 
   data_t RHS[N];
 
-  int n1 = 0;
+  int row = 0;
   FOR(i1, j1) {
     if (i1 > j1) // lower diagonal
       continue;
 
-    RHS[n1] = rhs.A[i1][j1];
-    ++n1;
+    RHS[row] = rhs.A[i1][j1];
+    ++row;
   }
   RHS[N - 2] = rhs.K;
   RHS[N - 1] = rhs.Pi;
 
   LinearSolver::solve_linear_system(N, (&LHS[0][0]), RHS);
 
-  n1 = 0;
+  row = 0;
   FOR(i1, j1) {
     if (i1 > j1) // lower diagonal
       continue;
 
-    rhs.A[i1][j1] = RHS[n1];
+    rhs.A[i1][j1] = RHS[row];
     if (i1 != j1)
-      rhs.A[j1][i1] = RHS[n1];
+      rhs.A[j1][i1] = RHS[row];
 
-    ++n1;
+    ++row;
   }
   rhs.K = RHS[N - 2];
   rhs.Pi = RHS[N - 1];

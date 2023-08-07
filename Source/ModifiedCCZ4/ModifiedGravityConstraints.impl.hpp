@@ -36,7 +36,7 @@ void ModifiedGravityConstraints<theory_t>::compute(
   const auto chris = TensorAlgebra::compute_christoffel(d1.h, h_UU);
 
   // Coordinates
-  Coordinates<data_t> coords{current_cell, this->m_deriv.m_dx, m_center};
+  Coordinates<data_t> coords{current_cell, m_deriv.m_dx, m_center};
 
   // Get the GR terms for the constraints
   Vars<data_t> out = constraint_equations(vars, d1, d2, h_UU, chris);
