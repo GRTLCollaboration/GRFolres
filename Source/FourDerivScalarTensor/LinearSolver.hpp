@@ -13,6 +13,6 @@ public:
   static void solve_linear_system(const int N, data_t *LHS, data_t *RHS);
 };
 
-#include "LinearSolver.impl.hpp"
+//#include "LinearSolver.impl.hpp"
 
 #endif /* LINEARSOLVER_HPP_ */

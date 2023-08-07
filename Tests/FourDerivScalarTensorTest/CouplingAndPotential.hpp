@@ -45,7 +45,7 @@ public:
     // The coupling to the square of the kinetic term
     g2 = m_params.g2;
     // The first derivative of the g2 coupling
-    dg2dphi = 0.;
+    dg2dphi = M_PI;
     // The potential of the scalar field
     V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
     // The first derivative of the potential

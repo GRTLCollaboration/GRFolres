@@ -17,16 +17,17 @@
 #include <lapacke.h>
 #endif
 
-#if !defined(LINEARSOLVER_HPP_)
+/*#if !defined(LINEARSOLVER_HPP_)
 #error "This file should only be included through LinearSolver.hpp"
-#endif
+#endif*/
 
 #include "LinearSolver.hpp"
 #include "parstream.H"
 #include "simd.hpp"
 
-template <class data_t>
-void LinearSolver::solve_linear_system(const int N, data_t *LHS, data_t *RHS) {
+template </*class data_t*/>
+void LinearSolver::solve_linear_system(const int N, /*data_t*/ double *LHS,
+                                       /*data_t*/ double *RHS) {
   int nrhs = 1;
   int lda = N;
   int ldb = N;
