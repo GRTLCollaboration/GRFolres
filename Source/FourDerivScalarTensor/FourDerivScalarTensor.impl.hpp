@@ -14,12 +14,12 @@
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-rho_and_Si_t<data_t>
+RhoAndSi<data_t>
 FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_and_Si(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2,
     const Coordinates<data_t> &coords) const {
-  rho_and_Si_t<data_t> out;
+  RhoAndSi<data_t> out;
 
   // set the coupling and potential values
   data_t dfdphi = 0.;
@@ -169,12 +169,12 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_and_Si(
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-Sij_TF_and_S_t<data_t>
+SijTFAndS<data_t>
 FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
     const Coordinates<data_t> &coords) const {
-  Sij_TF_and_S_t<data_t> out;
+  SijTFAndS<data_t> out;
 
   // set the coupling and potential values
   data_t dfdphi = 0.;
@@ -679,10 +679,6 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
     const Coordinates<data_t> &coords) const {
   data_t LHS_mat[N][N];
 
-  // first get the non potential part of the rhs
-  // this may seem a bit long winded, but it makes the function
-  // work for more multiple fields
-
   // set the coupling and potential values
   data_t dfdphi = 0.;
   data_t d2fdphi2 = 0.;
@@ -778,13 +774,13 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
   data_t dfdphi2 = dfdphi * dfdphi / (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
 
   int n1 = 0;
-  FOR(a1, b1) {
-    if (a1 > b1) // lower diagonal
+  FOR(i1, j1) {
+    if (i1 > j1) // lower diagonal
       continue;
 
     int n2 = 0;
-    FOR(a2, b2) {
-      if (a2 > b2) // lower diagonal
+    FOR(i2, j2) {
+      if (i2 > j2) // lower diagonal
         continue;
       // minus sign because the 2nd time derivative are moved from the RHS
       // to the LHS
@@ -793,31 +789,31 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
       // the column (which equation)
       LHS_mat[n1][n2] =
           -2.0 * vars.chi *
-          (1. / 3. * vars.h[a2][b2] * Omega_ij_TF_UU[a1][b1] +
-           16. * dfdphi2 * Mij_TF[a2][b2] * Mij_TF_UU[a1][b1] * vars.chi);
-      if (a1 == a2) {
-        if (b1 == b2)
+          (1. / 3. * vars.h[i2][j2] * Omega_ij_TF_UU[i1][j1] +
+           16. * dfdphi2 * Mij_TF[i2][j2] * Mij_TF_UU[i1][j1] * vars.chi);
+      if (i1 == i2) {
+        if (j1 == j2)
           LHS_mat[n1][n2] += 1. - Omega / 3.;
         FOR(k)
-        LHS_mat[n1][n2] += vars.chi * h_UU[b1][k] * Omega_ij_TF[b2][k];
+        LHS_mat[n1][n2] += vars.chi * h_UU[j1][k] * Omega_ij_TF[j2][k];
       }
-      if (b1 == b2)
+      if (j1 == j2)
         FOR(k)
-      LHS_mat[n1][n2] += vars.chi * h_UU[a1][k] * Omega_ij_TF[a2][k];
-      if (a1 != b1) {
+      LHS_mat[n1][n2] += vars.chi * h_UU[i1][k] * Omega_ij_TF[i2][k];
+      if (i1 != j1) {
         LHS_mat[n1][n2] +=
             -2.0 * vars.chi *
-            (1. / 3. * vars.h[a2][b2] * Omega_ij_TF_UU[b1][a1] +
-             16. * dfdphi2 * Mij_TF[a2][b2] * Mij_TF_UU[b1][a1] * vars.chi);
-        if (a1 == b2) {
-          if (a2 == b1)
+            (1. / 3. * vars.h[i2][j2] * Omega_ij_TF_UU[j1][i1] +
+             16. * dfdphi2 * Mij_TF[i2][j2] * Mij_TF_UU[j1][i1] * vars.chi);
+        if (i1 == j2) {
+          if (i2 == j1)
             LHS_mat[n1][n2] += 1. - Omega / 3.;
           FOR(k)
-          LHS_mat[n1][n2] += vars.chi * h_UU[b1][k] * Omega_ij_TF[a2][k];
+          LHS_mat[n1][n2] += vars.chi * h_UU[j1][k] * Omega_ij_TF[i2][k];
         }
-        if (a2 == b1)
+        if (i2 == j1)
           FOR(k)
-        LHS_mat[n1][n2] += vars.chi * h_UU[a1][k] * Omega_ij_TF[b2][k];
+        LHS_mat[n1][n2] += vars.chi * h_UU[i1][k] * Omega_ij_TF[j2][k];
       }
 
       ++n2;
@@ -827,34 +823,34 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
   }
 
   n1 = 0;
-  FOR(a, b) {
-    if (a > b) // lower diagonal
+  FOR(i, j) {
+    if (i > j) // lower diagonal
       continue;
 
     LHS_mat[N - 2][n1] =
-        vars.chi / 3. * (-Omega_ij_TF[a][b] + 16. * dfdphi2 * M * Mij_TF[a][b]);
+        vars.chi / 3. * (-Omega_ij_TF[i][j] + 16. * dfdphi2 * M * Mij_TF[i][j]);
 
     LHS_mat[n1][N - 2] =
         vars.chi / 2. *
-        (Omega_ij_TF_UU[a][b] - 16. * dfdphi2 * M * Mij_TF_UU[a][b]);
-    if (a != b)
+        (Omega_ij_TF_UU[i][j] - 16. * dfdphi2 * M * Mij_TF_UU[i][j]);
+    if (i != j)
       LHS_mat[n1][N - 2] +=
           vars.chi / 2. *
-          (Omega_ij_TF_UU[b][a] - 16. * dfdphi2 * M * Mij_TF_UU[b][a]);
+          (Omega_ij_TF_UU[j][i] - 16. * dfdphi2 * M * Mij_TF_UU[j][i]);
     ++n1;
   }
 
   LHS_mat[N - 2][N - 2] = 1. + 1. / 3. * (-Omega + 4. * dfdphi2 * M * M);
 
   n1 = 0;
-  FOR(a, b) {
-    if (a > b) // lower diagonal
+  FOR(i, j) {
+    if (i > j) // lower diagonal
       continue;
 
     LHS_mat[N - 1][n1] = 0.;
-    LHS_mat[n1][N - 1] = -2. * dfdphi * Mij_TF_UU[a][b] * vars.chi;
-    if (a != b)
-      LHS_mat[n1][N - 1] += -2. * dfdphi * Mij_TF_UU[b][a] * vars.chi;
+    LHS_mat[n1][N - 1] = -2. * dfdphi * Mij_TF_UU[i][j] * vars.chi;
+    if (i != j)
+      LHS_mat[n1][N - 1] += -2. * dfdphi * Mij_TF_UU[j][i] * vars.chi;
     ++n1;
   }
   LHS_mat[N - 1][N - 2] = 0.;
@@ -886,11 +882,11 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(
   data_t RHS[N];
 
   int n1 = 0;
-  FOR(a1, b1) {
-    if (a1 > b1) // lower diagonal
+  FOR(i1, j1) {
+    if (i1 > j1) // lower diagonal
       continue;
 
-    RHS[n1] = rhs.A[a1][b1];
+    RHS[n1] = rhs.A[i1][j1];
     ++n1;
   }
   RHS[N - 2] = rhs.K;
@@ -899,13 +895,13 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(
   LinearSolver::solve_linear_system(N, (&LHS[0][0]), RHS);
 
   n1 = 0;
-  FOR(a1, b1) {
-    if (a1 > b1) // lower diagonal
+  FOR(i1, j1) {
+    if (i1 > j1) // lower diagonal
       continue;
 
-    rhs.A[a1][b1] = RHS[n1];
-    if (a1 != b1)
-      rhs.A[b1][a1] = RHS[n1];
+    rhs.A[i1][j1] = RHS[n1];
+    if (i1 != j1)
+      rhs.A[j1][i1] = RHS[n1];
 
     ++n1;
   }

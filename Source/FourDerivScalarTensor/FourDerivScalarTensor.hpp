@@ -84,7 +84,7 @@ public:
   //! specify the gauge variables
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t>
-  rho_and_Si_t<data_t> compute_rho_and_Si(
+  RhoAndSi<data_t> compute_rho_and_Si(
       const vars_t<data_t> &vars,          //!< the value of the variables
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
       const diff2_vars_t<Tensor<2, data_t>>
@@ -96,7 +96,7 @@ public:
   //! derivatives, for the given coupling function
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t>
-  Sij_TF_and_S_t<data_t> compute_Sij_TF_and_S(
+  SijTFAndS<data_t> compute_Sij_TF_and_S(
       const vars_t<data_t> &vars,          //!< the value of the variables
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
       const diff2_vars_t<Tensor<2, data_t>>

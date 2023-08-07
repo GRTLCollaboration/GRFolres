@@ -10,6 +10,11 @@ ebase := FourDerivScalarTensorTest
 
 LibNames := BoxTools
 
-src_dirs := $(GRCHOMBO_SOURCE)/utils $(GRCHOMBO_SOURCE)/simd ../../Source/FourDerivScalarTensor $(GRCHOMBO_SOURCE)/CCZ4 $(GRCHOMBO_SOURCE)/BoxUtils
+src_dirs := $(GRCHOMBO_SOURCE)/utils  \
+	    $(GRCHOMBO_SOURCE)/simd  \
+	    $(MODIFIEDGRAVITY_SOURCE)/ModifiedCCZ4  \
+	    $(MODIFIEDGRAVITY_SOURCE)/FourDerivScalarTensor  \
+	    $(GRCHOMBO_SOURCE)/CCZ4  \
+	    $(GRCHOMBO_SOURCE)/BoxUtils
 
 include $(CHOMBO_HOME)/mk/Make.test

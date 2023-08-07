@@ -33,12 +33,12 @@
    FourDerivScalarTensor()
 */
 
-template <class data_t> struct rho_and_Si_t {
+template <class data_t> struct RhoAndSi {
   Tensor<1, data_t> Si; //!< S_i = T_ia_n^a
   data_t rho;           //!< rho = T_ab n^a n^b
 };
 
-template <class data_t> struct Sij_TF_and_S_t {
+template <class data_t> struct SijTFAndS {
   Tensor<2, data_t> Sij_TF; //!< S_ij_TF = (T_ab\gamma_i^a\gamma_j^b)^TF
   data_t S;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
 };

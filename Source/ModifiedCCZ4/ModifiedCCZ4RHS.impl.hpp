@@ -57,7 +57,7 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::compute(
   current_cell.store_vars(theory_rhs);
 }
 
-// Function to add in EM Tensor theory terms to CCZ4 rhs
+// Function to add a(x) and b(x) from the modified gauge to CCZ4 rhs
 template <class theory_t, class gauge_t, class deriv_t>
 template <class data_t>
 void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
@@ -181,9 +181,9 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_emtensor_rhs(
   const auto chris = compute_christoffel(d1.h, h_UU);
 
   // Calculate elements of the decomposed stress energy tensor
-  rho_and_Si_t<data_t> rho_and_Si =
+  RhoAndSi<data_t> rho_and_Si =
       my_theory.compute_rho_and_Si(theory_vars, d1, d2, coords);
-  Sij_TF_and_S_t<data_t> Sij_TF_and_S =
+  SijTFAndS<data_t> Sij_TF_and_S =
       my_theory.compute_Sij_TF_and_S(theory_vars, d1, d2, advec, coords);
 
   data_t a_of_x = 0.;

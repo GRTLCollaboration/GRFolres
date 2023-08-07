@@ -42,7 +42,7 @@ void ModifiedGravityConstraints<theory_t>::compute(
   Vars<data_t> out = constraint_equations(vars, d1, d2, h_UU, chris);
 
   // Energy Momentum Tensor
-  rho_and_Si_t<data_t> rho_and_Si =
+  RhoAndSi<data_t> rho_and_Si =
       my_theory.compute_rho_and_Si(vars, d1, d2, coords);
 
   // Hamiltonian constraint
