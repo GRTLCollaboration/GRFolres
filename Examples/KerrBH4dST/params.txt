@@ -36,6 +36,15 @@ print_progress_only_to_rank_0 = 1
 #################################################
 # Initial Data parameters
 
+# Change the gravitational constant of the Universe!
+# Default is 1.0, for standard geometric units
+G_Newton = 0.01989436788 #1/(16*pi)
+
+# Scalar field initial data
+scalar_amplitude = 0.001
+scalar_width = 1.0
+scalar_mass = 0.
+
 kerr_mass = 1.0
 kerr_spin = 0.5
 # kerr_center = 64 64 64 # defauts to center
@@ -137,21 +146,16 @@ kappa2 = -0.5
 kappa3 = 1.
 covariantZ4 = 1 #0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
-# Mod CCZ4 parameters
+# Modified CCZ4 parameters
 a0 = 0.2
 b0 = 0.4
 
-#EsGB parameters
+# 4dst parameters
 lambda_GB = 10.
 cutoff_GB = 0.1 # might need to decrease it if the spin is too large (see fig. C1 in arXiv:2112.10567)
 factor_GB = 100.0
 quadratic_factor = 200.0
 quartic_factor = 0.
-
-#Initial conditions for phi
-G_Newton = 0.01989436788 #1/(16*pi)
-scalar_amplitude = 0.001
-scalar_width = 1.0
 
 # coefficient for KO numerical dissipation
 sigma = 4.0
