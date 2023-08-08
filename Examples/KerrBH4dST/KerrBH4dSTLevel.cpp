@@ -80,14 +80,14 @@ void KerrBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                     ModifiedPunctureGauge, FourthOrderDerivatives>
         my_modified_ccz4(fdst, m_p.modified_ccz4_params,
                          modified_puncture_gauge, m_dx, m_p.sigma, m_p.center,
-                         m_p.formulation, m_p.G_Newton);
+                         m_p.G_Newton);
     BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
   } else if (m_p.max_spatial_derivative_order == 6) {
     ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential,
                     ModifiedPunctureGauge, SixthOrderDerivatives>
         my_modified_ccz4(fdst, m_p.modified_ccz4_params,
                          modified_puncture_gauge, m_dx, m_p.sigma, m_p.center,
-                         m_p.formulation, m_p.G_Newton);
+                         m_p.G_Newton);
     BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
   }
 }

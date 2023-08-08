@@ -60,7 +60,7 @@ max_level = 5 #6 # There are (max_level+1) grids, so min is zero
 # Need one for each level except the top one, ie max_level items
 # Generally you do not need to regrid frequently on every level
 # Level Regridding:   0   1   2   3   4   5
-regrid_interval   =   4   0   0   0   0   0 #0   0   0   0   0   0
+regrid_interval   =   4   0   0   0   0   0
 regrid_threshold = 0.05
 
 # Max and min box sizes
@@ -132,7 +132,6 @@ shift_Gamma_coeff = 0.75
 eta = 0.5  #eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-formulation = 0 #1 # 1 for BSSN, 0 for CCZ4
 kappa1 = 1.5 # seems the higher the spin the higher this value needs to be
 kappa2 = -0.5
 kappa3 = 1.

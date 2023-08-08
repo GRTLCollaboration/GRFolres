@@ -109,7 +109,6 @@ shift_Gamma_coeff = 0.75
 eta = 1.02
 
 # CCZ4 parameters
-formulation = 0
 kappa1 = 0.35 #0.1
 kappa2 = -0.1 #0.
 kappa3 = 1.

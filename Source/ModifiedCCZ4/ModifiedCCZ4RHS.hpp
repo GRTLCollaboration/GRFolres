@@ -43,6 +43,12 @@ template <class data_t> struct SijTFAndS {
   data_t S;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
 };
 
+template <class data_t> struct ScalarVectorTensor {
+  data_t scalar;
+  Tensor<1, data_t> vector;
+  Tensor<2, data_t> tensor;
+};
+
 template <class theory_t, class gauge_t = ModifiedPunctureGauge,
           class deriv_t = FourthOrderDerivatives>
 class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t> {
@@ -91,13 +97,12 @@ public:
   /*!
      Inputs are the grid spacing, plus the CCZ4 evolution parameters, the
      modified gauge functions and a theory object. It also takes the
-     dissipation parameter sigma, and allows the formulation to be toggled
-     between CCZ4 and BSSN. The default is CCZ4.
+     dissipation parameter sigma. It allows the user to set the value of
+     Newton's constant, which is set to one by default.
   */
   ModifiedCCZ4RHS(theory_t a_theory, modified_params_t a_params,
                   gauge_t a_gauge, double a_dx, double a_sigma,
                   const std::array<double, CH_SPACEDIM> a_center,
-                  int a_formulation = CCZ4RHS<>::USE_CCZ4,
                   double a_G_Newton = 1.0);
 
   //!  The compute member which calculates the RHS at each point in the box

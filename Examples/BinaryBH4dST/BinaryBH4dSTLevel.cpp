@@ -71,14 +71,14 @@ void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                     ModifiedPunctureGauge, FourthOrderDerivatives>
         my_modified_ccz4(fdst, m_p.modified_ccz4_params,
                          modified_puncture_gauge, m_dx, m_p.sigma, m_p.center,
-                         m_p.formulation, m_p.G_Newton);
+                         m_p.G_Newton);
     BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
   } else if (m_p.max_spatial_derivative_order == 6) {
     ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential,
                     ModifiedPunctureGauge, SixthOrderDerivatives>
         my_modified_ccz4(fdst, m_p.modified_ccz4_params,
                          modified_puncture_gauge, m_dx, m_p.sigma, m_p.center,
-                         m_p.formulation, m_p.G_Newton);
+                         m_p.G_Newton);
     BoxLoops::loop(my_modified_ccz4, a_soln, a_rhs, EXCLUDE_GHOST_CELLS);
   }
 }
@@ -129,8 +129,9 @@ void BinaryBH4dSTLevel::specificPostTimeStep() {
     if (calculate_weyl) {
       // Populate the Weyl Scalar values on the grid
       fillAllGhosts();
-      BoxLoops::loop(Weyl4(m_p.extraction_params.center, m_dx, m_p.formulation),
-                     m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
+      BoxLoops::loop(
+          Weyl4(m_p.extraction_params.center, m_dx, CCZ4RHS<>::USE_CCZ4),
+          m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
 
       // Do the extraction on the min extraction level
       if (m_level == min_level) {
@@ -195,7 +196,7 @@ void BinaryBH4dSTLevel::prePlotLevel() {
     FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
     BoxLoops::loop(
         make_compute_pack(
-            Weyl4(m_p.extraction_params.center, m_dx, m_p.formulation),
+            Weyl4(m_p.extraction_params.center, m_dx, CCZ4RHS<>::USE_CCZ4),
             ModifiedGravityConstraints<
                 FourDerivScalarTensorWithCouplingAndPotential>(
                 fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,

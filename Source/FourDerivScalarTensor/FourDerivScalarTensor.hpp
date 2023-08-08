@@ -75,11 +75,32 @@ public:
     }
   };
 
-  //! The function which calculates the rho and Si elements of the EM
-  //! Tensor, given the vars and derivatives, for the given coupling
-  //! function
+  //! The function which computes:
+  //! M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
+  //! N_i = D^jK_{ij}-D_iK (GR momentum constraint)
+  //! M = \gamma^{ij}M_{ij} (GR Hamiltonian constraint)
+  template <class data_t, template <typename> class vars_t,
+            template <typename> class diff2_vars_t>
+  ScalarVectorTensor<data_t> compute_Mij_Ni_and_M(
+      const vars_t<data_t> &vars,          //!< the value of the variables
+      const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivatives
+      const diff2_vars_t<Tensor<2, data_t>> &d2)
+      const; //!< the value of the 2nd derivatives
+
+  //! The function which computes the decomposition of Omega_{\mu\nu},
+  //! \Omega_{\mu\nu} = \nabla_{\mu}\nabla_{\nu}f(\phi)
+  template <class data_t, template <typename> class vars_t,
+            template <typename> class diff2_vars_t>
+  ScalarVectorTensor<data_t>
+  compute_Omega_munu(const vars_t<data_t> &vars,
+                     const vars_t<Tensor<1, data_t>> &d1,
+                     const diff2_vars_t<Tensor<2, data_t>> &d2,
+                     const Coordinates<data_t> &coords) const;
+
+  //! The function which calculates rho and Si, given the vars and
+  //! derivatives, for the given coupling function
   //! NOTE: this is computed in a separate function from the other
-  //! elements of the EM, namely S and Sij, so that we can call directly
+  //! elements, namely S and Sij, so that we can call directly
   //! this function to calculate the constraint without needing to
   //! specify the gauge variables
   template <class data_t, template <typename> class vars_t,
@@ -92,7 +113,7 @@ public:
       const Coordinates<data_t> &coords)
       const; //!< the value of the coordinates
 
-  //! The function which calculates the EM Tensor, given the vars and
+  //! The function which calculates SijTF and S, given the vars and
   //! derivatives, for the given coupling function
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t>

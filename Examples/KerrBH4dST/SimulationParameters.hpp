@@ -60,14 +60,20 @@ public:
   }
 
   void check_params() {
+    check_parameter("a(x)", modified_ccz4_params.a0,
+                    modified_ccz4_params.a0 > -1, "should be >-1");
     warn_parameter("a(x)", modified_ccz4_params.a0,
-                   modified_ccz4_params.a0 > -1, "should be >-1");
-    warn_parameter("kappa1", modified_ccz4_params.kappa1,
-                   modified_ccz4_params.kappa1 > 0, "should be > 0");
-    warn_parameter("kappa2", modified_ccz4_params.kappa2,
-                   modified_ccz4_params.kappa2 >
-                       -2. / (2. + modified_ccz4_params.b0),
-                   "should be > -2/(2+b(x))");
+                   modified_ccz4_params.a0 != 0, "should be !=0");
+    warn_parameter("b(x)", modified_ccz4_params.b0,
+                   (modified_ccz4_params.b0 > 0) &&
+                       (modified_ccz4_params.b0 != modified_ccz4_params.a0),
+                   "should be >0 and !=a(x)");
+    check_parameter("kappa1", modified_ccz4_params.kappa1,
+                    modified_ccz4_params.kappa1 > 0, "should be > 0");
+    check_parameter("kappa2", modified_ccz4_params.kappa2,
+                    modified_ccz4_params.kappa2 >
+                        -2. / (2. + modified_ccz4_params.b0),
+                    "should be > -2/(2+b(x))");
     warn_parameter("kerr_mass", kerr_params.mass, kerr_params.mass >= 0.0,
                    "should be >= 0.0");
     check_parameter("kerr_spin", kerr_params.spin,

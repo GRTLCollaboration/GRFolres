@@ -10,7 +10,120 @@
 #ifndef FOURDERIVSCALARTENSOR_IMPL_HPP_
 #define FOURDERIVSCALARTENSOR_IMPL_HPP_
 
-// Calculate the stress energy tensor elements
+template <class coupling_and_potential_t>
+template <class data_t, template <typename> class vars_t,
+          template <typename> class diff2_vars_t>
+ScalarVectorTensor<data_t>
+FourDerivScalarTensor<coupling_and_potential_t>::compute_Mij_Ni_and_M(
+    const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
+    const diff2_vars_t<Tensor<2, data_t>> &d2) const {
+
+  ScalarVectorTensor<data_t> out;
+
+  using namespace TensorAlgebra;
+  const auto h_UU = compute_inverse_sym(vars.h);
+  const auto chris = compute_christoffel(d1.h, h_UU);
+  const auto ricci0 =
+      CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
+  const data_t chi_regularised = simd_max(1e-6, vars.chi);
+
+  // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
+  FOR(i, j) {
+    out.tensor[i][j] =
+        ricci0.LL[i][j] + vars.K / (3. * chi_regularised) *
+                              (vars.A[i][j] + 2. / 3. * vars.K * vars.h[i][j]);
+    FOR2(k, l) {
+      out.tensor[i][j] -=
+          vars.A[i][k] * vars.A[j][l] * h_UU[k][l] / chi_regularised;
+    }
+  }
+  // M = \gamma^{ij}M_{ij} (GR Hamiltonian constraint)
+  out.scalar = vars.chi * compute_trace(out.tensor, h_UU);
+
+  Tensor<3, data_t> covdtilde_A;
+  FOR(i, j, k) {
+    covdtilde_A[j][k][i] = d1.A[j][k][i];
+    FOR(l) {
+      covdtilde_A[j][k][i] += -chris.ULL[l][i][j] * vars.A[l][k] -
+                              chris.ULL[l][i][k] * vars.A[l][j];
+    }
+  }
+  // N_i = D^jK_{ij} - D_iK (GR momentum constraint)
+  FOR(i) out.vector[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
+  FOR(i, j, k) {
+    out.vector[i] += h_UU[j][k] * (covdtilde_A[j][i][k] -
+                                   GR_SPACEDIM * vars.A[i][j] * d1.chi[k] /
+                                       (2. * chi_regularised));
+  }
+  return out;
+}
+
+template <class coupling_and_potential_t>
+template <class data_t, template <typename> class vars_t,
+          template <typename> class diff2_vars_t>
+ScalarVectorTensor<data_t>
+FourDerivScalarTensor<coupling_and_potential_t>::compute_Omega_munu(
+    const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
+    const diff2_vars_t<Tensor<2, data_t>> &d2,
+    const Coordinates<data_t> &coords) const {
+
+  ScalarVectorTensor<data_t> out;
+
+  // set the coupling and potential values
+  data_t dfdphi = 0.;
+  data_t d2fdphi2 = 0.;
+  data_t g2 = 0.;
+  data_t dg2dphi = 0.;
+  data_t V_of_phi = 0.;
+  data_t dVdphi = 0.;
+
+  // compute coupling and potential
+  my_coupling_and_potential.compute_coupling_and_potential(
+      dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
+
+  using namespace TensorAlgebra;
+  const auto h_UU = compute_inverse_sym(vars.h);
+  const auto chris = compute_christoffel(d1.h, h_UU);
+
+  // relevant quantities
+  data_t chi_regularised = simd_max(1e-6, vars.chi);
+  Tensor<2, data_t> covdtilde2phi;
+  Tensor<2, data_t> covd2phi;
+  data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
+  FOR(k, l) {
+    covdtilde2phi[k][l] = d2.phi[k][l];
+    FOR1(m) { covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m]; }
+    covd2phi[k][l] = covdtilde2phi[k][l] +
+                     0.5 *
+                         (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
+                          vars.h[k][l] * dphi_dot_dchi) /
+                         chi_regularised;
+  }
+
+  // Omega_{ij}=\gamma^{\mu}_{~i}\gamma^{\nu}_{~j}\Omega_{\mu\nu}
+  FOR(i, j) {
+    out.tensor[i][j] =
+        4. * dfdphi *
+            (covd2phi[i][j] +
+             vars.Pi / chi_regularised *
+                 (vars.A[i][j] + vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
+        4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
+  }
+  // trace of Omega_ij
+  out.scalar = vars.chi * compute_trace(out.tensor, h_UU);
+  // Omega_i = -\gamma^{\mu}_{~i}n^{\nu}\Omega_{\mu\nu}
+  FOR(i) {
+    out.vector[i] =
+        -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
+        4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
+    FOR(j, k) {
+      out.vector[i] += -4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j];
+    }
+  }
+  return out;
+}
+
+// Calculate rho and Si
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
@@ -43,81 +156,36 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_and_Si(
 
   // S_i (note lower index) = - n^a T_ai
   FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi; }
-
   FOR(i) { out.Si[i] += g2 * Vt * vars.Pi * d1.phi[i]; }
 
   // rho = n^a n^b T_ab
-  out.rho = vars.Pi * vars.Pi + 0.5 * Vt;
-  out.rho += V_of_phi;
-
+  out.rho = vars.Pi * vars.Pi + 0.5 * Vt + V_of_phi;
   out.rho += -g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi);
 
   // Compute useful quantities for the Gauss-Bonnet sector
-  const auto ricci0 =
-      CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-
   const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
-  Tensor<2, data_t> Mij; // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
-  FOR(i, j) {
-    Mij[i][j] =
-        ricci0.LL[i][j] + vars.K / (3. * chi_regularised) *
-                              (vars.A[i][j] + 2. / 3. * vars.K * vars.h[i][j]);
-    FOR2(k, l) {
-      Mij[i][j] -= vars.A[i][k] * vars.A[j][l] * h_UU[k][l] / chi_regularised;
-    }
-  }
-  data_t M =
-      vars.chi *
-      compute_trace(Mij, h_UU); // trace of M_{ij} (which is the Einstein Ham)
+  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
+  Tensor<2, data_t> Mij = SVT.tensor;
+  data_t M = SVT.scalar;
+  Tensor<1, data_t> Ni = SVT.vector;
 
-  Tensor<2, data_t> covdtilde2phi;
-  Tensor<2, data_t> covd2phi;
-  data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
-  FOR(k, l) {
-    covdtilde2phi[k][l] = d2.phi[k][l];
-    FOR1(m) { covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m]; }
-    covd2phi[k][l] = covdtilde2phi[k][l] +
-                     0.5 *
-                         (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
-                          vars.h[k][l] * dphi_dot_dchi) /
-                         chi_regularised;
-  }
-
-  // decomposition of \nabla_a\nabla_bf(\phi)
-  Tensor<2, data_t>
-      Omega_ij; // Omega_{ij} =
-                // \gamma^a_{~i}\gamma^b_{~j}\nabla_a\nabla_bf(\phi)
-  FOR(i, j) {
-    Omega_ij[i][j] =
-        4. * dfdphi *
-            (covd2phi[i][j] +
-             vars.Pi / chi_regularised *
-                 (vars.A[i][j] + vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-        4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
-  }
-  data_t Omega = vars.chi * compute_trace(Omega_ij, h_UU); // trace of Omega_ij
-
-  Tensor<1, data_t>
-      Omega_i; // Omega_i = -\gamma^a_{~i}n^b\nabla_a\nabla_bf(\phi)
-  FOR(i) {
-    Omega_i[i] =
-        -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
-        4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-    FOR(j, k) {
-      Omega_i[i] += -4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j];
-    }
-  }
+  // decomposition of Omega_{\mu\nu}
+  SVT = compute_Omega_munu(vars, d1, d2, coords);
+  Tensor<2, data_t> Omega_ij = SVT.tensor;
+  data_t Omega = SVT.scalar;
+  Tensor<1, data_t> Omega_i = SVT.vector;
 
   Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
   FOR(i, j) Omega_ij_UU[i][j] *= vars.chi * vars.chi;
 
-  data_t rhoGB = Omega * M; // rho = n^a n^b T_ab
+  // Gauss-Bonnet contribution to rho
+  data_t rhoGB = Omega * M;
   FOR(i, j) rhoGB -= 2. * Mij[i][j] * Omega_ij_UU[i][j];
 
   // other useful quantities
-  Tensor<2, data_t> covdtilde_A[CH_SPACEDIM];
-  Tensor<2, data_t> covd_Aphys_times_chi[CH_SPACEDIM];
+  Tensor<3, data_t> covdtilde_A;
+  Tensor<3, data_t> covd_Aphys_times_chi;
 
   FOR(i, j, k) {
     covdtilde_A[j][k][i] = d1.A[j][k][i];
@@ -136,16 +204,8 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_and_Si(
     }
   }
 
-  Tensor<1, data_t>
-      Ni; // N_i = D^jK_{ij} - D_iK (which is the Einstein Momentum)
-  FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
-  FOR(i, j, k) {
-    Ni[i] += h_UU[j][k] *
-             (covdtilde_A[j][i][k] -
-              GR_SPACEDIM * vars.A[i][j] * d1.chi[k] / (2. * chi_regularised));
-  }
-
-  Tensor<1, data_t> JGB; // S_i (note lower index) = - n^a T_ai
+  // Gauss-Bonnet contribution to Si
+  Tensor<1, data_t> JGB;
   FOR(i) {
     JGB[i] = Omega_i[i] * M + 2. * Omega * (Ni[i] + d1.K[i] / 3.);
     FOR(j, k) {
@@ -174,6 +234,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
     const Coordinates<data_t> &coords) const {
+
   SijTFAndS<data_t> out;
 
   // set the coupling and potential values
@@ -219,62 +280,28 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   make_trace_free(out.Sij_TF, vars.h, h_UU); // make Sij trace-free
 
   // Compute useful quantities for the Gauss-Bonnet sector
-
-  const auto ricci0 =
-      CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-
-  Tensor<2, data_t> Mij; // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
-  FOR(i, j) {
-    Mij[i][j] =
-        ricci0.LL[i][j] + vars.K / (3. * chi_regularised) *
-                              (vars.A[i][j] + 2. / 3. * vars.K * vars.h[i][j]);
-    FOR2(k, l) {
-      Mij[i][j] -= vars.A[i][k] * vars.A[j][l] * h_UU[k][l] / chi_regularised;
-    }
-  }
-  data_t M =
-      vars.chi *
-      compute_trace(
-          Mij,
-          h_UU); // trace of M_{ij} (which is the GR Hamiltonian Constraint)
+  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
+  Tensor<2, data_t> Mij = SVT.tensor;
+  data_t M = SVT.scalar;
+  Tensor<1, data_t> Ni = SVT.vector;
 
   Tensor<2, data_t> covdtilde2phi;
-  Tensor<2, data_t> covd2phi;
+  Tensor<2, data_t> covd2phi_times_chi;
   data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
   FOR(k, l) {
     covdtilde2phi[k][l] = d2.phi[k][l];
     FOR1(m) { covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m]; }
-    covd2phi[k][l] = covdtilde2phi[k][l] +
-                     0.5 *
-                         (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
-                          vars.h[k][l] * dphi_dot_dchi) /
-                         chi_regularised;
+    covd2phi_times_chi[k][l] =
+        vars.chi * covdtilde2phi[k][l] +
+        0.5 * (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
+               vars.h[k][l] * dphi_dot_dchi);
   }
 
-  // decomposition of \nabla_a\nabla_bf(\phi)
-  Tensor<2, data_t>
-      Omega_ij; // Omega_{ij} =
-                // \gamma^a_{~i}\gamma^b_{~j}\nabla_a\nabla_bf(\phi)
-  FOR(i, j) {
-    Omega_ij[i][j] =
-        4. * dfdphi *
-            (covd2phi[i][j] +
-             vars.Pi / chi_regularised *
-                 (vars.A[i][j] + vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-        4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
-  }
-  data_t Omega = vars.chi * compute_trace(Omega_ij, h_UU); // trace of Omega_ij
-
-  Tensor<1, data_t>
-      Omega_i; // Omega_i = -\gamma^a_{~i}n^b\nabla_a\nabla_bf(\phi)
-  FOR(i) {
-    Omega_i[i] =
-        -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
-        4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-    FOR(j, k) {
-      Omega_i[i] += -4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j];
-    }
-  }
+  // decomposition of Omega_{\mu\nu}
+  SVT = compute_Omega_munu(vars, d1, d2, coords);
+  Tensor<2, data_t> Omega_ij = SVT.tensor;
+  data_t Omega = SVT.scalar;
+  Tensor<1, data_t> Omega_i = SVT.vector;
 
   // other useful quantities
   Tensor<3, data_t> covdtilde_A;
@@ -295,15 +322,6 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
           h_UU[l][m] * d1.chi[m] / (2. * chi_regularised) *
           (vars.h[i][j] * vars.A[k][l] + vars.h[i][k] * vars.A[j][l]);
     }
-  }
-
-  Tensor<1, data_t>
-      Ni; // N_i = D^jK_{ij} - D_iK (which is the GR Momentum Constraint)
-  FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
-  FOR(i, j, k) {
-    Ni[i] += h_UU[j][k] *
-             (covdtilde_A[j][i][k] -
-              GR_SPACEDIM * vars.A[i][j] * d1.chi[k] / (2. * chi_regularised));
   }
 
   data_t divshift = compute_trace(d1.shift);
@@ -336,7 +354,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   // F_{ij} = \chi{\mathcal L}_nAphys_{ij}/\alpha + \chi D_iD_j\alpha/\alpha
   //+ A_{ik}A^k_{~j}) - \partial_tA_{ij}/\alpha
 
-  data_t one_over_lapse = 1. / simd_max(1e-4, vars.lapse);
+  data_t one_over_lapse = 1. / simd_max(1e-6, vars.lapse);
   Tensor<2, data_t> Fij;
   FOR(i, j) {
     Fij[i][j] = (-advec.A[i][j] + covd2lapse_times_chi[i][j]) * one_over_lapse -
@@ -377,7 +395,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
 
   Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
   FOR(i, j) Omega_ij_UU[i][j] *= vars.chi * vars.chi;
-  data_t rhoGB = Omega * M; // rho = n^a n^b T_ab
+  data_t rhoGB = Omega * M;
   FOR(i, j) rhoGB -= 2. * Mij[i][j] * Omega_ij_UU[i][j];
 
   // terms depending on g2 and V(phi) coming from having inserted the equation
@@ -400,7 +418,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     FOR(k, l)
     quadratic_terms += 2. * g2 * h_UU[i][k] * h_UU[j][l] * vars.chi *
                        d1.phi[k] * d1.phi[l] *
-                       (vars.Pi * vars.A[i][j] - vars.chi * covd2phi[i][j]);
+                       (vars.Pi * vars.A[i][j] - covd2phi_times_chi[i][j]);
   }
   quadratic_terms *= dfdphi / (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
 
@@ -409,15 +427,18 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   Tensor<2, data_t> Omega_ij_TF_UU_over_chi2 =
       raise_all(Omega_ij_TF, h_UU); // raise all indexs
 
+  // Gauss-Bonnet contribution for S
   data_t SGB = 4. / 3. * Omega * F +
                4. * M * (-d2fdphi2 * Vt + quadratic_terms + Omega / 3.) - rhoGB;
   FOR(i, j)
   SGB += -2. * Omega_ij_TF_UU_over_chi2[i][j] * vars.chi *
              (vars.chi * Mij_TF[i][j] + Fij[i][j]) -
          4. * h_UU[i][j] * vars.chi * Ni[i] * Omega_i[j];
+  // add quadratic terms
   SGB += 4. * dfdphi * dfdphi * M * RGB /
          (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
 
+  // Gauss-Bonnet contribution for SijTF
   Tensor<2, data_t> SijGB;
   FOR(i, j) {
     SijGB[i][j] = -2. / 3. * Omega_ij_TF[i][j] *
@@ -438,6 +459,7 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
               (Omega_ij_TF_UU_over_chi2[k][l] * Fij[k][l] +
                h_UU[k][l] * Omega_i[k] * (2. * Ni[l] + d1.K[l]));
     }
+    // add quadratic terms
     SijGB[i][j] += -8. * dfdphi * dfdphi * Mij_TF[i][j] * RGB /
                    (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
   }
@@ -497,25 +519,12 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
 
   // Compute useful quantities for the Gauss-Bonnet sector
 
-  const auto ricci0 =
-      CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
-
   const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
-  Tensor<2, data_t> Mij; // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
-  FOR(i, j) {
-    Mij[i][j] =
-        ricci0.LL[i][j] + vars.K / (3. * chi_regularised) *
-                              (vars.A[i][j] + 2. / 3. * vars.K * vars.h[i][j]);
-    FOR(k, l) {
-      Mij[i][j] -= vars.A[i][k] * vars.A[j][l] * h_UU[k][l] / chi_regularised;
-    }
-  }
-  data_t M =
-      vars.chi *
-      compute_trace(
-          Mij,
-          h_UU); // trace of M_{ij} (which is the GR Hamiltonian Constraint)
+  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
+  Tensor<2, data_t> Mij = SVT.tensor;
+  data_t M = SVT.scalar;
+  Tensor<1, data_t> Ni = SVT.vector;
 
   data_t divshift = compute_trace(d1.shift);
   data_t dlapse_dot_dchi = compute_dot_product(d1.lapse, d1.chi, h_UU);
@@ -569,7 +578,6 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
   // other useful quantities
   Tensor<3, data_t> covdtilde_A;
   Tensor<3, data_t> covd_Aphys_times_chi;
-
   FOR(i, j, k) {
     covdtilde_A[j][k][i] = d1.A[j][k][i];
     FOR(l) {
@@ -587,21 +595,13 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
     }
   }
 
-  Tensor<1, data_t>
-      Ni; // N_i = D^jK_{ij} - D_iK (which is the GR Momentum Constraint)
-  FOR(i) Ni[i] = -(GR_SPACEDIM - 1.) * d1.K[i] / (double)GR_SPACEDIM;
-  FOR(i, j, k) {
-    Ni[i] += h_UU[j][k] *
-             (covdtilde_A[j][i][k] -
-              GR_SPACEDIM * vars.A[i][j] * d1.chi[k] / (2. * chi_regularised));
-  }
-
   Tensor<2, data_t> Mij_TF = Mij;
   make_trace_free(Mij_TF, vars.h, h_UU);
   Tensor<2, data_t> Mij_TF_UU_over_chi =
       raise_all(Mij_TF, h_UU); // raise all indexs
   FOR(i, j) Mij_TF_UU_over_chi[i][j] *= vars.chi;
 
+  // rhs of the Gauss-Bonnet curvature (multiplied by the lapse)
   data_t RGB_times_lapse = -4. / 3. * M * F_times_lapse;
   FOR(i, j) {
     RGB_times_lapse += 8 * Mij_TF_UU_over_chi[i][j] * Fij_times_lapse[i][j] +
@@ -614,11 +614,9 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
         (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][j][k]);
   }
   rhs.Pi += dfdphi * RGB_times_lapse;
-
   rhs.Pi += -vars.lapse * dVdphi;
 
   // g2 contribution
-
   rhs.Pi += -3. / 4. * vars.lapse * dg2dphi * Vt * Vt -
             vars.lapse * vars.K * vars.Pi * g2 * Vt +
             advec.Pi * g2 * (2. * vars.Pi * vars.Pi - Vt);
@@ -669,6 +667,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
     const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
     const Coordinates<data_t> &coords) const {
+
   data_t LHS_mat[N][N];
 
   // set the coupling and potential values
@@ -694,63 +693,15 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
 
   // Compute useful quantities for the Gauss-Bonnet sector
 
-  const auto ricci0 =
-      CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
+  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
+  Tensor<2, data_t> Mij = SVT.tensor;
+  data_t M = SVT.scalar;
 
-  const data_t chi_regularised = simd_max(1e-6, vars.chi);
-
-  Tensor<2, data_t> Mij; // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
-  FOR(i, j) {
-    Mij[i][j] =
-        ricci0.LL[i][j] + vars.K / (3. * chi_regularised) *
-                              (vars.A[i][j] + 2. / 3. * vars.K * vars.h[i][j]);
-    FOR2(k, l) {
-      Mij[i][j] -= vars.A[i][k] * vars.A[j][l] * h_UU[k][l] / chi_regularised;
-    }
-  }
-  data_t M =
-      vars.chi *
-      compute_trace(
-          Mij,
-          h_UU); // trace of M_{ij} (which is the GR Hamiltonian Constraint)
-
-  Tensor<2, data_t> covdtilde2phi;
-  Tensor<2, data_t> covd2phi;
-  data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
-  FOR(k, l) {
-    covdtilde2phi[k][l] = d2.phi[k][l];
-    FOR1(m) { covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m]; }
-    covd2phi[k][l] = covdtilde2phi[k][l] +
-                     0.5 *
-                         (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
-                          vars.h[k][l] * dphi_dot_dchi) /
-                         chi_regularised;
-  }
-
-  // decomposition of \nabla_a\nabla_bf(\phi)
-  Tensor<2, data_t>
-      Omega_ij; // Omega_{ij} =
-                // \gamma^a_{~i}\gamma^b_{~j}\nabla_a\nabla_bf(\phi)
-  FOR(i, j) {
-    Omega_ij[i][j] =
-        4. * dfdphi *
-            (covd2phi[i][j] +
-             vars.Pi / chi_regularised *
-                 (vars.A[i][j] + vars.h[i][j] * vars.K / (double)GR_SPACEDIM)) +
-        4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
-  }
-  data_t Omega = vars.chi * compute_trace(Omega_ij, h_UU); // trace of Omega_ij
-
-  Tensor<1, data_t>
-      Omega_i; // Omega_i = -\gamma^a_{~i}n^b\nabla_a\nabla_bf(\phi)
-  FOR(i) {
-    Omega_i[i] =
-        -4. * d2fdphi2 * vars.Pi * d1.phi[i] +
-        4. * dfdphi * (-d1.Pi[i] - vars.K * d1.phi[i] / (double)GR_SPACEDIM);
-    FOR(j, k) {
-      Omega_i[i] += -4. * dfdphi * h_UU[j][k] * d1.phi[k] * vars.A[i][j];
-    }
-  }
+  // decomposition of Omega_{\mu\nu}
+  SVT = compute_Omega_munu(vars, d1, d2, coords);
+  Tensor<2, data_t> Omega_ij = SVT.tensor;
+  data_t Omega = SVT.scalar;
+  Tensor<1, data_t> Omega_i = SVT.vector;
 
   Tensor<2, data_t> Mij_TF = Mij;
   make_trace_free(Mij_TF, vars.h, h_UU);
@@ -866,6 +817,7 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(
     const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
     const Coordinates<data_t> &coords) const {
+
   const int N = GR_SPACEDIM * (GR_SPACEDIM + 1) / 2 + 2;
   data_t LHS[N][N];
 
