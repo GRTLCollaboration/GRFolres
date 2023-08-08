@@ -21,29 +21,32 @@
 class SimulationParameters : public SimulationParametersBase {
 public:
   SimulationParameters(GRParmParse &pp) : SimulationParametersBase(pp) {
-    read_shared_params(pp);
-    read_bh_params(pp);
+    read_params(pp);
     check_params();
   }
 
-  /// Read shared parameters
-  void read_shared_params(GRParmParse &pp) {
+  /// Read parameters
+  void read_params(GRParmParse &pp) {
+
     // Do we want puncture tracking and constraint norm calculation?
     pp.load("track_punctures", track_punctures, false);
     pp.load("puncture_tracking_level", puncture_tracking_level, max_level);
     pp.load("calculate_constraint_norms", calculate_constraint_norms, false);
+
     // Initial scalar field data
     initial_params.center = center; // already read in SimulationParametersBase
     pp.load("G_Newton", G_Newton, 1.0);
     pp.load("scalar_amplitude", initial_params.amplitude, 0.);
     pp.load("scalar_width", initial_params.width, 1.0);
     pp.load("scalar_r0", initial_params.r0, 0.);
+
     // Coupling and potential
     pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
     pp.load("g2", coupling_and_potential_params.g2, 0.);
     pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
     pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
     pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);
+
     // Modified gauge
     pp.load("a0", modified_ccz4_params.a0, 0.);
     pp.load("b0", modified_ccz4_params.b0, 0.);
@@ -57,10 +60,7 @@ public:
     modified_ccz4_params.kappa2 = ccz4_base_params.kappa2;
     modified_ccz4_params.kappa3 = ccz4_base_params.kappa3;
     modified_ccz4_params.covariantZ4 = ccz4_base_params.covariantZ4;
-  }
 
-  /// Read BH parameters
-  void read_bh_params(GRParmParse &pp) {
     // Initial data
     pp.load("massA", bh1_params.mass);
     pp.load("momentumA", bh1_params.momentum);
@@ -83,6 +83,14 @@ public:
   }
 
   void check_params() {
+    warn_parameter("a(x)", modified_ccz4_params.a0,
+                   modified_ccz4_params.a0 > -1, "should be >-1");
+    warn_parameter("kappa1", modified_ccz4_params.kappa1,
+                   modified_ccz4_params.kappa1 > 0, "should be > 0");
+    warn_parameter("kappa2", modified_ccz4_params.kappa2,
+                   modified_ccz4_params.kappa2 >
+                       -2. / (2. + modified_ccz4_params.b0),
+                   "should be > -2/(2+b(x))");
     warn_parameter("massA", bh1_params.mass, bh1_params.mass >= 0,
                    "should be >= 0");
     warn_parameter("massB", bh2_params.mass, bh2_params.mass >= 0,
