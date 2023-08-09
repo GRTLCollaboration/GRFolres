@@ -16,41 +16,47 @@
 #include "simd.hpp"
 
 //! Class which sets the initial scalar field config
-class InitialScalarData {
-public:
-  //! A structure for the input params for scalar field properties and initial
-  //! conditions
-  struct params_t {
-    double amplitude; //!< Amplitude of the Gaussian pulse
-    std::array<double, CH_SPACEDIM>
-        center;   //!< Centre of perturbation in the initial SF
-    double width; //!< Width of the Gaussian pulse
-    double r0; //!< The radial coordinate of the position of the Gaussian pulse
-  };
+class InitialScalarData
+{
+  public:
+    //! A structure for the input params for scalar field properties and initial
+    //! conditions
+    struct params_t
+    {
+        double amplitude; //!< Amplitude of the Gaussian pulse
+        std::array<double, CH_SPACEDIM>
+            center;   //!< Centre of perturbation in the initial SF
+        double width; //!< Width of the Gaussian pulse
+        double
+            r0; //!< The radial coordinate of the position of the Gaussian pulse
+    };
 
-  //! The constructor
-  InitialScalarData(params_t a_params, double a_dx)
-      : m_dx(a_dx), m_params(a_params) {}
+    //! The constructor
+    InitialScalarData(params_t a_params, double a_dx)
+        : m_dx(a_dx), m_params(a_params)
+    {
+    }
 
-  //! Function to compute the value of all the initial vars on the grid
-  template <class data_t> void compute(Cell<data_t> current_cell) const {
-    // where am i?
-    Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
-    data_t rr = coords.get_radius();
-    data_t rr2 = rr * rr;
+    //! Function to compute the value of all the initial vars on the grid
+    template <class data_t> void compute(Cell<data_t> current_cell) const
+    {
+        // where am i?
+        Coordinates<data_t> coords(current_cell, m_dx, m_params.center);
+        data_t rr = coords.get_radius();
+        data_t rr2 = rr * rr;
 
-    // calculate the field value
-    data_t phi = m_params.amplitude *
-                 exp(-pow((rr - m_params.r0) / m_params.width, 2.0));
+        // calculate the field value
+        data_t phi = m_params.amplitude *
+                     exp(-pow((rr - m_params.r0) / m_params.width, 2.0));
 
-    // store the vars
-    current_cell.store_vars(phi, c_phi);
-    current_cell.store_vars(0.0, c_Pi);
-  }
+        // store the vars
+        current_cell.store_vars(phi, c_phi);
+        current_cell.store_vars(0.0, c_Pi);
+    }
 
-protected:
-  double m_dx;
-  const params_t m_params; //!< The theory variables initial condition params
+  protected:
+    double m_dx;
+    const params_t m_params; //!< The theory variables initial condition params
 };
 
 #endif /* INITIALSCALARDATA_HPP_ */
