@@ -11,6 +11,7 @@
 #define MODIFIEDCCZ4RHS_IMPL_HPP_
 #include "DimensionDefinitions.hpp"
 
+// CCZ4 is required since this code only works in this formulation
 template <class theory_t, class gauge_t, class deriv_t>
 ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::ModifiedCCZ4RHS(
     theory_t a_theory, modified_params_t a_params, gauge_t a_gauge, double a_dx,

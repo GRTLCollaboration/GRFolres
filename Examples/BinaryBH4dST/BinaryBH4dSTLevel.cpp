@@ -129,6 +129,7 @@ void BinaryBH4dSTLevel::specificPostTimeStep() {
     if (calculate_weyl) {
       // Populate the Weyl Scalar values on the grid
       fillAllGhosts();
+      // CCZ4 is required since this code only works in this formulation
       BoxLoops::loop(
           Weyl4(m_p.extraction_params.center, m_dx, CCZ4RHS<>::USE_CCZ4),
           m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);

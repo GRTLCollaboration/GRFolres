@@ -14,7 +14,7 @@ template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
 ScalarVectorTensor<data_t>
-FourDerivScalarTensor<coupling_and_potential_t>::compute_Mij_Ni_and_M(
+FourDerivScalarTensor<coupling_and_potential_t>::compute_M_Ni_and_Mij(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2) const {
 
@@ -155,26 +155,25 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_rho_and_Si(
   FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
 
   // S_i (note lower index) = - n^a T_ai
-  FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi; }
-  FOR(i) { out.Si[i] += g2 * Vt * vars.Pi * d1.phi[i]; }
+  FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi + g2 * Vt * vars.Pi * d1.phi[i]; }
 
   // rho = n^a n^b T_ab
-  out.rho = vars.Pi * vars.Pi + 0.5 * Vt + V_of_phi;
-  out.rho += -g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi);
+  out.rho = vars.Pi * vars.Pi + 0.5 * Vt + V_of_phi -
+            g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi);
 
   // Compute useful quantities for the Gauss-Bonnet sector
   const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
-  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
-  Tensor<2, data_t> Mij = SVT.tensor;
+  ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
   data_t M = SVT.scalar;
   Tensor<1, data_t> Ni = SVT.vector;
+  Tensor<2, data_t> Mij = SVT.tensor;
 
   // decomposition of Omega_{\mu\nu}
   SVT = compute_Omega_munu(vars, d1, d2, coords);
-  Tensor<2, data_t> Omega_ij = SVT.tensor;
   data_t Omega = SVT.scalar;
   Tensor<1, data_t> Omega_i = SVT.vector;
+  Tensor<2, data_t> Omega_ij = SVT.tensor;
 
   Tensor<2, data_t> Omega_ij_UU = raise_all(Omega_ij, h_UU); // raise all indexs
   FOR(i, j) Omega_ij_UU[i][j] *= vars.chi * vars.chi;
@@ -280,10 +279,10 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
   make_trace_free(out.Sij_TF, vars.h, h_UU); // make Sij trace-free
 
   // Compute useful quantities for the Gauss-Bonnet sector
-  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
-  Tensor<2, data_t> Mij = SVT.tensor;
+  ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
   data_t M = SVT.scalar;
   Tensor<1, data_t> Ni = SVT.vector;
+  Tensor<2, data_t> Mij = SVT.tensor;
 
   Tensor<2, data_t> covdtilde2phi;
   Tensor<2, data_t> covd2phi_times_chi;
@@ -299,9 +298,9 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
 
   // decomposition of Omega_{\mu\nu}
   SVT = compute_Omega_munu(vars, d1, d2, coords);
-  Tensor<2, data_t> Omega_ij = SVT.tensor;
   data_t Omega = SVT.scalar;
   Tensor<1, data_t> Omega_i = SVT.vector;
+  Tensor<2, data_t> Omega_ij = SVT.tensor;
 
   // other useful quantities
   Tensor<3, data_t> covdtilde_A;
@@ -521,10 +520,10 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
 
   const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
-  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
-  Tensor<2, data_t> Mij = SVT.tensor;
+  ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
   data_t M = SVT.scalar;
   Tensor<1, data_t> Ni = SVT.vector;
+  Tensor<2, data_t> Mij = SVT.tensor;
 
   data_t divshift = compute_trace(d1.shift);
   data_t dlapse_dot_dchi = compute_dot_product(d1.lapse, d1.chi, h_UU);
@@ -693,15 +692,15 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
 
   // Compute useful quantities for the Gauss-Bonnet sector
 
-  ScalarVectorTensor<data_t> SVT = compute_Mij_Ni_and_M(vars, d1, d2);
-  Tensor<2, data_t> Mij = SVT.tensor;
+  ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
   data_t M = SVT.scalar;
+  Tensor<2, data_t> Mij = SVT.tensor;
 
   // decomposition of Omega_{\mu\nu}
   SVT = compute_Omega_munu(vars, d1, d2, coords);
-  Tensor<2, data_t> Omega_ij = SVT.tensor;
   data_t Omega = SVT.scalar;
   Tensor<1, data_t> Omega_i = SVT.vector;
+  Tensor<2, data_t> Omega_ij = SVT.tensor;
 
   Tensor<2, data_t> Mij_TF = Mij;
   make_trace_free(Mij_TF, vars.h, h_UU);

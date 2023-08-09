@@ -81,7 +81,7 @@ public:
   //! M = \gamma^{ij}M_{ij} (GR Hamiltonian constraint)
   template <class data_t, template <typename> class vars_t,
             template <typename> class diff2_vars_t>
-  ScalarVectorTensor<data_t> compute_Mij_Ni_and_M(
+  ScalarVectorTensor<data_t> compute_M_Ni_and_Mij(
       const vars_t<data_t> &vars,          //!< the value of the variables
       const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivatives
       const diff2_vars_t<Tensor<2, data_t>> &d2)

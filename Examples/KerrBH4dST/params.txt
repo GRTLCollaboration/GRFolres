@@ -38,7 +38,7 @@ print_progress_only_to_rank_0 = 1
 
 # Change the gravitational constant of the Universe!
 # Default is 1.0, for standard geometric units
-G_Newton = 0.01989436788 #1/(16*pi)
+G_Newton = 1.0
 
 # Scalar field initial data
 scalar_amplitude = 0.001
@@ -63,7 +63,7 @@ N_full = 128
 L_full = 256
 
 # Maximum number of times you can regrid above coarsest level
-max_level = 5 #6 # There are (max_level+1) grids, so min is zero
+max_level = 5 # There are (max_level+1) grids, so min is zero
 
 # Frequency of regridding at each level and thresholds on the tagging
 # Need one for each level except the top one, ie max_level items
@@ -121,8 +121,8 @@ nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 # Evolution parameters
 
 # dt will be dx*dt_multiplier on each grid level
-dt_multiplier = 0.0625 #0.25
-stop_time = 150.0 #100.0
+dt_multiplier = 0.0625
+stop_time = 150.0
 # max_steps = 100
 
 # Spatial derivative order (only affects CCZ4 RHS)
