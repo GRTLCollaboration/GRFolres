@@ -37,3 +37,4 @@ log*
 *.dSYM
 *.patch
 *.log
+*.err
