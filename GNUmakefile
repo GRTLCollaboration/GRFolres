@@ -14,7 +14,8 @@ RealCleanExampleDirs := $(ExampleDirs:%=realclean-%)
 
 .PHONY: all run examples clean realclean $(TestDirs) $(ExampleDirs)
 
-export GRCHOMBO_SOURCE = $(shell pwd)/../GRChombo/Source
+# User needs to specify GRCHOMBO_SOURCE location, e.g. using
+# export GRCHOMBO_SOURCE = ~/GRChombo/Source
 export MODIFIEDGRAVITY_SOURCE = $(shell pwd)/Source
 
 ECHO?=@ # set this to null on the command line to increase verbosity
