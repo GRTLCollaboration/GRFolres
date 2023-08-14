@@ -68,7 +68,8 @@ void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     // FourDerivScalarTensor
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
-    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
+    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
+                                                       m_p.G_Newton);
     ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
     if (m_p.max_spatial_derivative_order == 4)
     {
@@ -175,7 +176,7 @@ void BinaryBH4dSTLevel::specificPostTimeStep()
         CouplingAndPotential coupling_and_potential(
             m_p.coupling_and_potential_params);
         FourDerivScalarTensorWithCouplingAndPotential fdst(
-            coupling_and_potential);
+            coupling_and_potential, m_p.G_Newton);
         fillAllGhosts();
         BoxLoops::loop(ModifiedGravityConstraints<
                            FourDerivScalarTensorWithCouplingAndPotential>(
@@ -221,7 +222,7 @@ void BinaryBH4dSTLevel::prePlotLevel()
         CouplingAndPotential coupling_and_potential(
             m_p.coupling_and_potential_params);
         FourDerivScalarTensorWithCouplingAndPotential fdst(
-            coupling_and_potential);
+            coupling_and_potential, m_p.G_Newton);
         BoxLoops::loop(
             make_compute_pack(
                 Weyl4(m_p.extraction_params.center, m_dx, CCZ4RHS<>::USE_CCZ4),

@@ -57,7 +57,8 @@ void KerrBH4dSTLevel::prePlotLevel()
 {
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
-    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
+    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
+                                                       m_p.G_Newton);
     fillAllGhosts();
     BoxLoops::loop(ModifiedGravityConstraints<
                        FourDerivScalarTensorWithCouplingAndPotential>(
@@ -78,7 +79,8 @@ void KerrBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     // FourDerivScalarTensor
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
-    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
+    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
+                                                       m_p.G_Newton);
     ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
     if (m_p.max_spatial_derivative_order == 4)
     {

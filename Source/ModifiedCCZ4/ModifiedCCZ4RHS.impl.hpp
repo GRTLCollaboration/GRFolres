@@ -121,9 +121,7 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
                               0.5 * GR_SPACEDIM / (GR_SPACEDIM - 1.) *
                                   (tr_A2 - ricci0.scalar)) +
          kappa1_times_lapse * GR_SPACEDIM * theory_vars.Theta *
-             (1. + this->m_params.kappa2 -
-              0.5 * ((GR_SPACEDIM - 3.) / (GR_SPACEDIM - 1.) +
-                     this->m_params.kappa2)));
+             (1. + 0.5 * this->m_params.kappa2));
 
     theory_rhs.Theta +=
         b_of_x / (1. + b_of_x) *
@@ -132,7 +130,8 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
               ((GR_SPACEDIM - 1.0) / (double)GR_SPACEDIM) * theory_vars.K *
                   theory_vars.K) +
          0.5 * theory_vars.Theta * kappa1_times_lapse *
-             ((GR_SPACEDIM + 1.) + this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
+             ((GR_SPACEDIM - 3.) / (2. + b_of_x) + (GR_SPACEDIM + 1.) +
+              this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
 
     FOR(i)
     {
