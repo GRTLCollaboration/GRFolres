@@ -1,0 +1,203 @@
+#Params for runtime inputs
+
+verbosity = 0
+chk_prefix = pBinarySF_
+plot_prefix = pBinarySFp_
+#restart_file = pBinarySF_000050.3d.hdf5
+
+# Set up grid spacings and regrid params
+# NB - the N values need to be multiples of block_factor
+N_full = 384 # if changed, also change grid_buffer_size and regrid_thresolds
+L_full = 1024
+
+# Spatial derivative order (only affects CCZ4 RHS)
+max_spatial_derivative_order = 6 # can be 4 or 6
+
+max_level = 8
+tag_buffer_size = 5
+grid_buffer_size = 24 # ensure ~ M/4 spacing between levels on the finest level
+
+# Regridding
+# Thresholds on the change across a cell which prompts regrid
+regrid_threshold_chi = 0.06
+regrid_threshold_phi = 0.6
+regrid_interval = 0 1 0 0 0 0 0 0 0
+
+# force tagging up to a certain level up to a certain radii
+# guarantee full coverage of level 6 up to t~3.5, then full coverage by level 7 up to t~6
+num_tag_force_times = 2
+tag_force_times = 3.5 6
+tag_force_radii = 7. 3.
+tag_force_levels = 6 7
+
+# force regrid for finest levels up to a certain chi contour
+# levels inverted (first contour is for the finest level)
+num_chi_contours = 4
+chi_contours = 0.45 0.6 0.75 0.9
+
+#boundaries and periodicity of grid
+#Periodic directions - 0 = false, 1 = true
+isPeriodic = 0 0 0
+# if not periodic, then specify the boundary type
+# 0 = static, 1 = sommerfeld, 2 = reflective
+# (see BoundaryConditions.hpp for details)
+hi_boundary = 1 1 1
+lo_boundary = 1 1 2
+
+# if reflective boundaries selected, must set
+# parity of all vars (in order given by UserVariables.hpp)
+# 0 = even
+# 1,2,3 = odd x, y, z
+# 4,5,6 = odd xy, yz, xz
+# 7     = odd xyz
+vars_parity            = 0 0 4 6 0 5 0    #chi and hij
+                         0 0 4 6 0 5 0    #K and Aij
+                         0 1 2 3          #Theta and Gamma
+                         0 1 2 3 1 2 3    #lapse shift and B
+                         0 0              #phi and Pi
+vars_parity_diagnostic = 0 0              #Ham and Mom
+                         0 0              #Ham and Mom normalized
+                         0                #rho
+                         0 7              #Weyl4 Re and Im
+                         0 0              #ADM M and J
+                         0                #WeakField
+
+# if sommerfeld boundaries selected, must select
+# asymptotic values
+num_nonzero_asymptotic_vars = 5
+nonzero_asymptotic_vars = chi h11 h22 h33 lapse
+nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
+
+#Max and min box sizes
+max_box_size = 32
+block_factor = 16
+
+# Set up time steps
+# dt will be dx*dt_multiplier on each grid level
+# HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
+plot_interval = 20
+num_plot_vars = 7
+plot_vars = chi phi rho Weyl4_Re Ham Mom WeakField
+dt_multiplier = 0.25
+
+# TIME DEPENDENT
+# up to t~15
+checkpoint_interval = 1
+stop_time = 15.
+# after t~15
+# checkpoint_interval = 20
+# stop_time = 2500.0
+
+#Lapse evolution
+lapse_power = 1.0
+lapse_coeff = 2.0
+lapse_advec_coeff = 1 # 1 makes the lapse gauge 1+log slicing
+
+# Shift evolution coefficients
+shift_advec_coeff = 0 # Usually no advection for beta
+shift_Gamma_coeff = 0.75 # 
+eta = 1.0 # This is beta_driver, usually of order 1/M_ADM of spacetime
+
+# CCZ4 parameters
+formulation = 0  # 1 for BSSN, 0 for CCZ4
+kappa1 = 0.1
+kappa2 = 0
+kappa3 = 1.
+covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
+
+#coefficient for KO numerical dissipation
+sigma = 1.0
+
+# Change the gravitational constant of the Universe!
+# Default is 1./16pi, for standard geometric units
+# G_Newton = 1.0
+
+# SF Initial data
+amplitudeSF_1 = 0.3856
+widthSF_1 = 0.6
+r_zero_1 = 2.0
+
+amplitudeSF_2 = 0.3856
+widthSF_2 = 0.6
+r_zero_2 = 2.0
+
+scalar_mass = 0.5
+
+offset_1 = 0 -20 0
+offset_2 = 0  20 0
+
+velocity_1 = -0.17 0.0 0.0
+velocity_2 =  0.17 0.0 0.0
+
+#extraction params
+#default center to grid center, uncomment to change
+#extraction_center = 64 64 64
+activate_extraction = 1
+num_extraction_radii = 6
+extraction_radii = 50. 60. 70. 80. 90. 100.
+extraction_levels = 2 2 2 1 1 1
+num_points_phi = 32
+num_points_theta = 48
+num_modes = 25
+modes = 2 0  2 1  2 2
+        3 0  3 1  3 2  3 3
+        4 0  4 1  4 2  4 3  4 4
+        5 0  5 1  5 2  5 3  5 4  5 5
+        6 0  6 1  6 2  6 3  6 4  6 5  6 6
+write_extraction = 1
+
+num_extraction_radii_ADM = 5
+extraction_radii_ADM = 100. 150. 200. 250. 300.
+extraction_levels_ADM = 0 0 0 0 0
+ADM_extraction_interval = 10
+
+#Apparent Horizon finder 
+AH_activate = 1
+AH_num_ranks = 65
+AH_num_points_u = 65
+AH_num_points_v = 48
+AH_solve_interval = 6
+AH_print_interval = 1
+#AH_merger_search_factor = 1. #-1 to deactivate
+#AH_merger_pre_factor = 1.
+#AH_level_to_run = 0
+AH_verbose = 3
+
+# TIME DEPENDENT
+# up to t ~ 15 (when AH is found):
+AH_start_time = 9.
+AH_give_up_time = 15.
+AH_max_fails_after_lost = 20 #enough for give up time to be reached
+AH_stop_if_max_fails = 1 # stop if failed at give_up_time
+# after t~15, until merger (stop there as a check-up):
+# AH_start_time = 0.
+# AH_give_up_time = -1.
+# AH_max_fails_after_lost = 0
+# AH_stop_if_max_fails = 1
+
+AH_num_write_vars = 6
+AH_write_vars = chi phi d1_phi Pi rho WeakField
+
+AH_initial_guess1 = 0.5
+AH_initial_guess2 = 0.5
+
+#+- same as velocity
+AH_offset1 = -0.0 0.0 0.0
+AH_offset2 =  0.0 0.0 0.0
+
+chi_threshold = 0.08
+chi_width     = 0.2
+weak_field_threshold = 1.
+weak_field_width     = 0.1
+sigmoid_chi_compute_threshold = 1.e-2
+WFC_debug_threshold = 1.e-3
+
+g3 = 0.
+g2 = 0.
+
+# make_SF_zero_at_restart = 1
+ 
+excise_time = 40.0 # no excision beyond this time
+
+calculate_constraint_norms = 1
+calculate_constraint_norm_interval = 10
