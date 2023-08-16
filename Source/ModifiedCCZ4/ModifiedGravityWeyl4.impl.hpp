@@ -57,28 +57,8 @@ void ModifiedGravityWeyl4<theory_t, gauge_t, deriv_t>::add_theory_EB(
     const Vars<Tensor<1, data_t>> &d1, const Diff2Vars<Tensor<2, data_t>> &d2,
     const Vars<data_t> &advec, const Coordinates<data_t> &coords) const
 {
-    // Call CCZ4 RHS - work out GR RHS, no dissipation
-    Vars<data_t> rhs;
-    this->rhs_equation(rhs, vars, d1, d2, advec);
-
-    // add functions a(x) and b(x) of the modified gauge
-    this->add_a_and_b_rhs(rhs, vars, d1, d2, advec, coords);
-
-    Vars<data_t> theory_rhs = rhs;
-    // add RHS theory terms from EM tensor
-    this->add_emtensor_rhs(theory_rhs, vars, d1, d2, advec, coords);
-
-    // add evolution of theory fields themselves
-    my_theory.add_theory_rhs(theory_rhs, vars, d1, d2, advec, coords);
-
-    // solve linear system for the theory fields that require it (e.g. 4dST)
-    my_theory.solve_lhs(theory_rhs, vars, d1, d2, advec, coords);
-
-    const data_t chi_regularised = simd_max(vars.chi, 1e-6);
-    Tensor<2, data_t> kappa_times_Sij_TF = theory_rhs.A;
-    FOR(i, j) kappa_times_Sij_TF[i][j] -= rhs.A[i][j];
-    FOR(i, j) kappa_times_Sij_TF[i][j] /= chi_regularised;
-
+    Tensor<2, data_t> kappa_times_Sij_TF =
+        this->get_full_kappa_times_Sij_TF(vars, d1, d2, advec, coords);
     // as we made the vacuum expression of Bij explictly symmetric and Eij
     // explictly trace-free, only Eij has matter terms
     FOR(i, j) { ebfields.E[i][j] += -0.5 * kappa_times_Sij_TF[i][j]; }

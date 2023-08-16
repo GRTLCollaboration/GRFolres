@@ -30,7 +30,7 @@
      although a default is provided which sets G_2(\phi, X) = g_2X^2
      and G_3(\phi, X) = g_3X.
      It assumes a scalar field, coming from the action
-     S=\int d^4x\left(R/16\pi G + X + G_2(\phi, X)
+     S=\int d^4x\left(R/(16\pi G) + X + G_2(\phi, X)
      + G_3(\phi, X)\Box\phi\right),
      where X=-1/2\nabla_{\mu}\phi\nabla^{\mu}\phi and the potential
      of the scalar field is considered inside G_2(\phi) function
@@ -40,15 +40,12 @@
 template <class coupling_and_potential_t = DefaultCouplingAndPotential>
 class CubicHorndeski
 {
-    int m_c_den, m_c_geff_det, m_c_tau;
-    const Interval m_c_speeds;
-
   public:
     template <class data_t> struct expressions
     {
-        data_t lieD_Pi_no_lapse;
+        data_t lie_deriv_Pi_no_lapse;
 
-        data_t g2; // g3;
+        data_t g2;
         data_t dg2_dX, dg3_dX;
         data_t dg2_dphi, dg3_dphi;
         data_t d2g2_dXX, d2g3_dXX;
@@ -60,27 +57,19 @@ class CubicHorndeski
         data_t Pi2, X, Xplus;
 
         data_t tau;
-        Tensor<1, data_t> taui;
-        Tensor<2, data_t> tauij; // needed for effective metric
+        Tensor<1, data_t> tau_i;
+        Tensor<2, data_t> tau_ij;
 
-        data_t taui_dot_dphi;
-        Tensor<1, data_t> tauij_dot_dphi;
-        data_t tauij_dot_dphi2;
+        data_t tau_i_dot_dphi;
+        Tensor<1, data_t> tau_ij_dot_dphi;
+        data_t tau_ij_dot_dphi2;
 
         data_t exprA, exprB;
-        data_t ders1, ders2; // needed for effective metric
-
-        data_t DEN;
-        data_t det;
+        data_t ders1, ders2;
     };
 
-    CubicHorndeski(const coupling_and_potential_t a_coupling_and_potential,
-                   const std::array<double, CH_SPACEDIM> &a_center,
-                   int a_c_den = -1, int a_c_geff_det = -1,
-                   const Interval &a_c_speeds = Interval(), int a_c_tau = -1)
-        : my_coupling_and_potential(a_coupling_and_potential), m_c_den(a_c_den),
-          m_c_geff_det(a_c_geff_det), m_c_tau(a_c_tau), m_c_speeds(a_c_speeds),
-          m_center(a_center)
+    CubicHorndeski(const coupling_and_potential_t a_coupling_and_potential)
+        : my_coupling_and_potential(a_coupling_and_potential)
     {
     }
 
@@ -176,7 +165,7 @@ class CubicHorndeski
 
   protected:
     coupling_and_potential_t my_coupling_and_potential;
-    const std::array<double, CH_SPACEDIM> &m_center;
+    // const std::array<double, CH_SPACEDIM> &m_center;
 };
 
 #include "CubicHorndeski.impl.hpp"

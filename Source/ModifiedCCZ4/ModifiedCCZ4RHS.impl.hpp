@@ -74,6 +74,9 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
 
     my_gauge.compute_a_and_b(a_of_x, b_of_x, coords);
 
+    data_t factor_a_of_x = a_of_x / (1. + a_of_x);
+    data_t factor_b_of_x = b_of_x / (1. + b_of_x);
+
     const data_t chi_regularised = simd_max(1e-6, theory_vars.chi);
     using namespace TensorAlgebra;
     auto h_UU = compute_inverse_sym(theory_vars.h);
@@ -116,7 +119,7 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
         kappa1_times_lapse = this->m_params.kappa1 * theory_vars.lapse;
 
     theory_rhs.K +=
-        b_of_x / (1. + b_of_x) *
+        factor_b_of_x *
         (theory_vars.lapse * (-0.5 * theory_vars.K * theory_vars.K +
                               0.5 * GR_SPACEDIM / (GR_SPACEDIM - 1.) *
                                   (tr_A2 - ricci0.scalar)) +
@@ -124,7 +127,7 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
              (1. + 0.5 * this->m_params.kappa2));
 
     theory_rhs.Theta +=
-        b_of_x / (1. + b_of_x) *
+        factor_b_of_x *
         (0.5 * theory_vars.lapse *
              (tr_A2 - ricci0.scalar -
               ((GR_SPACEDIM - 1.0) / (double)GR_SPACEDIM) * theory_vars.K *
@@ -136,35 +139,35 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
     FOR(i)
     {
         theory_rhs.Gamma[i] +=
-            b_of_x / (1. + b_of_x) *
+            factor_b_of_x *
             ((2.0 / (double)GR_SPACEDIM) *
                  (theory_vars.lapse * theory_vars.K * Z_over_chi[i]) +
              2. * kappa1_times_lapse * Z_over_chi[i]);
         FOR(j)
         {
-            theory_rhs.Gamma[i] += b_of_x / (1. + b_of_x) * 2. * h_UU[i][j] *
+            theory_rhs.Gamma[i] += factor_b_of_x * 2. * h_UU[i][j] *
                                    theory_vars.lapse * (-d1.Theta[j] - Ni[j]);
             FOR(k)
             {
-                theory_rhs.Gamma[i] += b_of_x / (1. + b_of_x) * 2. *
-                                       theory_vars.lapse * A_UU[i][j] *
-                                       theory_vars.h[k][j] * Z_over_chi[k];
+                theory_rhs.Gamma[i] += factor_b_of_x * 2. * theory_vars.lapse *
+                                       A_UU[i][j] * theory_vars.h[k][j] *
+                                       Z_over_chi[k];
             }
         }
     }
 
-    theory_rhs.lapse += a_of_x / (1. + a_of_x) * this->m_params.lapse_coeff *
+    theory_rhs.lapse += factor_a_of_x * this->m_params.lapse_coeff *
                         pow(theory_vars.lapse, this->m_params.lapse_power) *
                         (theory_vars.K - 2. * theory_vars.Theta);
 
     FOR(i)
     {
-        theory_rhs.shift[i] -= a_of_x / (1. + a_of_x) *
+        theory_rhs.shift[i] += -factor_a_of_x *
                                this->m_params.shift_Gamma_coeff *
                                theory_vars.Gamma[i];
         FOR(j)
         {
-            theory_rhs.shift[i] -= a_of_x / (1. + a_of_x) * theory_vars.lapse *
+            theory_rhs.shift[i] += -factor_a_of_x * theory_vars.lapse *
                                    theory_vars.chi * h_UU[i][j] * d1.lapse[j];
         }
     }
@@ -209,6 +212,41 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_emtensor_rhs(
         theory_rhs.Gamma[i] += -16. * M_PI * m_G_Newton * theory_vars.lapse *
                                h_UU[i][j] * rho_and_Si.Si[j] / (1. + b_of_x);
     }
+}
+
+// Function to get full \kappa S_{ij}^{TF} (including LHS if needed) so as to
+// be called in ModifiedGravityWeyl4 class
+template <class theory_t, class gauge_t, class deriv_t>
+template <class data_t>
+Tensor<2, data_t>
+ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::get_full_kappa_times_Sij_TF(
+    const Vars<data_t> &theory_vars, const Vars<Tensor<1, data_t>> &d1,
+    const Diff2Vars<Tensor<2, data_t>> &d2, const Vars<data_t> &advec,
+    const Coordinates<data_t> &coords) const
+{
+    const data_t chi_regularised = simd_max(theory_vars.chi, 1e-6);
+    // Call CCZ4 RHS - work out GR RHS, no dissipation
+    Vars<data_t> rhs;
+    this->rhs_equation(rhs, theory_vars, d1, d2, advec);
+
+    // add functions a(x) and b(x) of the modified gauge
+    add_a_and_b_rhs(rhs, theory_vars, d1, d2, advec, coords);
+
+    Vars<data_t> theory_rhs = rhs;
+    // add RHS theory terms from EM Tensor
+    add_emtensor_rhs(theory_rhs, theory_vars, d1, d2, advec, coords);
+
+    // add evolution of theory fields themselves
+    my_theory.add_theory_rhs(theory_rhs, theory_vars, d1, d2, advec, coords);
+
+    // solve linear system for the theory fields that require it (e.g. 4dST)
+    my_theory.solve_lhs(theory_rhs, theory_vars, d1, d2, advec, coords);
+
+    Tensor<2, data_t> out = theory_rhs.A;
+    FOR(i, j) out[i][j] += -rhs.A[i][j];
+    FOR(i, j) out[i][j] /= chi_regularised;
+
+    return out;
 }
 
 #endif /* MODIFIEDCCZ4RHS_IMPL_HPP_ */

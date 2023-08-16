@@ -153,38 +153,15 @@ void BinaryBH4dSTLevel::specificPostTimeStep()
                 coupling_and_potential, m_p.G_Newton);
             ModifiedPunctureGauge modified_puncture_gauge(
                 m_p.modified_ccz4_params);
-            if (m_p.max_spatial_derivative_order == 4)
-            {
-                ModifiedGravityWeyl4<
-                    FourDerivScalarTensorWithCouplingAndPotential,
-                    ModifiedPunctureGauge, FourthOrderDerivatives>
-                    weyl4(fdst, m_p.modified_ccz4_params,
-                          modified_puncture_gauge,
-                          m_p.extraction_params.extraction_center, m_dx,
-                          m_p.sigma, CCZ4RHS<>::USE_CCZ4);
-                // CCZ4 is required since this code only works in this
-                // formulation
-                BoxLoops::loop(Weyl4(m_p.extraction_params.center, m_dx,
-                                     CCZ4RHS<>::USE_CCZ4),
-                               m_state_new, m_state_diagnostics,
-                               EXCLUDE_GHOST_CELLS);
-            }
-            else if (m_p.max_spatial_derivative_order == 6)
-            {
-                ModifiedGravityWeyl4<
-                    FourDerivScalarTensorWithCouplingAndPotential,
-                    ModifiedPunctureGauge, SixthOrderDerivatives>
-                    weyl4(fdst, m_p.modified_ccz4_params,
-                          modified_puncture_gauge,
-                          m_p.extraction_params.extraction_center, m_dx,
-                          m_p.sigma, CCZ4RHS<>::USE_CCZ4);
-                // CCZ4 is required since this code only works in this
-                // formulation
-                BoxLoops::loop(Weyl4(m_p.extraction_params.center, m_dx,
-                                     CCZ4RHS<>::USE_CCZ4),
-                               m_state_new, m_state_diagnostics,
-                               EXCLUDE_GHOST_CELLS);
-            }
+            ModifiedGravityWeyl4<FourDerivScalarTensorWithCouplingAndPotential,
+                                 ModifiedPunctureGauge, FourthOrderDerivatives>
+                weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
+                      m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
+                      CCZ4RHS<>::USE_CCZ4);
+            // CCZ4 is required since this code only works in this
+            // formulation
+            BoxLoops::loop(weyl4, m_state_new, m_state_diagnostics,
+                           EXCLUDE_GHOST_CELLS);
 
             // Do the extraction on the min extraction level
             if (m_level == min_level)
@@ -262,30 +239,15 @@ void BinaryBH4dSTLevel::prePlotLevel()
             constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
                         Interval(c_Mom1, c_Mom3));
         ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
-        if (m_p.max_spatial_derivative_order == 4)
-        {
-            ModifiedGravityWeyl4<FourDerivScalarTensorWithCouplingAndPotential,
-                                 ModifiedPunctureGauge, FourthOrderDerivatives>
-                weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
-                      m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
-                      CCZ4RHS<>::USE_CCZ4);
-            // CCZ4 is required since this code only works in this formulation
-            auto compute_pack = make_compute_pack(weyl4, constraints);
-            BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
-                           EXCLUDE_GHOST_CELLS);
-        }
-        else if (m_p.max_spatial_derivative_order == 6)
-        {
-            ModifiedGravityWeyl4<FourDerivScalarTensorWithCouplingAndPotential,
-                                 ModifiedPunctureGauge, SixthOrderDerivatives>
-                weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
-                      m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
-                      CCZ4RHS<>::USE_CCZ4);
-            // CCZ4 is required since this code only works in this formulation
-            auto compute_pack = make_compute_pack(weyl4, constraints);
-            BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
-                           EXCLUDE_GHOST_CELLS);
-        }
+        ModifiedGravityWeyl4<FourDerivScalarTensorWithCouplingAndPotential,
+                             ModifiedPunctureGauge, FourthOrderDerivatives>
+            weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
+                  m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
+                  CCZ4RHS<>::USE_CCZ4);
+        // CCZ4 is required since this code only works in this formulation
+        auto compute_pack = make_compute_pack(weyl4, constraints);
+        BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
+                       EXCLUDE_GHOST_CELLS);
     }
 }
 #endif /* CH_USE_HDF5 */

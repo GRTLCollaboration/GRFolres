@@ -1,42 +1,102 @@
-#Params for runtime inputs
+# See the wiki page for an explanation of the params!
+# https://github.com/GRChombo/GRChombo/wiki/Guide-to-parameters
+# and a guide to this specific example at
+# https://github.com/GRChombo/GRChombo/wiki/Running-the-BBH-example
+
+#################################################
+# Filesystem parameters
 
 verbosity = 0
-chk_prefix = pBinarySF_
-plot_prefix = pBinarySFp_
-#restart_file = pBinarySF_000050.3d.hdf5
 
-# Set up grid spacings and regrid params
-# NB - the N values need to be multiples of block_factor
+# location / naming of output files
+# output_path = "" # Main path for all files. Must exist!
+chk_prefix = BinaryBHChk_
+plot_prefix = BinaryBHPlot_
+# restart_file = BinaryBHChk_001400.3d.hdf5
+
+# HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
+checkpoint_interval = 100
+# set to 0 to turn off plot files (except at t=0 and t=stop_time)
+# set to -1 to never ever print plotfiles
+plot_interval = 10
+num_plot_vars = 3
+plot_vars = chi Weyl4_Re Weyl4_Im
+
+hdf5_subpath = "hdf5"
+pout_subpath = "pout"
+data_subpath = "data"
+
+# change the name of output files
+# pout_prefix = "pout"
+print_progress_only_to_rank_0 = 1
+
+# ignore_checkpoint_name_mismatch = 0
+# write_plot_ghosts = 0
+
+#################################################
+# Initial Data parameters
+
+# Change the gravitational constant of the Universe!
+# Default is 1.0, for standard geometric units
+G_Newton = 1.0
+
+# Scalar field initial data
+scalar_amplitude = 0.
+scalar_width = 1.
+scalar_mass = 0.5
+
+# provide 'offset' or 'center'
+
+massA = 0.5 # It wasn't there in Tiago's parameters
+massB = 0.5
+
+offsetA = 0.0 -20.0 0.0
+offsetB = 0.0 20.0 0.0
+# centerA = 256 232 256
+# centerB = 256 250 256
+
+momentumA = -0.17 0.0 0.0
+momentumB = 0.17 0.0 0.0
+
+#################################################
+# Grid parameters
+
+# 'N' is the number of subdivisions in each direction of a cubic box
+# 'L' is the length of the longest side of the box, dx_coarsest = L/N
+# NB - If you use reflective BC and want to specify the subdivisions and side
+# of the box were there are no symmetries, specify 'N_full' and 'L_full' instead
+# NB - if you have a non-cubic grid, you can specify 'N1' or 'N1_full',
+# 'N2' or 'N2_full' and 'N3' or 'N3_full' ( then dx_coarsest = L/N(max) )
+# NB - the N values need to be multiples of the block_factor
 N_full = 384 # if changed, also change grid_buffer_size and regrid_thresolds
 L_full = 1024
 
-# Spatial derivative order (only affects CCZ4 RHS)
-max_spatial_derivative_order = 6 # can be 4 or 6
+# Maximum number of times you can regrid above coarsest level
+max_level = 8 # There are (max_level+1) grids, so min is zero
 
-max_level = 8
-tag_buffer_size = 5
-grid_buffer_size = 24 # ensure ~ M/4 spacing between levels on the finest level
-
-# Regridding
+# Frequency of regridding at each level and thresholds on the tagging
+# Need one for each level except the top one, ie max_level items
+# Generally you do not need to regrid frequently on every level
+# Level Regridding: 0   1   2   3   4   5   6   7   8
+regrid_interval =   0   1   0   0   0   0   0   0   0
 # Thresholds on the change across a cell which prompts regrid
 regrid_threshold_chi = 0.06
 regrid_threshold_phi = 0.6
-regrid_interval = 0 1 0 0 0 0 0 0 0
 
-# force tagging up to a certain level up to a certain radii
-# guarantee full coverage of level 6 up to t~3.5, then full coverage by level 7 up to t~6
-num_tag_force_times = 2
-tag_force_times = 3.5 6
-tag_force_radii = 7. 3.
-tag_force_levels = 6 7
+#Max and min box sizes
+max_box_size = 32
+min_box_size = 16
 
-# force regrid for finest levels up to a certain chi contour
-# levels inverted (first contour is for the finest level)
-num_chi_contours = 4
-chi_contours = 0.45 0.6 0.75 0.9
+tag_buffer_size = 5
+grid_buffer_size = 24 # ensure ~ M/4 spacing between levels on the finest level
+# fill_ratio = 0.7
+# num_ghosts = 3
+# center = 256.0 256.0 256.0 # defaults to center of the grid
 
-#boundaries and periodicity of grid
-#Periodic directions - 0 = false, 1 = true
+#################################################
+# Boundary Conditions parameters
+
+# Periodic directions - 0 = false, 1 = true
 isPeriodic = 0 0 0
 # if not periodic, then specify the boundary type
 # 0 = static, 1 = sommerfeld, 2 = reflective
@@ -55,12 +115,9 @@ vars_parity            = 0 0 4 6 0 5 0    #chi and hij
                          0 1 2 3          #Theta and Gamma
                          0 1 2 3 1 2 3    #lapse shift and B
                          0 0              #phi and Pi
-vars_parity_diagnostic = 0 0              #Ham and Mom
-                         0 0              #Ham and Mom normalized
-                         0                #rho
-                         0 7              #Weyl4 Re and Im
-                         0 0              #ADM M and J
-                         0                #WeakField
+vars_parity_diagnostic = 0 1 2 3          #Ham and Mom
+                         0 1 2 3          #Ham and Mom abs
+                         0 7              #Weyl
 
 # if sommerfeld boundaries selected, must select
 # asymptotic values
@@ -68,49 +125,101 @@ num_nonzero_asymptotic_vars = 5
 nonzero_asymptotic_vars = chi h11 h22 h33 lapse
 nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 
-#Max and min box sizes
-max_box_size = 32
-block_factor = 16
+# if you are using extrapolating BC:
+# extrapolation_order = 1
+# num_extrapolating_vars = -1
+# extrapolating_vars =
 
-# Set up time steps
+#################################################
+# Evolution parameters
+
 # dt will be dx*dt_multiplier on each grid level
-# HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
-plot_interval = 20
-num_plot_vars = 7
-plot_vars = chi phi rho Weyl4_Re Ham Mom WeakField
 dt_multiplier = 0.25
+stop_time = 2500.0
+# max_steps = 100
 
-# TIME DEPENDENT
-# up to t~15
-checkpoint_interval = 1
-stop_time = 15.
-# after t~15
-# checkpoint_interval = 20
-# stop_time = 2500.0
+# Spatial derivative order (only affects CCZ4 RHS)
+max_spatial_derivative_order = 6 # can be 4 or 6
 
-#Lapse evolution
-lapse_power = 1.0
+nan_check = 1
+
+# Lapse evolution
+lapse_advec_coeff = 1.0
 lapse_coeff = 2.0
-lapse_advec_coeff = 1 # 1 makes the lapse gauge 1+log slicing
+lapse_power = 1.0
 
-# Shift evolution coefficients
+# Shift evolutions
 shift_advec_coeff = 0 # Usually no advection for beta
-shift_Gamma_coeff = 0.75 # 
-eta = 1.0 # This is beta_driver, usually of order 1/M_ADM of spacetime
+shift_Gamma_coeff = 0.75
+eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
 formulation = 0  # 1 for BSSN, 0 for CCZ4
 kappa1 = 0.1
-kappa2 = 0
+kappa2 = 0.
 kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
-#coefficient for KO numerical dissipation
+# Modified CCZ4 parameters
+a0 = 0.2
+b0 = 0.4
+
+# Cubic Horndeski parameters
+g2 = 0.
+g3 = 0.
+
+# coefficient for KO numerical dissipation
 sigma = 1.0
 
-# Change the gravitational constant of the Universe!
-# Default is 1./16pi, for standard geometric units
-# G_Newton = 1.0
+track_punctures = 1
+puncture_tracking_level = 5
+
+calculate_constraint_norms = 1
+
+# min_chi = 1.e-4
+# min_lapse = 1.e-4
+
+#################################################
+# Extraction parameters
+
+# extraction_center = 256 256 256 # defaults to center
+activate_extraction = 1
+num_extraction_radii = 2
+extraction_radii = 50. 100.
+extraction_levels = 2 1
+num_points_phi = 32
+num_points_theta = 48
+num_modes = 8
+modes = 2 0 # l m for spherical harmonics
+	2 1
+	2 2
+        4 0
+	4 1
+	4 2
+	4 3
+	4 4
+        
+# integral_file_prefix = "Weyl4_mode_"
+
+# write_extraction = 0
+# extraction_subpath = "data/extraction" # directory for 'write_extraction = 1'
+# extraction_file_prefix = "Weyl4_extraction_"
+
+#################################################
+
+# Other Tiago's parameters (to be revised)
+
+# force tagging up to a certain level up to a certain radii
+# guarantee full coverage of level 6 up to t~3.5, then full coverage by level 7 up to t~6
+num_tag_force_times = 2
+tag_force_times = 3.5 6
+tag_force_radii = 7. 3.
+tag_force_levels = 6 7
+
+# force regrid for finest levels up to a certain chi contour
+# levels inverted (first contour is for the finest level)
+num_chi_contours = 4
+chi_contours = 0.45 0.6 0.75 0.9
 
 # SF Initial data
 amplitudeSF_1 = 0.3856
@@ -121,37 +230,23 @@ amplitudeSF_2 = 0.3856
 widthSF_2 = 0.6
 r_zero_2 = 2.0
 
-scalar_mass = 0.5
+chi_threshold = 0.08
+chi_width     = 0.2
+weak_field_threshold = 1.
+weak_field_width     = 0.1
+sigmoid_chi_compute_threshold = 1.e-2
+WFC_debug_threshold = 1.e-3
 
-offset_1 = 0 -20 0
-offset_2 = 0  20 0
+# make_SF_zero_at_restart = 1
 
-velocity_1 = -0.17 0.0 0.0
-velocity_2 =  0.17 0.0 0.0
+excise_time = 40.0 # no excision beyond this time
 
-#extraction params
-#default center to grid center, uncomment to change
-#extraction_center = 64 64 64
-activate_extraction = 1
-num_extraction_radii = 6
-extraction_radii = 50. 60. 70. 80. 90. 100.
-extraction_levels = 2 2 2 1 1 1
-num_points_phi = 32
-num_points_theta = 48
-num_modes = 25
-modes = 2 0  2 1  2 2
-        3 0  3 1  3 2  3 3
-        4 0  4 1  4 2  4 3  4 4
-        5 0  5 1  5 2  5 3  5 4  5 5
-        6 0  6 1  6 2  6 3  6 4  6 5  6 6
-write_extraction = 1
+calculate_constraint_norm_interval = 10
 
-num_extraction_radii_ADM = 5
-extraction_radii_ADM = 100. 150. 200. 250. 300.
-extraction_levels_ADM = 0 0 0 0 0
-ADM_extraction_interval = 10
+#################################################
 
-#Apparent Horizon finder 
+# Apparent Horizon finder
+
 AH_activate = 1
 AH_num_ranks = 65
 AH_num_points_u = 65
@@ -184,20 +279,3 @@ AH_initial_guess2 = 0.5
 #+- same as velocity
 AH_offset1 = -0.0 0.0 0.0
 AH_offset2 =  0.0 0.0 0.0
-
-chi_threshold = 0.08
-chi_width     = 0.2
-weak_field_threshold = 1.
-weak_field_width     = 0.1
-sigmoid_chi_compute_threshold = 1.e-2
-WFC_debug_threshold = 1.e-3
-
-g3 = 0.
-g2 = 0.
-
-# make_SF_zero_at_restart = 1
- 
-excise_time = 40.0 # no excision beyond this time
-
-calculate_constraint_norms = 1
-calculate_constraint_norm_interval = 10
