@@ -3,14 +3,14 @@
 [![status](https://joss.theoj.org/papers/af52e7f1b7637bfa68818fde7c1a34de/status.svg)](https://joss.theoj.org/papers/af52e7f1b7637bfa68818fde7c1a34de)
 [![DOI](https://zenodo.org/badge/118786602.svg)](https://zenodo.org/badge/latestdoi/118786602)
 
-GREina is an open-source code for performing simulations in modified 
+GRFolres is an open-source code for performing simulations in modified 
 theories of gravity, based on the publicly available 
 3+1D numerical relativity code GRChombo.
 It is developed and maintained by a collaboration of numerical relativists with a
 wide range of research interests, from early universe cosmology to astrophysics
 and mathematical general relativity.
 
-GREina is written entirely in C++14, using hybrid MPI/OpenMP 
+GRFolres is written entirely in C++14, using hybrid MPI/OpenMP 
 parallelism to achieve good performance on the latest architectures.
 It inherits all of the capabilities of the main [GRChombo](https://github.com/GRChombo/GRChombo) 
 code, which makes use of the Chombo library for adaptive mesh refinement.
@@ -24,7 +24,7 @@ We welcome feedback, bug reports, and contributions. Please consult the [wiki](h
 for our coding style and testing policy before filing a pull request.
 
 ## License
-ModifiedGravity is licensed under the BSD 3-Clause License. Please see LICENSE for details.
+GRFolres is licensed under the BSD 3-Clause License. Please see LICENSE for details.
 
 ## Citation
 A paper for this code is in preparation. In the meantime, please cite the GRChombo JOSS publication using the following bibtex reference:

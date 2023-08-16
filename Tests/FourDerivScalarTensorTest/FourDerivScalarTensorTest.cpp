@@ -63,10 +63,12 @@ int main(int argc, char *argv[])
     ModifiedPunctureGauge modified_puncture_gauge(m_modified_ccz4_params);
     CouplingAndPotential coupling_and_potential(
         m_coupling_and_potential_params);
-    FourDerivScalarTensor<CouplingAndPotential> fdst(coupling_and_potential);
+    double G_Newton = 1. / (16. * M_PI);
+    FourDerivScalarTensor<CouplingAndPotential> fdst(coupling_and_potential,
+                                                     G_Newton);
     MyModifiedGravityClass my_modified_ccz4(fdst, m_modified_ccz4_params,
                                             modified_puncture_gauge, dx, sigma,
-                                            {0., 0., 0.}, 1. / (16. * M_PI));
+                                            {0., 0., 0.}, G_Newton);
 
     // add functions a(x) and b(x) of the modified gauge
     my_modified_ccz4.add_a_and_b_rhs<double>(rhs, vars, d1, d2, advec, coords);

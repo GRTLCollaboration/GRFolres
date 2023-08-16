@@ -29,10 +29,11 @@
      conjugate momentum, Pi.
      It is templated over a coupling function coupling_t which the
      user must specify in a class, although a default is provided which
-     sets dfdphi and df2dphi2 to zero.
-     It assumes a scalar field without potential, coming from the action
-     S=\int d^4x\left(R/16\pi G - 1/2\nabla_{\mu}\phi\nabla^{\mu}\phi
-     +f(\phi)/4{\mathcal R}_{GB}\right)
+     sets g2, dfdphi and df2dphi2 to zero.
+     It assumes a scalar field, coming from the action
+     S=\int d^4x\left(R/16\pi G + X + V(\phi) + g_2(\phi) X^2
+     + V(\phi) + f(\phi)/4{\mathcal R}_{GB}\right)
+     where X = - 1/2\nabla_{\mu}\phi\nabla^{\mu}\phi
      \sa ModifiedCCZ4RHS(), ModifiedGravityConstraints()
 */
 
@@ -42,13 +43,16 @@ class FourDerivScalarTensor
   protected:
     //! The local copy of the coupling
     coupling_and_potential_t my_coupling_and_potential;
+    double m_G_Newton;
 
   public:
     //!  Constructor of class FourDerivScalarTensor, inputs are the theory
     //!  parameters.
     FourDerivScalarTensor(
-        const coupling_and_potential_t a_coupling_and_potential)
-        : my_coupling_and_potential(a_coupling_and_potential)
+        const coupling_and_potential_t a_coupling_and_potential,
+        double a_G_Newton = 1.0)
+        : my_coupling_and_potential(a_coupling_and_potential),
+          m_G_Newton(a_G_Newton)
     {
     }
 

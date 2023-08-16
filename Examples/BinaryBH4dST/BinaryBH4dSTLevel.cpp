@@ -14,6 +14,7 @@
 #include "InitialScalarData.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "ModifiedGravityConstraints.hpp"
+#include "ModifiedGravityWeyl4.hpp"
 #include "NanCheck.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "PunctureTracker.hpp"
@@ -22,7 +23,6 @@
 #include "SmallDataIO.hpp"
 #include "TraceARemoval.hpp"
 #include "TwoPuncturesInitialData.hpp"
-#include "Weyl4.hpp"
 #include "WeylExtraction.hpp"
 
 // Things to do during the advance step after RK4 steps
@@ -68,7 +68,8 @@ void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
     // FourDerivScalarTensor
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
-    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential);
+    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
+                                                       m_p.G_Newton);
     ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
     if (m_p.max_spatial_derivative_order == 4)
     {
@@ -146,10 +147,21 @@ void BinaryBH4dSTLevel::specificPostTimeStep()
         {
             // Populate the Weyl Scalar values on the grid
             fillAllGhosts();
-            // CCZ4 is required since this code only works in this formulation
-            BoxLoops::loop(
-                Weyl4(m_p.extraction_params.center, m_dx, CCZ4RHS<>::USE_CCZ4),
-                m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
+            CouplingAndPotential coupling_and_potential(
+                m_p.coupling_and_potential_params);
+            FourDerivScalarTensorWithCouplingAndPotential fdst(
+                coupling_and_potential, m_p.G_Newton);
+            ModifiedPunctureGauge modified_puncture_gauge(
+                m_p.modified_ccz4_params);
+            ModifiedGravityWeyl4<FourDerivScalarTensorWithCouplingAndPotential,
+                                 ModifiedPunctureGauge, FourthOrderDerivatives>
+                weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
+                      m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
+                      CCZ4RHS<>::USE_CCZ4);
+            // CCZ4 is required since this code only works in this
+            // formulation
+            BoxLoops::loop(weyl4, m_state_new, m_state_diagnostics,
+                           EXCLUDE_GHOST_CELLS);
 
             // Do the extraction on the min extraction level
             if (m_level == min_level)
@@ -175,7 +187,7 @@ void BinaryBH4dSTLevel::specificPostTimeStep()
         CouplingAndPotential coupling_and_potential(
             m_p.coupling_and_potential_params);
         FourDerivScalarTensorWithCouplingAndPotential fdst(
-            coupling_and_potential);
+            coupling_and_potential, m_p.G_Newton);
         fillAllGhosts();
         BoxLoops::loop(ModifiedGravityConstraints<
                            FourDerivScalarTensorWithCouplingAndPotential>(
@@ -221,15 +233,21 @@ void BinaryBH4dSTLevel::prePlotLevel()
         CouplingAndPotential coupling_and_potential(
             m_p.coupling_and_potential_params);
         FourDerivScalarTensorWithCouplingAndPotential fdst(
-            coupling_and_potential);
-        BoxLoops::loop(
-            make_compute_pack(
-                Weyl4(m_p.extraction_params.center, m_dx, CCZ4RHS<>::USE_CCZ4),
-                ModifiedGravityConstraints<
-                    FourDerivScalarTensorWithCouplingAndPotential>(
-                    fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
-                    Interval(c_Mom1, c_Mom3))),
-            m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
+            coupling_and_potential, m_p.G_Newton);
+        ModifiedGravityConstraints<
+            FourDerivScalarTensorWithCouplingAndPotential>
+            constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
+                        Interval(c_Mom1, c_Mom3));
+        ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
+        ModifiedGravityWeyl4<FourDerivScalarTensorWithCouplingAndPotential,
+                             ModifiedPunctureGauge, FourthOrderDerivatives>
+            weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
+                  m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
+                  CCZ4RHS<>::USE_CCZ4);
+        // CCZ4 is required since this code only works in this formulation
+        auto compute_pack = make_compute_pack(weyl4, constraints);
+        BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
+                       EXCLUDE_GHOST_CELLS);
     }
 }
 #endif /* CH_USE_HDF5 */

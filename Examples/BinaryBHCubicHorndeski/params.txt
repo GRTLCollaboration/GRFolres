@@ -43,20 +43,20 @@ G_Newton = 1.0
 # Scalar field initial data
 scalar_amplitude = 0.
 scalar_width = 1.
-scalar_mass = 0.
+scalar_mass = 0.5
 
 # provide 'offset' or 'center'
 
-massA = 0.49
-massB = 0.49
+massA = 0.5 # It wasn't there in Tiago's parameters
+massB = 0.5
 
-offsetA = -5.5 0.0 0.0
-offsetB = 5.5 0.0 0.0
+offsetA = 0.0 -20.0 0.0
+offsetB = 0.0 20.0 0.0
 # centerA = 256 232 256
 # centerB = 256 250 256
 
-momentumA = 0.0 0.09 0.0
-momentumB =  0.0 -0.09 0.0
+momentumA = -0.17 0.0 0.0
+momentumB = 0.17 0.0 0.0
 
 #################################################
 # Grid parameters
@@ -68,8 +68,8 @@ momentumB =  0.0 -0.09 0.0
 # NB - if you have a non-cubic grid, you can specify 'N1' or 'N1_full',
 # 'N2' or 'N2_full' and 'N3' or 'N3_full' ( then dx_coarsest = L/N(max) )
 # NB - the N values need to be multiples of the block_factor
-N_full = 128
-L_full = 512
+N_full = 384 # if changed, also change grid_buffer_size and regrid_thresolds
+L_full = 1024
 
 # Maximum number of times you can regrid above coarsest level
 max_level = 8 # There are (max_level+1) grids, so min is zero
@@ -78,15 +78,17 @@ max_level = 8 # There are (max_level+1) grids, so min is zero
 # Need one for each level except the top one, ie max_level items
 # Generally you do not need to regrid frequently on every level
 # Level Regridding: 0   1   2   3   4   5   6   7   8
-regrid_interval =   0   0   0   32  32  32  32  32  32
-regrid_threshold = 0.0475
+regrid_interval =   0   1   0   0   0   0   0   0   0
+# Thresholds on the change across a cell which prompts regrid
+regrid_threshold_chi = 0.06
+regrid_threshold_phi = 0.6
 
-# Max and min box sizes
-max_box_size = 16
+#Max and min box sizes
+max_box_size = 32
 min_box_size = 16
 
-# tag_buffer_size = 3
-# grid_buffer_size = 8
+tag_buffer_size = 5
+grid_buffer_size = 24 # ensure ~ M/4 spacing between levels on the finest level
 # fill_ratio = 0.7
 # num_ghosts = 3
 # center = 256.0 256.0 256.0 # defaults to center of the grid
@@ -114,10 +116,11 @@ vars_parity            = 0 0 4 6 0 5 0    #chi and hij
                          0 1 2 3 1 2 3    #lapse shift and B
                          0 0              #phi and Pi
 vars_parity_diagnostic = 0 1 2 3          #Ham and Mom
+                         0 1 2 3          #Ham and Mom abs
                          0 7              #Weyl
 
 # if sommerfeld boundaries selected, must select
-# asymptotic values (in order given by UserVariables.hpp)
+# asymptotic values
 num_nonzero_asymptotic_vars = 5
 nonzero_asymptotic_vars = chi h11 h22 h33 lapse
 nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
@@ -132,7 +135,7 @@ nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 
 # dt will be dx*dt_multiplier on each grid level
 dt_multiplier = 0.25
-stop_time = 2000.0
+stop_time = 2500.0
 # max_steps = 100
 
 # Spatial derivative order (only affects CCZ4 RHS)
@@ -145,14 +148,15 @@ lapse_advec_coeff = 1.0
 lapse_coeff = 2.0
 lapse_power = 1.0
 
-# Shift evolution
-shift_advec_coeff = 0.0 # Usually no advection for beta
+# Shift evolutions
+shift_advec_coeff = 0 # Usually no advection for beta
 shift_Gamma_coeff = 0.75
 eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-kappa1 = 0.35
-kappa2 = -0.1
+formulation = 0  # 1 for BSSN, 0 for CCZ4
+kappa1 = 0.1
+kappa2 = 0.
 kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
@@ -160,11 +164,9 @@ covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 a0 = 0.2
 b0 = 0.4
 
-# 4dST parameters
-lambda_GB = 0.01
-cutoff_GB = 0.1
-factor_GB = 100.
-g2 = 1.
+# Cubic Horndeski parameters
+g2 = 0.
+g3 = 0.
 
 # coefficient for KO numerical dissipation
 sigma = 1.0
@@ -189,14 +191,14 @@ num_points_phi = 32
 num_points_theta = 48
 num_modes = 8
 modes = 2 0 # l m for spherical harmonics
-        2 1
-        2 2
+	2 1
+	2 2
         4 0
 	4 1
-        4 2
+	4 2
 	4 3
-        4 4
-
+	4 4
+        
 # integral_file_prefix = "Weyl4_mode_"
 
 # write_extraction = 0
@@ -205,18 +207,75 @@ modes = 2 0 # l m for spherical harmonics
 
 #################################################
 
-# Apparent Horizon finder
-AH_activate = 0
-AH_num_ranks = 4
-AH_num_points_u = 41
-AH_num_points_v = 40
-AH_solve_interval = 1
-AH_print_interval = 1
-#AH_merger_search_factor = 1
-AH_num_extra_vars = 2
-AH_extra_vars = phi chi
-AH_1_initial_guess = 0.245
-AH_2_initial_guess = 0.245
-AH_max_fails_after_lost = 5
+# Other Tiago's parameters (to be revised)
+
+# force tagging up to a certain level up to a certain radii
+# guarantee full coverage of level 6 up to t~3.5, then full coverage by level 7 up to t~6
+num_tag_force_times = 2
+tag_force_times = 3.5 6
+tag_force_radii = 7. 3.
+tag_force_levels = 6 7
+
+# force regrid for finest levels up to a certain chi contour
+# levels inverted (first contour is for the finest level)
+num_chi_contours = 4
+chi_contours = 0.45 0.6 0.75 0.9
+
+# SF Initial data
+amplitudeSF_1 = 0.3856
+widthSF_1 = 0.6
+r_zero_1 = 2.0
+
+amplitudeSF_2 = 0.3856
+widthSF_2 = 0.6
+r_zero_2 = 2.0
+
+chi_threshold = 0.08
+chi_width     = 0.2
+weak_field_threshold = 1.
+weak_field_width     = 0.1
+sigmoid_chi_compute_threshold = 1.e-2
+WFC_debug_threshold = 1.e-3
+
+# make_SF_zero_at_restart = 1
+
+excise_time = 40.0 # no excision beyond this time
+
+calculate_constraint_norm_interval = 10
 
 #################################################
+
+# Apparent Horizon finder
+
+AH_activate = 1
+AH_num_ranks = 65
+AH_num_points_u = 65
+AH_num_points_v = 48
+AH_solve_interval = 6
+AH_print_interval = 1
+#AH_merger_search_factor = 1. #-1 to deactivate
+#AH_merger_pre_factor = 1.
+#AH_level_to_run = 0
+AH_verbose = 3
+
+# TIME DEPENDENT
+# up to t ~ 15 (when AH is found):
+AH_start_time = 9.
+AH_give_up_time = 15.
+AH_max_fails_after_lost = 20 #enough for give up time to be reached
+AH_stop_if_max_fails = 1 # stop if failed at give_up_time
+# after t~15, until merger (stop there as a check-up):
+# AH_start_time = 0.
+# AH_give_up_time = -1.
+# AH_max_fails_after_lost = 0
+# AH_stop_if_max_fails = 1
+
+AH_num_write_vars = 6
+AH_write_vars = chi phi d1_phi Pi rho WeakField
+
+AH_initial_guess1 = 0.5
+AH_initial_guess2 = 0.5
+
+#+- same as velocity
+AH_offset1 = -0.0 0.0 0.0
+AH_offset2 =  0.0 0.0 0.0
