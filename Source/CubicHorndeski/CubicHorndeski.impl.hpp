@@ -46,9 +46,9 @@ RhoAndSi<data_t> CubicHorndeski<coupling_and_potential_t>::compute_rho_and_Si(
     FOR(i)
     {
         out.Si[i] +=
-            E.dg3_dX * (-E.tau * vars.Pi * d1.phi[i] - E.Pi2 * E.taui[i] +
-                        d1.phi[i] * E.taui_dot_dphi * vars.chi +
-                        vars.Pi * E.tauij_dot_dphi[i]) -
+            E.dg3_dX * (-E.tau * vars.Pi * d1.phi[i] - E.Pi2 * E.tau_i[i] +
+                        d1.phi[i] * E.tau_i_dot_dphi * vars.chi +
+                        vars.Pi * E.tau_ij_dot_dphi[i]) -
             vars.Pi * d1.phi[i] * E.dcommon;
     }
 
@@ -89,17 +89,18 @@ CubicHorndeski<coupling_and_potential_t>::compute_Sij_TF_and_S(
             -0.5 * vars.h[i][j] * Vt / chi_regularised + d1.phi[i] * d1.phi[j];
     }
 
+    // Horndeski contribution
     FOR(i, j)
     {
         out.Sij_TF[i][j] =
             E.dg3_dX *
                 (E.tau * d1.phi[i] * d1.phi[j] +
-                 vars.Pi * (d1.phi[i] * E.taui[j] + d1.phi[j] * E.taui[i]) -
-                 (d1.phi[i] * E.tauij_dot_dphi[j] +
-                  d1.phi[j] * E.tauij_dot_dphi[i]) -
+                 vars.Pi * (d1.phi[i] * E.tau_i[j] + d1.phi[j] * E.tau_i[i]) -
+                 (d1.phi[i] * E.tau_ij_dot_dphi[j] +
+                  d1.phi[j] * E.tau_ij_dot_dphi[i]) -
                  vars.h[i][j] * E.exprB +
-                 E.lieD_Pi_no_lapse * (-d1.phi[i] * d1.phi[j] +
-                                       vars.h[i][j] / vars.chi * E.Pi2)) +
+                 E.lie_deriv_Pi_no_lapse * (-d1.phi[i] * d1.phi[j] +
+                                            vars.h[i][j] / vars.chi * E.Pi2)) +
             d1.phi[i] * d1.phi[j] * E.dcommon +
             vars.h[i][j] / vars.chi * (E.X + E.g2 + 2. * E.X * E.dg3_dphi);
     }
@@ -129,15 +130,16 @@ void CubicHorndeski<coupling_and_potential_t>::add_theory_rhs(
 
     pre_compute_no_gauge(E, vars, d1, d2, h_UU, chris.ULL);
 
-    data_t lieD_Pi = E.lieD_Pi_no_lapse;
-    FOR2(i, j)
+    data_t lie_deriv_Pi = E.lie_deriv_Pi_no_lapse;
+    FOR(i, j)
     {
-        lieD_Pi += h_UU[i][j] * vars.chi * d1.lapse[i] / vars.lapse * d1.phi[j];
+        lie_deriv_Pi +=
+            h_UU[i][j] * vars.chi * d1.lapse[i] / vars.lapse * d1.phi[j];
     }
 
     // adjust RHS for the potential term
     total_rhs.phi = advec.phi + vars.lapse * vars.Pi;
-    total_rhs.Pi = advec.Pi + vars.lapse * lieD_Pi;
+    total_rhs.Pi = advec.Pi + vars.lapse * lie_deriv_Pi;
 }
 
 template <class coupling_and_potential_t>
@@ -163,9 +165,9 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
 {
     using namespace TensorAlgebra;
 
-    // lieD_Pi_potential = NUM/DEN + A^k D_k lapse (not conformal)
-    data_t NUM = 0.;
-    data_t DEN = 0.;
+    // lie_deriv_Pi = numerator/denominator + A^k D_k lapse (not conformal)
+    data_t numerator = 0.;
+    data_t denominator = 0.;
 
     ////////////////////////////////////////////////////////////////////////
     // DEFINE VARIABLES USED REPETEDLY
@@ -187,7 +189,6 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
     ////////////////////////////////////////////////////////////////////////
     // Functions G2 & G3 and derivatives
     E.g2 = this->my_coupling_and_potential.G2(vars.phi, E.X);
-    // E.g3             = this->my_potential.G3(vars.phi, X);
 
     E.dg2_dphi = this->my_coupling_and_potential.dG2_dphi(vars.phi, E.X);
     E.dg3_dphi = this->my_coupling_and_potential.dG3_dphi(vars.phi, E.X);
@@ -204,107 +205,105 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
     E.dcommon = 1. + E.dg2_dX + 2. * E.dg3_dphi;
 
     ////////////////////////////////////////////////////////////////////////
-    // tau auxialiary variables
+    // tau auxiliary variables
 
     // covd2phi
     Tensor<2, data_t> covd2phi;
-    FOR2(i, j)
+    FOR(i, j)
     {
         covd2phi[i][j] = d2.phi[i][j];
-        FOR1(k) { covd2phi[i][j] -= chris_ULL[k][i][j] * d1.phi[k]; }
+        FOR(k) { covd2phi[i][j] -= chris_ULL[k][i][j] * d1.phi[k]; }
     }
 
     // dphi_dot_dchi
     data_t dphi_dot_dchi = 0.;
-    FOR2(i, j) { dphi_dot_dchi += h_UU[i][j] * d1.phi[i] * d1.chi[j]; }
+    FOR(i, j) { dphi_dot_dchi += h_UU[i][j] * d1.phi[i] * d1.chi[j]; }
 
     // tau_ij
-    // Tensor<2, data_t> tauij;
-    FOR2(i, j)
+    FOR(i, j)
     {
-        E.tauij[i][j] = vars.A[i][j] * Pi + vars.K * Pi * vars.h[i][j] / 3. +
-                        0.5 * (-vars.h[i][j] * dphi_dot_dchi +
-                               d1.phi[i] * d1.chi[j] + d1.phi[j] * d1.chi[i] +
-                               chi * (covd2phi[i][j] + covd2phi[j][i]));
+        E.tau_ij[i][j] = vars.A[i][j] * Pi + vars.K * Pi * vars.h[i][j] / 3. +
+                         0.5 * (-vars.h[i][j] * dphi_dot_dchi +
+                                d1.phi[i] * d1.chi[j] + d1.phi[j] * d1.chi[i] +
+                                chi * (covd2phi[i][j] + covd2phi[j][i]));
     }
 
     // tau
-    E.tau = compute_trace(E.tauij, h_UU);
+    E.tau = compute_trace(E.tau_ij, h_UU);
 
-    // taui
-    FOR1(i)
+    // tau_i
+    FOR(i)
     {
-        E.taui[i] = vars.K * d1.phi[i] / 3. + d1.Pi[i];
-        FOR2(j, k) { E.taui[i] += h_UU[j][k] * vars.A[i][j] * d1.phi[k]; }
+        E.tau_i[i] = vars.K * d1.phi[i] / 3. + d1.Pi[i];
+        FOR(j, k) { E.tau_i[i] += h_UU[j][k] * vars.A[i][j] * d1.phi[k]; }
     }
 
     ////////////////////////////////////////////////////////////////////////
     // common expressions
 
-    FOR1(i)
+    FOR(i)
     {
-        E.tauij_dot_dphi[i] = 0.;
-        FOR2(j, k)
+        E.tau_ij_dot_dphi[i] = 0.;
+        FOR(j, k)
         {
-            E.tauij_dot_dphi[i] += h_UU[j][k] * d1.phi[k] * E.tauij[i][j];
+            E.tau_ij_dot_dphi[i] += h_UU[j][k] * d1.phi[k] * E.tau_ij[i][j];
         }
     }
 
-    E.tauij_dot_dphi2 = 0.;
-    FOR2(i, j)
+    E.tau_ij_dot_dphi2 = 0.;
+    FOR(i, j)
     {
-        E.tauij_dot_dphi2 += h_UU[i][j] * d1.phi[i] * E.tauij_dot_dphi[j];
+        E.tau_ij_dot_dphi2 += h_UU[i][j] * d1.phi[i] * E.tau_ij_dot_dphi[j];
     }
 
-    E.exprA = E.tau * E.Pi2 - E.tauij_dot_dphi2 * chi;
+    E.exprA = E.tau * E.Pi2 - E.tau_ij_dot_dphi2 * chi;
 
-    E.taui_dot_dphi = 0.;
-    FOR2(i, j) { E.taui_dot_dphi += h_UU[i][j] * d1.phi[i] * E.taui[j]; }
+    E.tau_i_dot_dphi = 0.;
+    FOR(i, j) { E.tau_i_dot_dphi += h_UU[i][j] * d1.phi[i] * E.tau_i[j]; }
 
-    E.exprB = 2. * Pi * E.taui_dot_dphi - E.tauij_dot_dphi2;
+    E.exprB = 2. * Pi * E.tau_i_dot_dphi - E.tau_ij_dot_dphi2;
 
     ///////////////////////////////////////////////////////
-    // DEN
+    // denominator
 
     E.ders1 =
         E.dcommon + 2. * E.tau * E.dg3_dX - E.X * E.X * E.dg3_dX * E.dg3_dX -
-        E.tauij_dot_dphi2 * vars.chi * E.d2g3_dXX - 2. * E.X * E.d2g3_dXphi;
+        E.tau_ij_dot_dphi2 * vars.chi * E.d2g3_dXX - 2. * E.X * E.d2g3_dXphi;
     E.ders2 = 2. * E.X * E.dg3_dX * E.dg3_dX + E.d2g2_dXX + E.tau * E.d2g3_dXX +
               2. * E.d2g3_dXphi;
 
-    DEN = E.ders1 + E.Pi2 * E.ders2;
+    denominator = E.ders1 + E.Pi2 * E.ders2;
 
     ///////////////////////////////////////////////////////
-    // NUM
+    // numerator
 
-    NUM = E.tau * (E.dcommon - 2. * E.X * E.d2g3_dXphi) -
-          E.dg3_dX * E.dg3_dX * (E.tau * E.X - 2. * chi * E.exprB) * E.X +
-          (E.d2g2_dXX + 2. * E.d2g3_dXphi) * E.exprB * chi -
-          E.d2g3_dXX * chi *
-              (-E.tau * E.exprB + chi * E.taui_dot_dphi * E.taui_dot_dphi) +
-          E.dg2_dphi - 2. * E.X * (E.d2g3_dphiphi + E.d2g2_dXphi) -
-          E.dg3_dX * (-E.tau * E.tau + E.X * E.g2 +
-                      E.X * E.X * (2. + E.dg2_dX + 4. * E.dg3_dphi));
+    numerator =
+        E.tau * (E.dcommon - 2. * E.X * E.d2g3_dXphi) -
+        E.dg3_dX * E.dg3_dX * (E.tau * E.X - 2. * chi * E.exprB) * E.X +
+        (E.d2g2_dXX + 2. * E.d2g3_dXphi) * E.exprB * chi -
+        E.d2g3_dXX * chi *
+            (-E.tau * E.exprB + chi * E.tau_i_dot_dphi * E.tau_i_dot_dphi) +
+        E.dg2_dphi - 2. * E.X * (E.d2g3_dphiphi + E.d2g2_dXphi) -
+        E.dg3_dX * (-E.tau * E.tau + E.X * E.g2 +
+                    E.X * E.X * (2. + E.dg2_dX + 4. * E.dg3_dphi));
 
-    FOR2(i, j)
+    FOR(i, j)
     {
-        NUM += E.d2g3_dXX * h_UU[i][j] *
-                   (Pi * E.taui[i] - E.tauij_dot_dphi[i]) *
-                   (Pi * E.taui[j] - E.tauij_dot_dphi[j]) +
-               E.dg3_dX * h_UU[i][j] * E.taui[i] * E.taui[j] * 2. * chi;
-        FOR2(k, l)
+        numerator += E.d2g3_dXX * h_UU[i][j] *
+                         (Pi * E.tau_i[i] - E.tau_ij_dot_dphi[i]) *
+                         (Pi * E.tau_i[j] - E.tau_ij_dot_dphi[j]) +
+                     E.dg3_dX * h_UU[i][j] * E.tau_i[i] * E.tau_i[j] * 2. * chi;
+        FOR(k, l)
         {
-            NUM -= E.dg3_dX * h_UU[i][k] * h_UU[j][l] * E.tauij[i][j] *
-                   E.tauij[k][l];
+            numerator += -E.dg3_dX * h_UU[i][k] * h_UU[j][l] * E.tau_ij[i][j] *
+                         E.tau_ij[k][l];
         }
     }
 
     ///////////////////////////////////////////////////////
-    // Lie Derivative term: lieD_Pi - A^k D_k ln(lapse)
+    // Lie Derivative term: lie_deriv_Pi - A^k D_k ln(lapse)
 
-    E.lieD_Pi_no_lapse = NUM / DEN;
-
-    E.DEN = DEN; // for debugging
+    E.lie_deriv_Pi_no_lapse = numerator / denominator;
 }
 
 #endif /* CUBICHORNDESKI_IMPL_HPP_ */

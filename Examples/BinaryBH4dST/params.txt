@@ -91,7 +91,6 @@ min_box_size = 16
 # num_ghosts = 3
 # center = 256.0 256.0 256.0 # defaults to center of the grid
 
-
 #################################################
 # Boundary Conditions parameters
 

@@ -150,6 +150,20 @@ class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>
         const Coordinates<data_t> &coords)
         const; //!< the value of the coordinates.
 
+    //! Function to get full \kappa S_{ij}^{TF} (including LHS if needed) so as
+    //! to be called in ModifiedGravityWeyl4 class
+    template <class data_t>
+    Tensor<2, data_t> get_full_kappa_times_Sij_TF(
+        const Vars<data_t>
+            &theory_vars, //!< the value of the variables at the point.
+        const Vars<Tensor<1, data_t>>
+            &d1, //!< the value of the first derivatives of the variables.
+        const Diff2Vars<Tensor<2, data_t>>
+            &d2, //!< the value of the second derivatives of the variables.
+        const Vars<data_t> &advec, //!< the value of the advection terms.
+        const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates.
+
     // Class members
     theory_t my_theory; //!< The theory object, e.g. 4dST.
     gauge_t my_gauge;   //!< The gauge object, which includes a(x) and b(x)

@@ -146,8 +146,6 @@ class SimulationParameters : public SimulationParametersBase
     int puncture_tracking_level;
 
     // Collection of parameters necessary for initial conditions
-    // Set these even in the case of TwoPunctures as they are used elsewhere
-    // e.g. for puncture tracking/tagging
     double G_Newton;
     InitialScalarData::params_t initial_params;
     CouplingAndPotential::params_t coupling_and_potential_params;

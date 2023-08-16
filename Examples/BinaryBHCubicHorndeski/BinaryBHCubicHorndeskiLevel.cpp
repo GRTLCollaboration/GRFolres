@@ -74,39 +74,22 @@ void BinaryBHCubicHorndeskiLevel::prePlotLevel()
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
     CubicHorndeskiWithCouplingAndPotential cubic_horndeski(
-        coupling_and_potential, m_p.center);
+        coupling_and_potential);
 
     // constraints Ham and Mom were calculated in specificPostTimeStep already
     ModifiedGravityConstraints<CubicHorndeskiWithCouplingAndPotential>
         constraints(cubic_horndeski, m_dx, m_p.center, m_p.G_Newton, c_Ham,
                     Interval(c_Mom1, c_Mom3));
     ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
-    if (m_p.max_spatial_derivative_order == 4)
-    {
-        ModifiedGravityWeyl4<CubicHorndeskiWithCouplingAndPotential,
-                             ModifiedPunctureGauge, FourthOrderDerivatives>
-            weyl4(cubic_horndeski, m_p.modified_ccz4_params,
-                  modified_puncture_gauge,
-                  m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
-                  CCZ4RHS<>::USE_CCZ4);
-        // CCZ4 is required since this code only works in this formulation
-        auto compute_pack = make_compute_pack(weyl4, constraints);
-        BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
-                       EXCLUDE_GHOST_CELLS);
-    }
-    else if (m_p.max_spatial_derivative_order == 6)
-    {
-        ModifiedGravityWeyl4<CubicHorndeskiWithCouplingAndPotential,
-                             ModifiedPunctureGauge, SixthOrderDerivatives>
-            weyl4(cubic_horndeski, m_p.modified_ccz4_params,
-                  modified_puncture_gauge,
-                  m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
-                  CCZ4RHS<>::USE_CCZ4);
-        // CCZ4 is required since this code only works in this formulation
-        auto compute_pack = make_compute_pack(weyl4, constraints);
-        BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
-                       EXCLUDE_GHOST_CELLS);
-    }
+    ModifiedGravityWeyl4<CubicHorndeskiWithCouplingAndPotential,
+                         ModifiedPunctureGauge, FourthOrderDerivatives>
+        weyl4(cubic_horndeski, m_p.modified_ccz4_params,
+              modified_puncture_gauge, m_p.extraction_params.extraction_center,
+              m_dx, m_p.sigma, CCZ4RHS<>::USE_CCZ4);
+    // CCZ4 is required since this code only works in this formulation
+    auto compute_pack = make_compute_pack(weyl4, constraints);
+    BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
+                   EXCLUDE_GHOST_CELLS);
 }
 
 // Things to do in RHS update, at each RK4 step
@@ -122,7 +105,7 @@ void BinaryBHCubicHorndeskiLevel::specificEvalRHS(GRLevelData &a_soln,
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
     CubicHorndeskiWithCouplingAndPotential cubic_horndeski(
-        coupling_and_potential, m_p.center);
+        coupling_and_potential);
     ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
 
     if (m_p.max_spatial_derivative_order == 4)
@@ -179,9 +162,9 @@ void BinaryBHCubicHorndeskiLevel::specificPostTimeStep()
     bool first_step = (m_time == 0.); // called at t=0 from Main
     // bool first_step = (m_time == m_dt); // not called in Main
 
-    bool ghostsFilled = false;
-    bool constraintsCalculated = false;
-    bool interpolatorRefreshed = false;
+    bool ghosts_filled = false;
+    bool constraints_calculated = false;
+    bool interpolator_refreshed = false;
 
     double finest_dt = m_dt * pow(2., m_level - m_p.max_level);
 
@@ -189,53 +172,35 @@ void BinaryBHCubicHorndeskiLevel::specificPostTimeStep()
     {
         CH_TIME(
             "BinaryBHCubicHorndeskiLevel::specificPostTimeStep::extraction");
-        int Weyl_level = m_p.extraction_params.min_extraction_level();
-        bool calculate_weyl = at_level_timestep_multiple(Weyl_level);
+        int weyl_level = m_p.extraction_params.min_extraction_level();
+        bool calculate_weyl = at_level_timestep_multiple(weyl_level);
         if (calculate_weyl)
         {
             // Populate the Weyl Scalar values on the grid
             fillAllGhosts();
-            ghostsFilled = true;
+            ghosts_filled = true;
 
             CouplingAndPotential coupling_and_potential(
                 m_p.coupling_and_potential_params);
             CubicHorndeskiWithCouplingAndPotential cubic_horndeski(
-                coupling_and_potential, m_p.center);
+                coupling_and_potential);
             ModifiedPunctureGauge modified_puncture_gauge(
                 m_p.modified_ccz4_params);
-            if (m_p.max_spatial_derivative_order == 4)
-            {
-                ModifiedGravityWeyl4<CubicHorndeskiWithCouplingAndPotential,
-                                     ModifiedPunctureGauge,
-                                     FourthOrderDerivatives>
-                    weyl4(cubic_horndeski, m_p.modified_ccz4_params,
-                          modified_puncture_gauge,
-                          m_p.extraction_params.extraction_center, m_dx,
-                          m_p.sigma, CCZ4RHS<>::USE_CCZ4);
-                // CCZ4 is required since this code only works in this
-                // formulation
-                BoxLoops::loop(weyl4, m_state_new, m_state_diagnostics,
-                               EXCLUDE_GHOST_CELLS);
-            }
-            else if (m_p.max_spatial_derivative_order == 6)
-            {
-                ModifiedGravityWeyl4<CubicHorndeskiWithCouplingAndPotential,
-                                     ModifiedPunctureGauge,
-                                     SixthOrderDerivatives>
-                    weyl4(cubic_horndeski, m_p.modified_ccz4_params,
-                          modified_puncture_gauge,
-                          m_p.extraction_params.extraction_center, m_dx,
-                          m_p.sigma, CCZ4RHS<>::USE_CCZ4);
-                // CCZ4 is required since this code only works in this
-                // formulation
-                BoxLoops::loop(weyl4, m_state_new, m_state_diagnostics,
-                               EXCLUDE_GHOST_CELLS);
-            }
+            ModifiedGravityWeyl4<CubicHorndeskiWithCouplingAndPotential,
+                                 ModifiedPunctureGauge, FourthOrderDerivatives>
+                weyl4(cubic_horndeski, m_p.modified_ccz4_params,
+                      modified_puncture_gauge,
+                      m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
+                      CCZ4RHS<>::USE_CCZ4);
+            // CCZ4 is required since this code only works in this
+            // formulation
+            BoxLoops::loop(weyl4, m_state_new, m_state_diagnostics,
+                           EXCLUDE_GHOST_CELLS);
             // Do the extraction on the min extraction level
-            if (m_level == Weyl_level)
+            if (m_level == weyl_level)
             {
                 // Now refresh the interpolator and do the interpolation
-                if (!interpolatorRefreshed)
+                if (!interpolator_refreshed)
                 {
                     // Now refresh the interpolator and do the interpolation
                     // fill ghosts manually to minimise communication
@@ -243,8 +208,8 @@ void BinaryBHCubicHorndeskiLevel::specificPostTimeStep()
                     m_bh_amr.m_interpolator->refresh(fill_ghosts);
                     m_bh_amr.fill_multilevel_ghosts(
                         VariableType::diagnostic,
-                        Interval(c_Weyl4_Re, c_Weyl4_Im), Weyl_level);
-                    interpolatorRefreshed = true;
+                        Interval(c_Weyl4_Re, c_Weyl4_Im), weyl_level);
+                    interpolator_refreshed = true;
                 }
 
                 WeylExtraction weyl_extraction(m_p.extraction_params, m_dt,
@@ -267,18 +232,18 @@ void BinaryBHCubicHorndeskiLevel::specificPostTimeStep()
 
         if (calculate_Ham)
         {
-            if (!constraintsCalculated)
+            if (!constraints_calculated)
             {
-                if (!ghostsFilled)
+                if (!ghosts_filled)
                 {
                     fillAllGhosts();
-                    ghostsFilled = true;
+                    ghosts_filled = true;
                 }
 
                 CouplingAndPotential coupling_and_potential(
                     m_p.coupling_and_potential_params);
                 CubicHorndeskiWithCouplingAndPotential cubic_horndeski(
-                    coupling_and_potential, m_p.center);
+                    coupling_and_potential);
                 fillAllGhosts();
                 BoxLoops::loop(
                     ModifiedGravityConstraints<
