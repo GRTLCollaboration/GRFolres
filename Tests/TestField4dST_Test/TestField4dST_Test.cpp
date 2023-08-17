@@ -64,8 +64,7 @@ int main(int argc, char *argv[])
     CouplingAndPotential coupling_and_potential(
         m_coupling_and_potential_params);
     double G_Newton = 1. / (16. * M_PI);
-    TestField4dST<CouplingAndPotential> fdst(coupling_and_potential,
-                                                     G_Newton);
+    TestField4dST<CouplingAndPotential> fdst(coupling_and_potential);
     MyModifiedGravityClass my_modified_ccz4(fdst, m_modified_ccz4_params,
                                             modified_puncture_gauge, dx, sigma,
                                             {0., 0., 0.}, G_Newton);
