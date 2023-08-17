@@ -371,8 +371,6 @@ void TestField4dST<coupling_and_potential_t>::solve_lhs(
 
     using namespace TensorAlgebra;
 
-    const auto h_UU = compute_inverse_sym(vars.h);
-    const auto chris = compute_christoffel(d1.h, h_UU);
 
     // Useful quantity Vt
     data_t Vt = -vars.Pi * vars.Pi;
