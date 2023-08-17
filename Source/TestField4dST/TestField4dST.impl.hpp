@@ -399,7 +399,7 @@ void TestField4dST<coupling_and_potential_t>::solve_lhs(
     data_t dg2dphi = 0.;
     data_t V_of_phi = 0.;
     data_t dVdphi = 0.;
-    double G_factor = 8. * M_PI * m_G_Newton;
+   // double G_factor = 8. * M_PI * m_G_Newton;
     // compute coupling and potential
     my_coupling_and_potential.compute_coupling_and_potential(
         dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
@@ -429,19 +429,17 @@ void TestField4dST<coupling_and_potential_t>::solve_lhs(
 
 
 
-    data_t dfdphi2 =
-        dfdphi * dfdphi / (1. + g2 * (-Vt + 2. * vars.Pi * vars.Pi));
 
     // the lhs coefficient of  dtPi
 
-    data_t lhs_dtPi= 1. + 2. * G_factor * g2 * (2. * vars.Pi * vars.Pi - Vt);
+    data_t lhs_dtPi= 1. +  g2 * (2. * vars.Pi * vars.Pi - Vt);
 
      // the contribution of moving dtA_ij and dtK terms from lhs to rhs
-    rhs.Pi -= rhs.K * 2. * G_factor / 3. * dfdphi * M;
+    rhs.Pi -= rhs.K / 3. * dfdphi * M;
 
     FOR(i,j)
     {
-        rhs.Pi -= -4. * G_factor * dfdphi * Mij_TF_UU_over_chi[i][j] * rhs.A[i][j];
+        rhs.Pi -= -2. * dfdphi * Mij_TF_UU_over_chi[i][j] * rhs.A[i][j];
     }
 
     // solve the simple linear system

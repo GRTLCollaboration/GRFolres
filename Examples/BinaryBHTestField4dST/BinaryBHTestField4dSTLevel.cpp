@@ -68,8 +68,7 @@ void BinaryBHTestField4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelDat
     // FourDerivScalarTensor
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
-    TestField4dSTWithCouplingAndPotential fdst(coupling_and_potential,
-                                                       m_p.G_Newton);
+    TestField4dSTWithCouplingAndPotential fdst(coupling_and_potential);
     ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
     if (m_p.max_spatial_derivative_order == 4)
     {
@@ -150,7 +149,7 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
             CouplingAndPotential coupling_and_potential(
                 m_p.coupling_and_potential_params);
             TestField4dSTWithCouplingAndPotential fdst(
-                coupling_and_potential, m_p.G_Newton);
+                coupling_and_potential);
             ModifiedPunctureGauge modified_puncture_gauge(
                 m_p.modified_ccz4_params);
             Weyl4 weyl4(m_p.extraction_params.extraction_center, m_dx,
@@ -184,7 +183,7 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
         CouplingAndPotential coupling_and_potential(
             m_p.coupling_and_potential_params);
         TestField4dSTWithCouplingAndPotential fdst(
-            coupling_and_potential, m_p.G_Newton);
+            coupling_and_potential);
         fillAllGhosts();
         BoxLoops::loop(Constraints(m_dx),
                        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
@@ -227,7 +226,7 @@ void BinaryBHTestField4dSTLevel::prePlotLevel()
         CouplingAndPotential coupling_and_potential(
             m_p.coupling_and_potential_params);
         TestField4dSTWithCouplingAndPotential fdst(
-            coupling_and_potential, m_p.G_Newton);
+            coupling_and_potential);
           Constraints constraints( m_dx);
         ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
         Weyl4 weyl4( m_p.extraction_params.extraction_center, m_dx,
