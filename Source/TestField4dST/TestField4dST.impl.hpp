@@ -93,22 +93,9 @@ TestField4dST<coupling_and_potential_t>::compute_rho_and_Si(
     using namespace TensorAlgebra;
     const auto h_UU = compute_inverse_sym(vars.h);
     const auto chris = compute_christoffel(d1.h, h_UU);
-   /*
-    // Useful quantity Vt
-    data_t Vt = -vars.Pi * vars.Pi;
-    FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
 
-    // S_i (note lower index) = - n^a T_ai
-    FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi + g2 * Vt * vars.Pi * d1.phi[i]; }
-
-    // rho = n^a n^b T_ab
-    out.rho = vars.Pi * vars.Pi + 0.5 * Vt + V_of_phi -
-              g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi); */
-
-    // S_i (note lower index) = - n^a T_ai
     FOR(i) { out.Si[i] = 0. ; }
 
-    // rho = n^a n^b T_ab
     out.rho =0. ;
 
     return out;
@@ -143,41 +130,9 @@ TestField4dST<coupling_and_potential_t>::compute_Sij_TF_and_S(
     const auto h_UU = compute_inverse_sym(vars.h);
     const auto chris = compute_christoffel(d1.h, h_UU);
 
-    const data_t chi_regularised = simd_max(vars.chi, 1e-6);
-   /*
-    // Useful quantity Vt
-    data_t Vt = -vars.Pi * vars.Pi;
-    FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
-
-    // Calculate components of EM Tensor for the non-Gauss-Bonnet sector
-    // S_ij = T_ij
-    FOR(i, j)
-    {
-        out.Sij_TF[i][j] =
-            -0.5 * vars.h[i][j] * Vt / chi_regularised + d1.phi[i] * d1.phi[j];
-    }
-
-    FOR(i, j)
-    {
-        out.Sij_TF[i][j] += -vars.h[i][j] * V_of_phi / chi_regularised;
-    }
-
-    FOR(i, j)
-    {
-        out.Sij_TF[i][j] +=
-            g2 * Vt *
-            (-d1.phi[i] * d1.phi[j] + vars.h[i][j] / chi_regularised * Vt / 4.);
-    }
-
-    // S = Tr_S_ij
-    out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij_TF, h_UU);
-
-    make_trace_free(out.Sij_TF, vars.h, h_UU); // make Sij trace-free
-
-    return out; */
     FOR(i,j){ out.Sij_TF[i][j]= 0. ;}
     out.S=0. ;
-
+    return out;
 }
 
 // Adds in the RHS for the theory vars
@@ -408,7 +363,7 @@ void TestField4dST<coupling_and_potential_t>::solve_lhs(
     data_t dg2dphi = 0.;
     data_t V_of_phi = 0.;
     data_t dVdphi = 0.;
-   // double G_factor = 8. * M_PI * m_G_Newton;
+
     // compute coupling and potential
     my_coupling_and_potential.compute_coupling_and_potential(
         dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
