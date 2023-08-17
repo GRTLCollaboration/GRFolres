@@ -13,8 +13,8 @@
 #include "ComputePack.hpp"
 #include "InitialScalarData.hpp"
 #include "ModifiedCCZ4RHS.hpp"
-#include "ModifiedGravityConstraints.hpp"
-#include "ModifiedGravityWeyl4.hpp"
+#include "Constraints.hpp"
+#include "Weyl4.hpp"
 #include "NanCheck.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "PunctureTracker.hpp"
@@ -153,10 +153,7 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
                 coupling_and_potential, m_p.G_Newton);
             ModifiedPunctureGauge modified_puncture_gauge(
                 m_p.modified_ccz4_params);
-            ModifiedGravityWeyl4<TestField4dSTWithCouplingAndPotential,
-                                 ModifiedPunctureGauge, FourthOrderDerivatives>
-                weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
-                      m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
+            Weyl4 weyl4(m_p.extraction_params.extraction_center, m_dx,
                       CCZ4RHS<>::USE_CCZ4);
             // CCZ4 is required since this code only works in this
             // formulation
@@ -189,10 +186,7 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
         TestField4dSTWithCouplingAndPotential fdst(
             coupling_and_potential, m_p.G_Newton);
         fillAllGhosts();
-        BoxLoops::loop(ModifiedGravityConstraints<
-                           TestField4dSTWithCouplingAndPotential>(
-                           fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
-                           Interval(c_Mom1, c_Mom3)),
+        BoxLoops::loop(Constraints(m_dx),
                        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
         if (m_level == 0)
         {
@@ -234,16 +228,10 @@ void BinaryBHTestField4dSTLevel::prePlotLevel()
             m_p.coupling_and_potential_params);
         TestField4dSTWithCouplingAndPotential fdst(
             coupling_and_potential, m_p.G_Newton);
-        ModifiedGravityConstraints<
-            TestField4dSTWithCouplingAndPotential>
-            constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
-                        Interval(c_Mom1, c_Mom3));
+          Constraints constraints( m_dx);
         ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
-        ModifiedGravityWeyl4<TestField4dSTWithCouplingAndPotential,
-                             ModifiedPunctureGauge, FourthOrderDerivatives>
-            weyl4(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
-                  m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
-                  CCZ4RHS<>::USE_CCZ4);
+        Weyl4 weyl4( m_p.extraction_params.extraction_center, m_dx,
+                    CCZ4RHS<>::USE_CCZ4);
         // CCZ4 is required since this code only works in this formulation
         auto compute_pack = make_compute_pack(weyl4, constraints);
         BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
