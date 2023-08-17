@@ -37,6 +37,12 @@
      \sa ModifiedCCZ4RHS(), ModifiedGravityConstraints()
 */
 
+//! The TestField4dST theory only does the test field limit -
+//! namely the background is pure GR, and only scalar field evolves
+//! non-trivially with Gauss-Bonnet terms included.
+
+
+
 template <class coupling_and_potential_t = DefaultCouplingAndPotential>
 class TestField4dST
 {
