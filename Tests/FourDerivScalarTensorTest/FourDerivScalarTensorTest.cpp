@@ -6,6 +6,7 @@
 #include "CCZ4RHS.hpp"
 #include "Coordinates.hpp"
 #include "CouplingAndPotential.hpp"
+#include "DiagnosticVariables.hpp"
 #include "DimensionDefinitions.hpp"
 #include "FourDerivScalarTensor.hpp"
 #include "ModifiedCCZ4RHS.hpp"

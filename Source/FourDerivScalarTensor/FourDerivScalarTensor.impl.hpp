@@ -875,17 +875,14 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
             continue;
 
         LHS_mat[N - 1][idx] = 0.;
-        LHS_mat[idx][N - 1] =
-            -4. * G_factor * dfdphi * Mij_TF_UU_over_chi[i][j];
+        LHS_mat[idx][N - 1] = -2. * dfdphi * Mij_TF_UU_over_chi[i][j];
         if (i != j)
-            LHS_mat[idx][N - 1] +=
-                -4. * G_factor * dfdphi * Mij_TF_UU_over_chi[j][i];
+            LHS_mat[idx][N - 1] += -2. * dfdphi * Mij_TF_UU_over_chi[j][i];
         ++idx;
     }
     LHS_mat[N - 1][N - 2] = 0.;
-    LHS_mat[N - 2][N - 1] = 2. * G_factor / 3. * dfdphi * M;
-    LHS_mat[N - 1][N - 1] =
-        1. + 2. * G_factor * g2 * (2. * vars.Pi * vars.Pi - Vt);
+    LHS_mat[N - 2][N - 1] = dfdphi * M / 3.;
+    LHS_mat[N - 1][N - 1] = 1. + g2 * (2. * vars.Pi * vars.Pi - Vt);
 
     for (int row = 0; row < N; ++row)
     {
@@ -943,6 +940,67 @@ void FourDerivScalarTensor<coupling_and_potential_t>::solve_lhs(
     }
     rhs.K = RHS[N - 2];
     rhs.Pi = RHS[N - 1];
+}
+
+// Function to compute all the components of rho (used as diagnostics)
+template <class coupling_and_potential_t>
+template <class data_t, template <typename> class vars_t,
+          template <typename> class diff2_vars_t>
+AllRhos<data_t>
+FourDerivScalarTensor<coupling_and_potential_t>::compute_all_rhos(
+    const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
+    const diff2_vars_t<Tensor<2, data_t>> &d2,
+    const Coordinates<data_t> &coords) const
+{
+    AllRhos<data_t> out;
+
+    // set the coupling and potential values
+    data_t dfdphi = 0.;
+    data_t d2fdphi2 = 0.;
+    data_t g2 = 0.;
+    data_t dg2dphi = 0.;
+    data_t V_of_phi = 0.;
+    data_t dVdphi = 0.;
+
+    // compute coupling and potential
+    my_coupling_and_potential.compute_coupling_and_potential(
+        dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
+
+    using namespace TensorAlgebra;
+    const auto h_UU = compute_inverse_sym(vars.h);
+    const auto chris = compute_christoffel(d1.h, h_UU);
+
+    // Useful quantity Vt
+    data_t Vt = -vars.Pi * vars.Pi;
+    FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
+
+    // rho = n^a n^b T_ab
+    out.phi = vars.Pi * vars.Pi + 0.5 * Vt + V_of_phi;
+    out.g2 = -g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi);
+
+    // Compute useful quantities for the Gauss-Bonnet sector
+    const data_t chi_regularised = simd_max(1e-6, vars.chi);
+
+    ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
+    data_t M = SVT.scalar;
+    Tensor<2, data_t> Mij = SVT.tensor;
+
+    // decomposition of Omega_{\mu\nu}
+    SVT = compute_Omega_munu(vars, d1, d2, coords);
+    data_t Omega = SVT.scalar;
+    Tensor<2, data_t> Omega_ij = SVT.tensor;
+
+    Tensor<2, data_t> Omega_ij_UU =
+        raise_all(Omega_ij, h_UU); // raise all indexs
+    FOR(i, j) Omega_ij_UU[i][j] *= vars.chi * vars.chi;
+
+    // Gauss-Bonnet contribution to rho
+    out.GB = Omega * M;
+    FOR(i, j) out.GB -= 2. * Mij[i][j] * Omega_ij_UU[i][j];
+
+    out.g3 = 0.;
+
+    return out;
 }
 
 #endif /* FOURDERIVSCALARTENSOR_IMPL_HPP_ */

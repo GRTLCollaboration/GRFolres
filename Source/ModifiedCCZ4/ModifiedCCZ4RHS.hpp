@@ -52,6 +52,15 @@ template <class data_t> struct ScalarVectorTensor
     Tensor<2, data_t> tensor;
 };
 
+// Note: It may be needed to add other components for some theories
+template <class data_t> struct AllRhos
+{
+    data_t phi;
+    data_t g2;
+    data_t g3;
+    data_t GB;
+};
+
 template <class theory_t, class gauge_t = ModifiedPunctureGauge,
           class deriv_t = FourthOrderDerivatives>
 class ModifiedCCZ4RHS : public CCZ4RHS<gauge_t, deriv_t>

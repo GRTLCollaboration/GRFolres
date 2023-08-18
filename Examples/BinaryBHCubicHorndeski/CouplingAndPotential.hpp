@@ -9,7 +9,6 @@ class CouplingAndPotential
     {
         // 'mutable' - mass can be changed even if object is constant
         // this is useful to set it to 0 (temporarily)
-        // to calculate the WFC
         mutable double scalar_mass;
         double g3;
         double g2;
@@ -18,14 +17,24 @@ class CouplingAndPotential
     params_t m_params;
 
     template <class data_t>
+    ALWAYS_INLINE data_t V(const data_t phi, const data_t X) const
+    {
+        return 0.5 * pow(m_params.scalar_mass * phi, 2.);
+    } // V
+    template <class data_t>
     ALWAYS_INLINE data_t G2(const data_t phi, const data_t X) const
     {
-        return m_params.g2 * X * X - 0.5 * pow(m_params.scalar_mass * phi, 2.);
+        return m_params.g2 * X * X;
     } // G2
+    template <class data_t>
+    ALWAYS_INLINE data_t dV_dphi(const data_t phi, const data_t X) const
+    {
+        return m_params.scalar_mass * m_params.scalar_mass * phi;
+    } // dV_dphi
     template <class data_t>
     ALWAYS_INLINE data_t dG2_dphi(const data_t phi, const data_t X) const
     {
-        return -m_params.scalar_mass * m_params.scalar_mass * phi;
+        return 0.;
     } // dG2_dphi
     template <class data_t>
     ALWAYS_INLINE data_t dG2_dX(const data_t phi, const data_t X) const

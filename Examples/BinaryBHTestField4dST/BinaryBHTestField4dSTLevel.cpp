@@ -13,9 +13,8 @@
 #include "ComputePack.hpp"
 #include "InitialScalarData.hpp"
 #include "ModifiedCCZ4RHS.hpp"
-#include "Constraints.hpp"
-#include "Weyl4.hpp"
 #include "NanCheck.hpp"
+#include "NewConstraints.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "PunctureTracker.hpp"
 #include "SetValue.hpp"
@@ -23,6 +22,7 @@
 #include "SmallDataIO.hpp"
 #include "TraceARemoval.hpp"
 #include "TwoPuncturesInitialData.hpp"
+#include "Weyl4.hpp"
 #include "WeylExtraction.hpp"
 
 // Things to do during the advance step after RK4 steps
@@ -57,8 +57,9 @@ void BinaryBHTestField4dSTLevel::initialData()
 }
 
 // Calculate RHS during RK4 substeps
-void BinaryBHTestField4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
-                                        const double a_time)
+void BinaryBHTestField4dSTLevel::specificEvalRHS(GRLevelData &a_soln,
+                                                 GRLevelData &a_rhs,
+                                                 const double a_time)
 {
     // Enforce positive chi and alpha and trace free A
     BoxLoops::loop(make_compute_pack(TraceARemoval(), PositiveChiAndAlpha()),
@@ -92,7 +93,8 @@ void BinaryBHTestField4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelDat
 
 // enforce trace removal during RK4 substeps
 void BinaryBHTestField4dSTLevel::specificUpdateODE(GRLevelData &a_soln,
-                                          const GRLevelData &a_rhs, Real a_dt)
+                                                   const GRLevelData &a_rhs,
+                                                   Real a_dt)
 {
     // Enforce the trace free A_ij condition
     BoxLoops::loop(TraceARemoval(), a_soln, a_soln, INCLUDE_GHOST_CELLS);
@@ -105,8 +107,8 @@ void BinaryBHTestField4dSTLevel::preTagCells()
 }
 
 // specify the cells to tag
-void BinaryBHTestField4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
-                                                const FArrayBox &current_state)
+void BinaryBHTestField4dSTLevel::computeTaggingCriterion(
+    FArrayBox &tagging_criterion, const FArrayBox &current_state)
 {
     if (m_p.track_punctures)
     {
@@ -146,18 +148,12 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
         {
             // Populate the Weyl Scalar values on the grid
             fillAllGhosts();
-            CouplingAndPotential coupling_and_potential(
-                m_p.coupling_and_potential_params);
-            TestField4dSTWithCouplingAndPotential fdst(
-                coupling_and_potential);
-            ModifiedPunctureGauge modified_puncture_gauge(
-                m_p.modified_ccz4_params);
-            Weyl4 weyl4(m_p.extraction_params.extraction_center, m_dx,
-                      CCZ4RHS<>::USE_CCZ4);
+            BoxLoops::loop(Weyl4(m_p.extraction_params.extraction_center, m_dx,
+                                 CCZ4RHS<>::USE_CCZ4),
+                           m_state_new, m_state_diagnostics,
+                           EXCLUDE_GHOST_CELLS);
             // CCZ4 is required since this code only works in this
             // formulation
-            BoxLoops::loop(weyl4, m_state_new, m_state_diagnostics,
-                           EXCLUDE_GHOST_CELLS);
 
             // Do the extraction on the min extraction level
             if (m_level == min_level)
@@ -180,12 +176,8 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
 
     if (m_p.calculate_constraint_norms)
     {
-        CouplingAndPotential coupling_and_potential(
-            m_p.coupling_and_potential_params);
-        TestField4dSTWithCouplingAndPotential fdst(
-            coupling_and_potential);
         fillAllGhosts();
-        BoxLoops::loop(Constraints(m_dx),
+        BoxLoops::loop(Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)),
                        m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
         if (m_level == 0)
         {
@@ -223,16 +215,11 @@ void BinaryBHTestField4dSTLevel::prePlotLevel()
     fillAllGhosts();
     if (m_p.activate_extraction == 1)
     {
-        CouplingAndPotential coupling_and_potential(
-            m_p.coupling_and_potential_params);
-        TestField4dSTWithCouplingAndPotential fdst(
-            coupling_and_potential);
-          Constraints constraints( m_dx);
-        ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
-        Weyl4 weyl4( m_p.extraction_params.extraction_center, m_dx,
-                    CCZ4RHS<>::USE_CCZ4);
+        auto compute_pack = make_compute_pack(
+            Weyl4(m_p.extraction_params.extraction_center, m_dx,
+                  CCZ4RHS<>::USE_CCZ4),
+            Constraints(m_dx, c_Ham, Interval(c_Mom1, c_Mom3)));
         // CCZ4 is required since this code only works in this formulation
-        auto compute_pack = make_compute_pack(weyl4, constraints);
         BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
                        EXCLUDE_GHOST_CELLS);
     }

@@ -118,6 +118,7 @@ vars_parity            = 0 0 4 6 0 5 0    #chi and hij
 vars_parity_diagnostic = 0 1 2 3          #Ham and Mom
                          0 1 2 3          #Ham and Mom abs
                          0 7              #Weyl
+			 0 0 0 0	  #rho_phi rho_g2 rho_g3 and rho_GB
 
 # if sommerfeld boundaries selected, must select
 # asymptotic values

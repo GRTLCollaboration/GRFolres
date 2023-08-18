@@ -8,9 +8,9 @@
 
 #include "Cell.hpp"
 #include "Coordinates.hpp"
-#include "TestField4dST.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "Tensor.hpp"
+#include "TestField4dST.hpp"
 #include "UserVariables.hpp" //This files needs NUM_VARS - total no. components
 #include "VarsTools.hpp"
 #include "simd.hpp"

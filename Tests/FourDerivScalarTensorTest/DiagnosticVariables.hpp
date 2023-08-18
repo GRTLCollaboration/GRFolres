@@ -9,20 +9,10 @@
 // assign an enum to each variable
 enum
 {
-    c_Ham,
-
-    c_Mom1,
-    c_Mom2,
-    c_Mom3,
-
-    c_rhoGB,
-
-    c_JGB1,
-    c_JGB2,
-    c_JGB3,
-
-    c_Weyl4_Re,
-    c_Weyl4_Im,
+    c_rho_phi,
+    c_rho_g2,
+    c_rho_g3,
+    c_rho_GB,
 
     NUM_DIAGNOSTIC_VARS
 };
@@ -30,15 +20,7 @@ enum
 namespace DiagnosticVariables
 {
 static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
-    "Ham",
-
-    "Mom1",     "Mom2",    "Mom3",
-
-    "rhoGB",
-
-    "JGB1",     "JGB2",    "JGB3",
-
-    "Weyl4_Re", "Weyl4_Im"};
+    "rho_phi", "rho_g2", "rho_g3", "rho_GB"};
 }
 
 #endif /* DIAGNOSTICVARIABLES_HPP */

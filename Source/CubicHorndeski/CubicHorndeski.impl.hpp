@@ -29,23 +29,14 @@ RhoAndSi<data_t> CubicHorndeski<coupling_and_potential_t>::compute_rho_and_Si(
 
     RhoAndSi<data_t> out;
 
-    // Useful quantity Vt
-    data_t Vt = -vars.Pi * vars.Pi;
-    FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
+    // rho = n^a n^b T_ab
+    out.rho = E.dg3_dX * E.exprA + E.dg3_dphi * 2. * E.Xplus +
+              E.dg2_dX * E.Pi2 - E.g2 + E.Xplus + E.V;
 
     // S_i (note lower index) = - n^a T_ai
-    FOR(i) { out.Si[i] = -d1.phi[i] * vars.Pi; }
-
-    // rho = n^a n^b T_ab
-    out.rho = vars.Pi * vars.Pi + 0.5 * Vt;
-
-    // Horndeski contribution
-    out.rho += E.dg3_dX * E.exprA + E.dg3_dphi * 2. * E.Xplus +
-               E.dg2_dX * E.Pi2 - E.g2 + E.Xplus;
-
     FOR(i)
     {
-        out.Si[i] +=
+        out.Si[i] =
             E.dg3_dX * (-E.tau * vars.Pi * d1.phi[i] - E.Pi2 * E.tau_i[i] +
                         d1.phi[i] * E.tau_i_dot_dphi * vars.chi +
                         vars.Pi * E.tau_ij_dot_dphi[i]) -
@@ -73,23 +64,9 @@ CubicHorndeski<coupling_and_potential_t>::compute_Sij_TF_and_S(
 
     SijTFAndS<data_t> out;
 
-    // compute potential and add constributions to EM Tensor
-
+    // compute potential and add contributions to EM Tensor
     const data_t chi_regularised = simd_max(vars.chi, 1e-6);
 
-    // Useful quantity Vt
-    data_t Vt = -vars.Pi * vars.Pi;
-    FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
-
-    // Calculate components of EM Tensor for the non-Horndeski sector
-    // S_ij = T_ij
-    FOR(i, j)
-    {
-        out.Sij_TF[i][j] =
-            -0.5 * vars.h[i][j] * Vt / chi_regularised + d1.phi[i] * d1.phi[j];
-    }
-
-    // Horndeski contribution
     FOR(i, j)
     {
         out.Sij_TF[i][j] =
@@ -99,10 +76,12 @@ CubicHorndeski<coupling_and_potential_t>::compute_Sij_TF_and_S(
                  (d1.phi[i] * E.tau_ij_dot_dphi[j] +
                   d1.phi[j] * E.tau_ij_dot_dphi[i]) -
                  vars.h[i][j] * E.exprB +
-                 E.lie_deriv_Pi_no_lapse * (-d1.phi[i] * d1.phi[j] +
-                                            vars.h[i][j] / vars.chi * E.Pi2)) +
+                 E.lie_deriv_Pi_no_lapse *
+                     (-d1.phi[i] * d1.phi[j] +
+                      vars.h[i][j] / chi_regularised * E.Pi2)) +
             d1.phi[i] * d1.phi[j] * E.dcommon +
-            vars.h[i][j] / vars.chi * (E.X + E.g2 + 2. * E.X * E.dg3_dphi);
+            vars.h[i][j] / vars.chi *
+                (E.X + E.g2 - E.V + 2. * E.X * E.dg3_dphi);
     }
 
     out.S = vars.chi * TensorAlgebra::compute_trace(out.Sij_TF, h_UU);
@@ -130,16 +109,16 @@ void CubicHorndeski<coupling_and_potential_t>::add_theory_rhs(
 
     pre_compute_no_gauge(E, vars, d1, d2, h_UU, chris.ULL);
 
-    data_t lie_deriv_Pi = E.lie_deriv_Pi_no_lapse;
+    data_t lie_deriv_Pi_times_lapse = vars.lapse * E.lie_deriv_Pi_no_lapse;
     FOR(i, j)
     {
-        lie_deriv_Pi +=
-            h_UU[i][j] * vars.chi * d1.lapse[i] / vars.lapse * d1.phi[j];
+        lie_deriv_Pi_times_lapse +=
+            h_UU[i][j] * vars.chi * d1.lapse[i] * d1.phi[j];
     }
 
     // adjust RHS for the potential term
     total_rhs.phi = advec.phi + vars.lapse * vars.Pi;
-    total_rhs.Pi = advec.Pi + vars.lapse * lie_deriv_Pi;
+    total_rhs.Pi = advec.Pi + lie_deriv_Pi_times_lapse;
 }
 
 template <class coupling_and_potential_t>
@@ -179,7 +158,7 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
 
     // dphi_dot_dphi - not conformal
     data_t dphi_dot_dphi = 0.;
-    FOR2(i, j) { dphi_dot_dphi += h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
+    FOR(i, j) { dphi_dot_dphi += h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
     dphi_dot_dphi *= chi;
 
     // X
@@ -188,8 +167,11 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
 
     ////////////////////////////////////////////////////////////////////////
     // Functions G2 & G3 and derivatives
+
+    E.V = this->my_coupling_and_potential.V(vars.phi, E.X);
     E.g2 = this->my_coupling_and_potential.G2(vars.phi, E.X);
 
+    E.dV_dphi = this->my_coupling_and_potential.dV_dphi(vars.phi, E.X);
     E.dg2_dphi = this->my_coupling_and_potential.dG2_dphi(vars.phi, E.X);
     E.dg3_dphi = this->my_coupling_and_potential.dG3_dphi(vars.phi, E.X);
     E.dg2_dX = this->my_coupling_and_potential.dG2_dX(vars.phi, E.X);
@@ -283,7 +265,7 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
         (E.d2g2_dXX + 2. * E.d2g3_dXphi) * E.exprB * chi -
         E.d2g3_dXX * chi *
             (-E.tau * E.exprB + chi * E.tau_i_dot_dphi * E.tau_i_dot_dphi) +
-        E.dg2_dphi - 2. * E.X * (E.d2g3_dphiphi + E.d2g2_dXphi) -
+        E.dg2_dphi - E.dV_dphi - 2. * E.X * (E.d2g3_dphiphi + E.d2g2_dXphi) -
         E.dg3_dX * (-E.tau * E.tau + E.X * E.g2 +
                     E.X * E.X * (2. + E.dg2_dX + 4. * E.dg3_dphi));
 
@@ -304,6 +286,37 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
     // Lie Derivative term: lie_deriv_Pi - A^k D_k ln(lapse)
 
     E.lie_deriv_Pi_no_lapse = numerator / denominator;
+}
+
+// Function to compute all the components of rho (used as diagnostics)
+template <class coupling_and_potential_t>
+template <class data_t, template <typename> class vars_t,
+          template <typename> class diff2_vars_t>
+AllRhos<data_t> CubicHorndeski<coupling_and_potential_t>::compute_all_rhos(
+    const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
+    const diff2_vars_t<Tensor<2, data_t>> &d2,
+    const Coordinates<data_t> &coords) const
+{
+    AllRhos<data_t> out;
+
+    expressions<data_t> E;
+
+    using namespace TensorAlgebra;
+    const auto h_UU = compute_inverse_sym(vars.h);
+    const auto chris = compute_christoffel(d1.h, h_UU);
+
+    pre_compute_no_gauge(E, vars, d1, d2, h_UU, chris.ULL);
+
+    // rho = n^a n^b T_ab
+    out.phi = E.Xplus + E.V;
+
+    // Horndeski contribution
+    out.g2 = E.dg2_dX * E.Pi2 - E.g2;
+    out.g3 = E.dg3_dX * E.exprA + E.dg3_dphi * 2. * E.Xplus;
+
+    out.GB = 0.;
+
+    return out;
 }
 
 #endif /* CUBICHORNDESKI_IMPL_HPP_ */

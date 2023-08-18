@@ -6,11 +6,12 @@
 #include "CCZ4RHS.hpp"
 #include "Coordinates.hpp"
 #include "CouplingAndPotential.hpp"
+#include "DiagnosticVariables.hpp"
 #include "DimensionDefinitions.hpp"
-#include "TestField4dST.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "ModifiedPunctureGauge.hpp"
 #include "Tensor.hpp"
+#include "TestField4dST.hpp"
 #include <iostream>
 
 template <class data_t> struct Vars : public CCZ4::Vars<data_t>

@@ -9,9 +9,9 @@
 #include "BHAMR.hpp"
 #include "CouplingAndPotential.hpp"
 #include "DefaultLevelFactory.hpp"
-#include "TestField4dST.hpp"
 #include "GRAMRLevel.hpp"
 #include "ModifiedPunctureGauge.hpp"
+#include "TestField4dST.hpp"
 
 class BinaryBHTestField4dSTLevel : public GRAMRLevel
 {
