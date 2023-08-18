@@ -80,7 +80,7 @@ CubicHorndeski<coupling_and_potential_t>::compute_Sij_TF_and_S(
                      (-d1.phi[i] * d1.phi[j] +
                       vars.h[i][j] / chi_regularised * E.Pi2)) +
             d1.phi[i] * d1.phi[j] * E.dcommon +
-            vars.h[i][j] / vars.chi *
+            vars.h[i][j] / chi_regularised *
                 (E.X + E.g2 - E.V + 2. * E.X * E.dg3_dphi);
     }
 

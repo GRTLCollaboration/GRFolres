@@ -979,8 +979,6 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_all_rhos(
     out.g2 = -g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi);
 
     // Compute useful quantities for the Gauss-Bonnet sector
-    const data_t chi_regularised = simd_max(1e-6, vars.chi);
-
     ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
     data_t M = SVT.scalar;
     Tensor<2, data_t> Mij = SVT.tensor;
