@@ -271,7 +271,7 @@ void CubicHorndeski<coupling_and_potential_t>::pre_compute_no_gauge(
 
     FOR(i, j)
     {
-        numerator += E.d2g3_dXX * h_UU[i][j] *
+        numerator += E.d2g3_dXX * h_UU[i][j] * chi *
                          (Pi * E.tau_i[i] - E.tau_ij_dot_dphi[i]) *
                          (Pi * E.tau_i[j] - E.tau_ij_dot_dphi[j]) +
                      E.dg3_dX * h_UU[i][j] * E.tau_i[i] * E.tau_i[j] * 2. * chi;
