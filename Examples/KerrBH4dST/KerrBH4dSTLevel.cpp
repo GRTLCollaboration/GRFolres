@@ -13,6 +13,7 @@
 #include "ModifiedGravityConstraints.hpp"
 #include "NanCheck.hpp"
 #include "PositiveChiAndAlpha.hpp"
+#include "RhoDiagnostics.hpp"
 #include "SetValue.hpp"
 #include "SixthOrderDerivatives.hpp"
 #include "TraceARemoval.hpp"
@@ -60,11 +61,16 @@ void KerrBH4dSTLevel::prePlotLevel()
     FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
                                                        m_p.G_Newton);
     fillAllGhosts();
-    BoxLoops::loop(ModifiedGravityConstraints<
-                       FourDerivScalarTensorWithCouplingAndPotential>(
-                       fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
-                       Interval(c_Mom1, c_Mom3)),
-                   m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
+    ModifiedGravityConstraints<FourDerivScalarTensorWithCouplingAndPotential>
+        constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
+                    Interval(c_Mom1, c_Mom3));
+    RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
+        rho_diagnostics(fdst, m_dx, m_p.center, c_rho_phi, c_rho_g2, c_rho_g3,
+                        c_rho_GB);
+    auto compute_pack = make_compute_pack(constraints, rho_diagnostics);
+
+    BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
+                   EXCLUDE_GHOST_CELLS);
 }
 #endif /* CH_USE_HDF5 */
 

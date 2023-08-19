@@ -18,6 +18,7 @@
 #include "NanCheck.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "PunctureTracker.hpp"
+#include "RhoDiagnostics.hpp"
 #include "SetValue.hpp"
 #include "SixthOrderDerivatives.hpp"
 #include "SmallDataIO.hpp"
@@ -245,8 +246,24 @@ void BinaryBH4dSTLevel::prePlotLevel()
                   m_p.extraction_params.extraction_center, m_dx, m_p.sigma,
                   CCZ4RHS<>::USE_CCZ4);
         // CCZ4 is required since this code only works in this formulation
-        auto compute_pack = make_compute_pack(weyl4, constraints);
+        RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
+            rho_diagnostics(fdst, m_dx, m_p.center, c_rho_phi, c_rho_g2,
+                            c_rho_g3, c_rho_GB);
+        auto compute_pack =
+            make_compute_pack(weyl4, constraints, rho_diagnostics);
         BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
+                       EXCLUDE_GHOST_CELLS);
+    }
+    else
+    {
+        CouplingAndPotential coupling_and_potential(
+            m_p.coupling_and_potential_params);
+        FourDerivScalarTensorWithCouplingAndPotential fdst(
+            coupling_and_potential, m_p.G_Newton);
+        RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
+            rho_diagnostics(fdst, m_dx, m_p.center, c_rho_phi, c_rho_g2,
+                            c_rho_g3, c_rho_GB);
+        BoxLoops::loop(rho_diagnostics, m_state_new, m_state_diagnostics,
                        EXCLUDE_GHOST_CELLS);
     }
 }

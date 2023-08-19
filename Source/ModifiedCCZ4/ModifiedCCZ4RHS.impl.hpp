@@ -59,15 +59,6 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::compute(
 
     // Write the rhs into the output FArrayBox
     current_cell.store_vars(theory_rhs);
-
-    // Compute some diagnostics (namely all the energy densities)
-    // NOTE: It may be needed to add other rho components for some theories
-    AllRhos<data_t> all_rhos =
-        my_theory.compute_all_rhos(theory_vars, d1, d2, coords);
-    current_cell.store_vars(all_rhos.phi, c_rho_phi);
-    current_cell.store_vars(all_rhos.g2, c_rho_g2);
-    current_cell.store_vars(all_rhos.g3, c_rho_g3);
-    current_cell.store_vars(all_rhos.GB, c_rho_GB);
 }
 
 // Function to add a(x) and b(x) from the modified gauge to CCZ4 rhs
