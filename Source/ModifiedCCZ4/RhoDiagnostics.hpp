@@ -10,6 +10,7 @@
 #include "CCZ4Geometry.hpp"
 #include "Cell.hpp"
 #include "Coordinates.hpp"
+#include "DiagnosticVariables.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GRInterval.hpp"
 #include "Tensor.hpp"
@@ -42,9 +43,7 @@ template <class theory_t> class RhoDiagnostics
 
     //! Constructor of class RhoDiagnostics
     RhoDiagnostics(const theory_t a_theory, double dx,
-                   const std::array<double, CH_SPACEDIM> a_center,
-                   int a_c_rho_phi, int a_c_rho_g2, int a_c_rho_g3,
-                   int a_c_rho_GB);
+                   const std::array<double, CH_SPACEDIM> a_center);
 
     //! The compute member which calculates the constraints at each point in the
     //! box
@@ -54,10 +53,6 @@ template <class theory_t> class RhoDiagnostics
     theory_t my_theory; //!< The theory object, e.g. 4dST
     const std::array<double, CH_SPACEDIM> m_center; //!< The center of the grid
     const FourthOrderDerivatives m_deriv;
-    const int m_c_rho_phi;
-    const int m_c_rho_g2;
-    const int m_c_rho_g3;
-    const int m_c_rho_GB;
 };
 
 #include "RhoDiagnostics.impl.hpp"

@@ -13,11 +13,8 @@
 template <class theory_t>
 RhoDiagnostics<theory_t>::RhoDiagnostics(
     const theory_t a_theory, double dx,
-    const std::array<double, CH_SPACEDIM> a_center, int a_c_rho_phi,
-    int a_c_rho_g2, int a_c_rho_g3, int a_c_rho_GB)
-    : my_theory(a_theory), m_center(a_center), m_deriv(dx),
-      m_c_rho_phi(a_c_rho_phi), m_c_rho_g2(a_c_rho_g2), m_c_rho_g3(a_c_rho_g3),
-      m_c_rho_GB(a_c_rho_GB)
+    const std::array<double, CH_SPACEDIM> a_center)
+    : my_theory(a_theory), m_center(a_center), m_deriv(dx)
 {
 }
 
@@ -37,10 +34,10 @@ void RhoDiagnostics<theory_t>::compute(Cell<data_t> current_cell) const
     AllRhos<data_t> all_rhos = my_theory.compute_all_rhos(vars, d1, d2, coords);
 
     // Write the constraints into the output FArrayBox
-    current_cell.store_vars(all_rhos.phi, m_c_rho_phi);
-    current_cell.store_vars(all_rhos.g2, m_c_rho_g2);
-    current_cell.store_vars(all_rhos.g3, m_c_rho_g3);
-    current_cell.store_vars(all_rhos.GB, m_c_rho_GB);
+    current_cell.store_vars(all_rhos.phi, c_rho_phi);
+    current_cell.store_vars(all_rhos.g2, c_rho_g2);
+    current_cell.store_vars(all_rhos.g3, c_rho_g3);
+    current_cell.store_vars(all_rhos.GB, c_rho_GB);
 }
 
 #endif /* RHODIAGNOSTICS_IMPL_HPP_ */

@@ -89,8 +89,7 @@ void BinaryBHCubicHorndeskiLevel::prePlotLevel()
               m_dx, m_p.sigma, CCZ4RHS<>::USE_CCZ4);
     // CCZ4 is required since this code only works in this formulation
     RhoDiagnostics<CubicHorndeskiWithCouplingAndPotential> rho_diagnostics(
-        cubic_horndeski, m_dx, m_p.center, c_rho_phi, c_rho_g2, c_rho_g3,
-        c_rho_GB);
+        cubic_horndeski, m_dx, m_p.center);
     auto compute_pack = make_compute_pack(weyl4, constraints, rho_diagnostics);
     BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
                    EXCLUDE_GHOST_CELLS);

@@ -6,7 +6,6 @@
 #include "CCZ4RHS.hpp"
 #include "Coordinates.hpp"
 #include "CouplingAndPotential.hpp"
-#include "DiagnosticVariables.hpp"
 #include "DimensionDefinitions.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "ModifiedPunctureGauge.hpp"
@@ -53,9 +52,9 @@ int main(int argc, char *argv[])
     double sigma = 1.;
     double cosmological_constant = 0.;
 
-    CCZ4RHS<ModifiedPunctureGauge, FourthOrderDerivatives> obj(
+    CCZ4RHS<ModifiedPunctureGauge, FourthOrderDerivatives> basic_ccz4_rhs(
         m_modified_ccz4_params, dx, sigma, 0, cosmological_constant);
-    obj.rhs_equation(rhs, vars, d1, d2, advec);
+    basic_ccz4_rhs.rhs_equation(rhs, vars, d1, d2, advec);
 
     const IndexTM<int, 3> ind = {0, 0, 0};
     IntVect vect(ind);

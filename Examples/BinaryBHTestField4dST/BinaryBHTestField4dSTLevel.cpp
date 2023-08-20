@@ -225,7 +225,7 @@ void BinaryBHTestField4dSTLevel::prePlotLevel()
                     CCZ4RHS<>::USE_CCZ4);
         // CCZ4 is required since this code only works in this formulation
         RhoDiagnostics<TestField4dSTWithCouplingAndPotential> rho_diagnostics(
-            fdst, m_dx, m_p.center, c_rho_phi, c_rho_g2, c_rho_g3, c_rho_GB);
+            fdst, m_dx, m_p.center);
         auto compute_pack =
             make_compute_pack(weyl4, constraints, rho_diagnostics);
         BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
@@ -237,7 +237,7 @@ void BinaryBHTestField4dSTLevel::prePlotLevel()
             m_p.coupling_and_potential_params);
         TestField4dSTWithCouplingAndPotential fdst(coupling_and_potential);
         RhoDiagnostics<TestField4dSTWithCouplingAndPotential> rho_diagnostics(
-            fdst, m_dx, m_p.center, c_rho_phi, c_rho_g2, c_rho_g3, c_rho_GB);
+            fdst, m_dx, m_p.center);
         BoxLoops::loop(rho_diagnostics, m_state_new, m_state_diagnostics,
                        EXCLUDE_GHOST_CELLS);
     }

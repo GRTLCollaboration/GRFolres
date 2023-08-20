@@ -65,8 +65,7 @@ void KerrBH4dSTLevel::prePlotLevel()
         constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
                     Interval(c_Mom1, c_Mom3));
     RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
-        rho_diagnostics(fdst, m_dx, m_p.center, c_rho_phi, c_rho_g2, c_rho_g3,
-                        c_rho_GB);
+        rho_diagnostics(fdst, m_dx, m_p.center);
     auto compute_pack = make_compute_pack(constraints, rho_diagnostics);
 
     BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
