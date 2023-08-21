@@ -24,17 +24,27 @@ enum
     c_Weyl4_Re,
     c_Weyl4_Im,
 
+    c_rho_phi,
+    c_rho_g2,
+    c_rho_g3,
+    c_rho_GB,
+
     NUM_DIAGNOSTIC_VARS
 };
 
 namespace DiagnosticVariables
 {
 static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
-    "Ham",      "Mom1",     "Mom2",     "Mom3",
+    "Ham",      "Mom1",     "Mom2",
+    "Mom3",
 
-    "Ham_abs",  "Mom_abs1", "Mom_abs2", "Mom_abs3",
+    "Ham_abs",  "Mom_abs1", "Mom_abs2",
+    "Mom_abs3",
 
-    "Weyl4_Re", "Weyl4_Im"
+    "Weyl4_Re", "Weyl4_Im",
+
+    "rho_phi",  "rho_g2",   "rho_g3",
+    "rho_GB"
 
 };
 } // namespace DiagnosticVariables

@@ -45,9 +45,9 @@ class CubicHorndeski
     {
         data_t lie_deriv_Pi_no_lapse;
 
-        data_t g2;
+        data_t V, g2;
         data_t dg2_dX, dg3_dX;
-        data_t dg2_dphi, dg3_dphi;
+        data_t dV_dphi, dg2_dphi, dg3_dphi;
         data_t d2g2_dXX, d2g3_dXX;
         data_t d2g2_dXphi, d2g3_dXphi;
         data_t d2g3_dphiphi;
@@ -163,9 +163,20 @@ class CubicHorndeski
                               const Tensor<2, data_t> &h_UU,
                               const Tensor<3, data_t> &chris_ULL) const;
 
+    //! The function which computes all the different components of rho,
+    //! which are stored as diagnostics
+    template <class data_t, template <typename> class vars_t,
+              template <typename> class diff2_vars_t>
+    AllRhos<data_t> compute_all_rhos(
+        const vars_t<data_t> &vars,          //!< the value of the variables
+        const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
+        const diff2_vars_t<Tensor<2, data_t>>
+            &d2, //!< the value of the 2nd derivs
+        const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates
+
   protected:
     coupling_and_potential_t my_coupling_and_potential;
-    // const std::array<double, CH_SPACEDIM> &m_center;
 };
 
 #include "CubicHorndeski.impl.hpp"

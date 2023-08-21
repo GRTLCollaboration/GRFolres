@@ -64,39 +64,18 @@ TestField4dST<coupling_and_potential_t>::compute_M_Ni_and_Mij(
     return out;
 }
 
-
-
 // Calculate rho and Si
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-RhoAndSi<data_t>
-TestField4dST<coupling_and_potential_t>::compute_rho_and_Si(
+RhoAndSi<data_t> TestField4dST<coupling_and_potential_t>::compute_rho_and_Si(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2,
     const Coordinates<data_t> &coords) const
 {
     RhoAndSi<data_t> out;
-
-    // set the coupling and potential values
-    data_t dfdphi = 0.;
-    data_t d2fdphi2 = 0.;
-    data_t g2 = 0.;
-    data_t dg2dphi = 0.;
-    data_t V_of_phi = 0.;
-    data_t dVdphi = 0.;
-
-    // compute coupling and potential
-    my_coupling_and_potential.compute_coupling_and_potential(
-        dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
-
-    using namespace TensorAlgebra;
-    const auto h_UU = compute_inverse_sym(vars.h);
-    const auto chris = compute_christoffel(d1.h, h_UU);
-
-    FOR(i) { out.Si[i] = 0. ; }
-
-    out.rho =0. ;
+    FOR(i) { out.Si[i] = 0.; }
+    out.rho = 0.;
 
     return out;
 }
@@ -105,33 +84,15 @@ TestField4dST<coupling_and_potential_t>::compute_rho_and_Si(
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t>
-SijTFAndS<data_t>
-TestField4dST<coupling_and_potential_t>::compute_Sij_TF_and_S(
+SijTFAndS<data_t> TestField4dST<coupling_and_potential_t>::compute_Sij_TF_and_S(
     const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
     const diff2_vars_t<Tensor<2, data_t>> &d2, const vars_t<data_t> &advec,
     const Coordinates<data_t> &coords) const
 {
 
     SijTFAndS<data_t> out;
-
-    // set the coupling and potential values
-    data_t dfdphi = 0.;
-    data_t d2fdphi2 = 0.;
-    data_t g2 = 0.;
-    data_t dg2dphi = 0.;
-    data_t V_of_phi = 0.;
-    data_t dVdphi = 0.;
-
-    // compute coupling and potential
-    my_coupling_and_potential.compute_coupling_and_potential(
-        dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
-
-    using namespace TensorAlgebra;
-    const auto h_UU = compute_inverse_sym(vars.h);
-    const auto chris = compute_christoffel(d1.h, h_UU);
-
-    FOR(i,j){ out.Sij_TF[i][j]= 0. ;}
-    out.S=0. ;
+    FOR(i, j) { out.Sij_TF[i][j] = 0.; }
+    out.S = 0.;
     return out;
 }
 
@@ -340,11 +301,9 @@ void TestField4dST<coupling_and_potential_t>::add_theory_rhs(
     }
 }
 
-
-
 // Function to solve LHS from the rhs
-//!here we do not need to solve a linear system as gravity is not back-reacted by GB terms
-//! one only needs to solve rhs of Pi from rhs of Aij and K
+//! here we do not need to solve a linear system as gravity is not back-reacted
+//! by GB terms one only needs to solve rhs of Pi from rhs of Aij and K
 template <class coupling_and_potential_t>
 template <class data_t, template <typename> class vars_t,
           template <typename> class diff2_vars_t,
@@ -368,9 +327,8 @@ void TestField4dST<coupling_and_potential_t>::solve_lhs(
     my_coupling_and_potential.compute_coupling_and_potential(
         dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
 
-
     using namespace TensorAlgebra;
-
+    const auto h_UU = compute_inverse_sym(vars.h);
 
     // Useful quantity Vt
     data_t Vt = -vars.Pi * vars.Pi;
@@ -382,31 +340,111 @@ void TestField4dST<coupling_and_potential_t>::solve_lhs(
     data_t M = SVT.scalar;
     Tensor<2, data_t> Mij = SVT.tensor;
 
-
     Tensor<2, data_t> Mij_TF = Mij;
     make_trace_free(Mij_TF, vars.h, h_UU);
     Tensor<2, data_t> Mij_TF_UU_over_chi =
         raise_all(Mij_TF, h_UU); // raise all indexs
     FOR(i, j) Mij_TF_UU_over_chi[i][j] *= vars.chi;
 
-
-
-
     // the lhs coefficient of  dtPi
 
-    data_t lhs_dtPi= 1. +  g2 * (2. * vars.Pi * vars.Pi - Vt);
+    data_t lhs_dtPi = 1. + g2 * (2. * vars.Pi * vars.Pi - Vt);
 
-     // the contribution of moving dtA_ij and dtK terms from lhs to rhs
+    // the contribution of moving dtA_ij and dtK terms from lhs to rhs
     rhs.Pi -= rhs.K / 3. * dfdphi * M;
 
-    FOR(i,j)
+    FOR(i, j)
     {
         rhs.Pi -= -2. * dfdphi * Mij_TF_UU_over_chi[i][j] * rhs.A[i][j];
     }
 
     // solve the simple linear system
     rhs.Pi /= lhs_dtPi;
+}
 
+// Function to compute all the components of rho (used as diagnostics)
+template <class coupling_and_potential_t>
+template <class data_t, template <typename> class vars_t,
+          template <typename> class diff2_vars_t>
+AllRhos<data_t> TestField4dST<coupling_and_potential_t>::compute_all_rhos(
+    const vars_t<data_t> &vars, const vars_t<Tensor<1, data_t>> &d1,
+    const diff2_vars_t<Tensor<2, data_t>> &d2,
+    const Coordinates<data_t> &coords) const
+{
+    AllRhos<data_t> out;
+
+    // set the coupling and potential values
+    data_t dfdphi = 0.;
+    data_t d2fdphi2 = 0.;
+    data_t g2 = 0.;
+    data_t dg2dphi = 0.;
+    data_t V_of_phi = 0.;
+    data_t dVdphi = 0.;
+
+    // compute coupling and potential
+    my_coupling_and_potential.compute_coupling_and_potential(
+        dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
+
+    using namespace TensorAlgebra;
+    const auto h_UU = compute_inverse_sym(vars.h);
+    const auto chris = compute_christoffel(d1.h, h_UU);
+
+    // Useful quantity Vt
+    data_t Vt = -vars.Pi * vars.Pi;
+    FOR(i, j) { Vt += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
+
+    // rho = n^a n^b T_ab
+    out.phi = vars.Pi * vars.Pi + 0.5 * Vt + V_of_phi;
+    out.g2 = -g2 * Vt * (Vt / 4. + vars.Pi * vars.Pi);
+
+    // Compute useful quantities for the Gauss-Bonnet sector
+    const data_t chi_regularised = simd_max(1e-6, vars.chi);
+
+    ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
+    data_t M = SVT.scalar;
+    Tensor<2, data_t> Mij = SVT.tensor;
+
+    // decomposition of Omega_{\mu\nu}
+    Tensor<2, data_t> Omega_ij;
+
+    Tensor<2, data_t> covdtilde2phi;
+    Tensor<2, data_t> covd2phi;
+    data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
+    FOR(k, l)
+    {
+        covdtilde2phi[k][l] = d2.phi[k][l];
+        FOR1(m) { covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m]; }
+        covd2phi[k][l] = covdtilde2phi[k][l] +
+                         0.5 *
+                             (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
+                              vars.h[k][l] * dphi_dot_dchi) /
+                             chi_regularised;
+    }
+
+    // Omega_{ij}=\gamma^{\mu}_{~i}\gamma^{\nu}_{~j}\Omega_{\mu\nu}
+    FOR(i, j)
+    {
+        Omega_ij[i][j] = 4. * dfdphi *
+                             (covd2phi[i][j] +
+                              vars.Pi / chi_regularised *
+                                  (vars.A[i][j] + vars.h[i][j] * vars.K /
+                                                      (double)GR_SPACEDIM)) +
+                         4. * d2fdphi2 * d1.phi[i] * d1.phi[j];
+    }
+    // trace of Omega_ij
+    data_t Omega = vars.chi * compute_trace(Omega_ij, h_UU);
+
+    Tensor<2, data_t> Omega_ij_UU =
+        raise_all(Omega_ij, h_UU); // raise all indexs
+    FOR(i, j) Omega_ij_UU[i][j] *= vars.chi * vars.chi;
+
+    // Gauss-Bonnet contribution to rho
+    out.GB = Omega * M;
+    FOR(i, j) out.GB -= 2. * Mij[i][j] * Omega_ij_UU[i][j];
+
+    out.g3 = 0.;
+
+    return out;
 }
 
 #endif /* TESTFIELD4DST_IMPL_HPP_ */

@@ -6,8 +6,8 @@
 #include "CCZ4RHS.hpp"
 #include "Coordinates.hpp"
 #include "CouplingAndPotential.hpp"
+#include "CubicHorndeski.hpp"
 #include "DimensionDefinitions.hpp"
-#include "FourDerivScalarTensor.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "ModifiedPunctureGauge.hpp"
 #include "Tensor.hpp"
@@ -29,7 +29,7 @@ template <class data_t> struct Vars : public CCZ4::Vars<data_t>
     }
 };
 
-typedef ModifiedCCZ4RHS<FourDerivScalarTensor<CouplingAndPotential>,
+typedef ModifiedCCZ4RHS<CubicHorndeski<CouplingAndPotential>,
                         ModifiedPunctureGauge, FourthOrderDerivatives>
     MyModifiedGravityClass;
 
@@ -64,11 +64,11 @@ int main(int argc, char *argv[])
     CouplingAndPotential coupling_and_potential(
         m_coupling_and_potential_params);
     double G_Newton = 1. / (16. * M_PI);
-    FourDerivScalarTensor<CouplingAndPotential> fdst(coupling_and_potential,
-                                                     G_Newton);
-    MyModifiedGravityClass my_modified_ccz4(fdst, m_modified_ccz4_params,
-                                            modified_puncture_gauge, dx, sigma,
-                                            {0., 0., 0.}, G_Newton);
+    CubicHorndeski<CouplingAndPotential> cubic_horndeski(
+        coupling_and_potential);
+    MyModifiedGravityClass my_modified_ccz4(
+        cubic_horndeski, m_modified_ccz4_params, modified_puncture_gauge, dx,
+        sigma, {0., 0., 0.}, G_Newton);
 
     // add functions a(x) and b(x) of the modified gauge
     my_modified_ccz4.add_a_and_b_rhs<double>(rhs, vars, d1, d2, advec, coords);
@@ -77,10 +77,10 @@ int main(int argc, char *argv[])
     my_modified_ccz4.add_emtensor_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
     // add evolution of the theory fields themselves
-    fdst.add_theory_rhs<double>(rhs, vars, d1, d2, advec, coords);
+    cubic_horndeski.add_theory_rhs<double>(rhs, vars, d1, d2, advec, coords);
 
     // solve linear system for the theory fields that require it (e.g. 4dST)
-    fdst.solve_lhs<double>(rhs, vars, d1, d2, advec, coords);
+    cubic_horndeski.solve_lhs<double>(rhs, vars, d1, d2, advec, coords);
 
     // Compare
     double diff;
@@ -204,9 +204,9 @@ int main(int argc, char *argv[])
         }
     }
     if (failed == 0)
-        std::cout << "FourDerivScalarTensor test passed..." << std::endl;
+        std::cout << "CubicHorndeski test passed..." << std::endl;
     else
-        std::cout << "FourDerivScalarTensor test failed..." << std::endl;
+        std::cout << "CubicHorndeski test failed..." << std::endl;
 
     return failed;
 }
