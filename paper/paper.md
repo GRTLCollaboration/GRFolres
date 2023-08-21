@@ -93,7 +93,7 @@ In spherical symmetry several codes have been developed that implement Einstein 
 
 So far the code has been used to study a range of fundamental physics problems:
 - In the work [@AresteSalo:2022hua], the code was developed and tested, with waveforms for shift symmetric theories of Einstein scalar Gauss bonnet gravity produced for equal mass binaries.
-![Modified gravity waveforms in $4\partial ST$ with a shift symmetric coupling. Taken from [@AresteSalo:2022hua].\label{fig:waveform}](Figures/all_waves.png){width=45%} 
+![Modified gravity waveforms in $4\partial ST$ with a shift symmetric coupling. Taken from [@AresteSalo:2022hua].\label{fig:waveform}](Figures/all_waves.pdf){width=45%} 
     
 - In the work [@AresteSalo:2023mmd], the studies were extended to binary mergers in theories with spin induced scalarisation. The clouds formed are dumbell like in shape.
 ![The time evolution of the density of the scalar cloud that develops in Einstein scalar Gauss Bonnet gravity with an exponential coupling, resulting in spin induced scalarisation. Taken from [@AresteSalo:2023mmd].\label{fig:spin}](Figures/rhophi.png){width=45%} 
