@@ -14,9 +14,9 @@
 #include "ArrayTools.hpp"
 #include "BoostedBH.hpp"
 #include "CouplingAndPotential.hpp"
-#include "TestField4dST.hpp"
 #include "InitialScalarData.hpp"
 #include "ModifiedPunctureGauge.hpp"
+#include "TestField4dST.hpp"
 
 class SimulationParameters : public SimulationParametersBase
 {
@@ -151,9 +151,9 @@ class SimulationParameters : public SimulationParametersBase
     CouplingAndPotential::params_t coupling_and_potential_params;
     BoostedBH::params_t bh2_params;
     BoostedBH::params_t bh1_params;
-    ModifiedCCZ4RHS<
-        TestField4dST<CouplingAndPotential>, ModifiedPunctureGauge,
-        FourthOrderDerivatives>::modified_params_t modified_ccz4_params;
+    ModifiedCCZ4RHS<TestField4dST<CouplingAndPotential>, ModifiedPunctureGauge,
+                    FourthOrderDerivatives>::modified_params_t
+        modified_ccz4_params;
 };
 
 #endif /* SIMULATIONPARAMETERS_HPP */

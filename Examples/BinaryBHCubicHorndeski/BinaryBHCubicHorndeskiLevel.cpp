@@ -17,6 +17,7 @@
 #include "ModifiedGravityWeyl4.hpp"
 #include "NanCheck.hpp"
 #include "PositiveChiAndAlpha.hpp"
+#include "RhoDiagnostics.hpp"
 #include "SetValue.hpp"
 #include "SixthOrderDerivatives.hpp"
 #include "TraceARemoval.hpp"
@@ -87,7 +88,9 @@ void BinaryBHCubicHorndeskiLevel::prePlotLevel()
               modified_puncture_gauge, m_p.extraction_params.extraction_center,
               m_dx, m_p.sigma, CCZ4RHS<>::USE_CCZ4);
     // CCZ4 is required since this code only works in this formulation
-    auto compute_pack = make_compute_pack(weyl4, constraints);
+    RhoDiagnostics<CubicHorndeskiWithCouplingAndPotential> rho_diagnostics(
+        cubic_horndeski, m_dx, m_p.center);
+    auto compute_pack = make_compute_pack(weyl4, constraints, rho_diagnostics);
     BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
                    EXCLUDE_GHOST_CELLS);
 }

@@ -38,10 +38,8 @@
 */
 
 //! The TestField4dST theory only does the test field limit -
-//! namely the background is pure GR, and only scalar field evolves
-//! non-trivially with Gauss-Bonnet terms included.
-
-
+//! namely the background is pure GR, and only the scalar field evolves
+//! non-trivially with the Gauss-Bonnet terms included.
 
 template <class coupling_and_potential_t = DefaultCouplingAndPotential>
 class TestField4dST
@@ -50,12 +48,10 @@ class TestField4dST
     //! The local copy of the coupling
     coupling_and_potential_t my_coupling_and_potential;
 
-
   public:
     //!  Constructor of class FourDerivScalarTensor, inputs are the theory
     //!  parameters.
-    TestField4dST(
-        const coupling_and_potential_t a_coupling_and_potential)
+    TestField4dST(const coupling_and_potential_t a_coupling_and_potential)
         : my_coupling_and_potential(a_coupling_and_potential)
     {
     }
@@ -104,14 +100,9 @@ class TestField4dST
         const diff2_vars_t<Tensor<2, data_t>> &d2)
         const; //!< the value of the 2nd derivatives
 
-
-
     //! The function which calculates rho and Si, given the vars and
     //! derivatives, for the given coupling function
-    //! NOTE: this is computed in a separate function from the other
-    //! elements, namely S and Sij, so that we can call directly
-    //! this function to calculate the constraint without needing to
-    //! specify the gauge variables
+    //! NOTE: It returns 0 as we do not consider backreaction here
     template <class data_t, template <typename> class vars_t,
               template <typename> class diff2_vars_t>
     RhoAndSi<data_t> compute_rho_and_Si(
@@ -124,6 +115,7 @@ class TestField4dST
 
     //! The function which calculates SijTF and S, given the vars and
     //! derivatives, for the given coupling function
+    //! NOTE: It returns 0 as we do not consider backreaction here
     template <class data_t, template <typename> class vars_t,
               template <typename> class diff2_vars_t>
     SijTFAndS<data_t> compute_Sij_TF_and_S(
@@ -150,8 +142,7 @@ class TestField4dST
         const Coordinates<data_t> &coords)
         const; //!< the value of the coordinates
 
-
-    //! The function which solves the lhs of Pi  from rhs of Aij and K
+    //! The function which solves the lhs of Pi from the rhs of Aij and K
     template <class data_t, template <typename> class vars_t,
               template <typename> class diff2_vars_t,
               template <typename> class rhs_vars_t>
@@ -161,6 +152,18 @@ class TestField4dST
         const vars_t<Tensor<1, data_t>> &d1, //!< value of the 1st derivs
         const diff2_vars_t<Tensor<2, data_t>> &d2, //!< value of the 2nd derivs
         const vars_t<data_t> &advec, //!< the value of the advection terms
+        const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates
+
+    //! The function which computes all the different components of rho,
+    //! which are stored as diagnostics
+    template <class data_t, template <typename> class vars_t,
+              template <typename> class diff2_vars_t>
+    AllRhos<data_t> compute_all_rhos(
+        const vars_t<data_t> &vars,          //!< the value of the variables
+        const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
+        const diff2_vars_t<Tensor<2, data_t>>
+            &d2, //!< the value of the 2nd derivs
         const Coordinates<data_t> &coords)
         const; //!< the value of the coordinates
 };
