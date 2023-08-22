@@ -51,11 +51,30 @@ void KerrBH4dSTLevel::initialData()
     fillAllGhosts();
     BoxLoops::loop(GammaCalculator(m_dx), m_state_new, m_state_new,
                    EXCLUDE_GHOST_CELLS);
+
+#ifdef USE_AHFINDER
+    // Diagnostics needed for AHFinder
+    CouplingAndPotential coupling_and_potential(
+        m_p.coupling_and_potential_params);
+    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
+                                                       m_p.G_Newton);
+    ModifiedGravityConstraints<FourDerivScalarTensorWithCouplingAndPotential>
+        constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
+                    Interval(c_Mom1, c_Mom3));
+    BoxLoops::loop(constraints, m_state_new, m_state_diagnostics,
+                   EXCLUDE_GHOST_CELLS);
+#endif
 }
 
 #ifdef CH_USE_HDF5
 void KerrBH4dSTLevel::prePlotLevel()
 {
+#ifdef USE_AHFINDER
+    // already calculated in 'specificPostTimeStep'
+    if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time))
+        return;
+#endif
+
     CouplingAndPotential coupling_and_potential(
         m_p.coupling_and_potential_params);
     FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
@@ -124,4 +143,28 @@ void KerrBH4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                               const FArrayBox &current_state)
 {
     BoxLoops::loop(ChiTaggingCriterion(m_dx), current_state, tagging_criterion);
+}
+
+void KerrBH4dSTLevel::specificPostTimeStep()
+{
+    CH_TIME("KerrBHLevel::specificPostTimeStep");
+#ifdef USE_AHFINDER
+    // if print is on and there are Diagnostics to write, calculate them!
+    if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time))
+    {
+        CouplingAndPotential coupling_and_potential(
+            m_p.coupling_and_potential_params);
+        FourDerivScalarTensorWithCouplingAndPotential fdst(
+            coupling_and_potential, m_p.G_Newton);
+        fillAllGhosts();
+        ModifiedGravityConstraints<
+            FourDerivScalarTensorWithCouplingAndPotential>
+            constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
+                        Interval(c_Mom1, c_Mom3));
+        BoxLoops::loop(constraints, m_state_new, m_state_diagnostics,
+                       EXCLUDE_GHOST_CELLS);
+    }
+    if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
+        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);
+#endif
 }

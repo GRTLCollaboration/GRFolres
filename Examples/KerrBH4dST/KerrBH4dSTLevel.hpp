@@ -52,6 +52,8 @@ class KerrBH4dSTLevel : public GRAMRLevel
     virtual void
     computeTaggingCriterion(FArrayBox &tagging_criterion,
                             const FArrayBox &current_state) override;
+
+    virtual void specificPostTimeStep() override;
 };
 
 #endif /* KERRBH4DSTLEVEL_HPP_ */
