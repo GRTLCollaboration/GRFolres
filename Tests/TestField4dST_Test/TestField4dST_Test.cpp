@@ -3,7 +3,6 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#include "CCZ4RHS.hpp"
 #include "Coordinates.hpp"
 #include "CouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
@@ -17,16 +16,6 @@ template <class data_t> struct Vars : public CCZ4::Vars<data_t>
 {
     data_t phi; // the scalar field
     data_t Pi;  // the curvature of the scalar field
-
-    /// Defines the mapping between members of Vars and Chombo grid
-    /// variables (enum in User_Variables)
-    template <typename mapping_function_t>
-    void enum_mapping(mapping_function_t mapping_function)
-    {
-        CCZ4::Vars<data_t>::enum_mapping(mapping_function);
-        VarsTools::define_enum_mapping(mapping_function, c_phi, phi);
-        VarsTools::define_enum_mapping(mapping_function, c_Pi, Pi);
-    }
 };
 
 typedef ModifiedCCZ4RHS<TestField4dST<CouplingAndPotential>,
