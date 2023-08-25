@@ -13,13 +13,16 @@ class CouplingAndPotential
   public:
     struct params_t
     {
-        double lambda_GB; // Gauss-Bonnet coupling
-        double cutoff_GB; // cutoff for switching off the Gauss-Bonnet terms
-                          // inside the BH
-        double factor_GB; // factor for the function smoothening the GB cutoff
-        double g2;        // coupling to the square of the kinetic term
-        double g3;
-        mutable double scalar_mass;
+        double V_of_phi;
+        double dVdphi;
+        double g2;
+        double dg2dphi;
+        double G3;
+        double dG3dphi;
+        double dG3dX;
+        double d2G3dXX;
+        double d2G3dXphi;
+        double d2G3dphiphi;
     };
 
   private:
@@ -29,7 +32,7 @@ class CouplingAndPotential
     template <class data_t>
     ALWAYS_INLINE data_t V(const data_t phi, const data_t X) const
     {
-        return 0.5 * pow(m_params.scalar_mass * phi, 2.);
+        return m_params.V_of_phi;
     } // V
     template <class data_t>
     ALWAYS_INLINE data_t G2(const data_t phi, const data_t X) const
@@ -39,12 +42,12 @@ class CouplingAndPotential
     template <class data_t>
     ALWAYS_INLINE data_t dV_dphi(const data_t phi, const data_t X) const
     {
-        return m_params.scalar_mass * m_params.scalar_mass * phi;
+        return m_params.dVdphi;
     } // dV_dphi
     template <class data_t>
     ALWAYS_INLINE data_t dG2_dphi(const data_t phi, const data_t X) const
     {
-        return 0.;
+        return m_params.dg2dphi * X * X;
     } // dG2_dphi
     template <class data_t>
     ALWAYS_INLINE data_t dG2_dX(const data_t phi, const data_t X) const
@@ -59,69 +62,42 @@ class CouplingAndPotential
     template <class data_t>
     ALWAYS_INLINE data_t d2G2_dXphi(const data_t phi, const data_t X) const
     {
-        return 0.;
+        return 2. * m_params.dg2dphi * X;
     } // d2G2_dXphi
 
     template <class data_t>
     ALWAYS_INLINE data_t G3(const data_t phi, const data_t X) const
     {
-        return m_params.g3 * X;
+        return m_params.G3;
     } // G3
     template <class data_t>
     ALWAYS_INLINE data_t dG3_dphi(const data_t phi, const data_t X) const
     {
-        return 0.;
+        return m_params.dG3dphi;
     } // dG3_dphi
     template <class data_t>
     ALWAYS_INLINE data_t dG3_dX(const data_t phi, const data_t X) const
     {
-        return m_params.g3;
+        return m_params.dG3dX;
     } // dG3_dX
     template <class data_t>
     ALWAYS_INLINE data_t d2G3_dXX(const data_t phi, const data_t X) const
     {
-        return 0.;
+        return m_params.d2G3dXX;
     } // d2G3_dXX
     template <class data_t>
     ALWAYS_INLINE data_t d2G3_dXphi(const data_t phi, const data_t X) const
     {
-        return 0.;
+        return m_params.d2G3dXphi;
     } // d2G3_dXphi
     template <class data_t>
     ALWAYS_INLINE data_t d2G3_dphiphi(const data_t phi, const data_t X) const
     {
-        return 0.;
+        return m_params.d2G3dphiphi;
     } // d2G3_dphiphi
 
     //! The constructor
     CouplingAndPotential(params_t a_params) : m_params(a_params) {}
-
-    //! Set the EsGB coupling function fhere
-    template <class data_t, template <typename> class vars_t>
-    void compute_coupling_and_potential(data_t &dfdphi, data_t &d2fdphi2,
-                                        data_t &g2, data_t &dg2dphi,
-                                        data_t &V_of_phi, data_t &dVdphi,
-                                        const vars_t<data_t> &vars,
-                                        const Coordinates<data_t> &coords) const
-    {
-        // excision setting the coupling to 0 in the interior of the BH with a
-        // smooth function
-        data_t cutoff_factor =
-            1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
-
-        // The first derivative of the GB coupling function
-        dfdphi = m_params.lambda_GB / cutoff_factor;
-        // The second derivative of the GB coupling function
-        d2fdphi2 = M_PI * m_params.lambda_GB / cutoff_factor;
-        // The coupling to the square of the kinetic term
-        g2 = m_params.g2;
-        // The first derivative of the g2 coupling
-        dg2dphi = M_PI;
-        // The potential of the scalar field
-        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
-        // The first derivative of the potential
-        dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
-    }
 };
 
 #endif /* COUPLINGANDPOTENTIAL_HPP_ */

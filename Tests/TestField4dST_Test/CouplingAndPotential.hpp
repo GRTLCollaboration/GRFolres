@@ -13,12 +13,12 @@ class CouplingAndPotential
   public:
     struct params_t
     {
-        double lambda_GB; // Gauss-Bonnet coupling
-        double cutoff_GB; // cutoff for switching off the Gauss-Bonnet terms
-                          // inside the BH
-        double factor_GB; // factor for the function smoothening the GB cutoff
-        double g2;        // coupling to the square of the kinetic term
-        double scalar_mass;
+        double dfdphi;
+        double d2fdphi2;
+        double g2;
+        double dg2dphi;
+        double V_of_phi;
+        double dVdphi;
     };
 
   private:
@@ -36,23 +36,18 @@ class CouplingAndPotential
                                         const vars_t<data_t> &vars,
                                         const Coordinates<data_t> &coords) const
     {
-        // excision setting the coupling to 0 in the interior of the BH with a
-        // smooth function
-        data_t cutoff_factor =
-            1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
-
         // The first derivative of the GB coupling function
-        dfdphi = m_params.lambda_GB / cutoff_factor;
+        dfdphi = m_params.dfdphi;
         // The second derivative of the GB coupling function
-        d2fdphi2 = M_PI * m_params.lambda_GB / cutoff_factor;
+        d2fdphi2 = m_params.d2fdphi2;
         // The coupling to the square of the kinetic term
         g2 = m_params.g2;
         // The first derivative of the g2 coupling
-        dg2dphi = M_PI;
+        dg2dphi = m_params.dg2dphi;
         // The potential of the scalar field
-        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
+        V_of_phi = m_params.V_of_phi;
         // The first derivative of the potential
-        dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
+        dVdphi = m_params.dVdphi;
     }
 };
 

@@ -94,19 +94,6 @@ int main(int argc, char *argv[])
             failed = -1;
         }
     }
-    FOR(i)
-    {
-        diff = rhs.B[i] - dBdt_known[i];
-        if (diff > 1e-10 or diff < -1e-10)
-        {
-            std::cout << "RHS of B wrong in component [" << i << "]"
-                      << std::endl;
-            std::cout << "value: " << rhs.B[i] << std::endl;
-            std::cout << "correct value: " << dBdt_known[i] << std::endl;
-            std::cout << "diff: " << diff << std::endl;
-            failed = -1;
-        }
-    }
     FOR(i, j)
     {
         diff = rhs.h[i][j] - dhdt_known[i][j];
