@@ -18,6 +18,7 @@
 #include "NanCheck.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "RhoDiagnostics.hpp"
+#include "ScalarExtraction.hpp"
 #include "SetValue.hpp"
 #include "SixthOrderDerivatives.hpp"
 #include "TraceARemoval.hpp"
@@ -219,6 +220,11 @@ void BinaryBHCubicHorndeskiLevel::specificPostTimeStep()
                                                m_time, first_step,
                                                m_restart_time);
                 weyl_extraction.execute_query(m_bh_amr.m_interpolator);
+
+                ScalarExtraction phi_extraction(m_p.scalar_extraction_params,
+                                                m_dt, m_time, first_step,
+                                                m_restart_time);
+                phi_extraction.execute_query(m_gr_amr.m_interpolator);
             }
         }
     }
@@ -279,4 +285,16 @@ void BinaryBHCubicHorndeskiLevel::specificPostTimeStep()
             }
         }
     }
+
+#ifdef USE_AHFINDER
+    if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
+    {
+        if (m_p.AH_set_origins_to_punctures && m_p.track_punctures)
+        {
+            m_bh_amr.m_ah_finder.set_origins(
+                m_bh_amr.m_puncture_tracker.get_puncture_coords());
+        }
+        m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);
+    }
+#endif
 }

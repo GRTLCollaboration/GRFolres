@@ -8,9 +8,9 @@ verbosity = 0
 
 # location / naming of output files
 # output_path = "" # Main path for all files. Must exist!
-chk_prefix = KerrBHEsGB_
-plot_prefix = KerrBHEsGBp_
-# restart_file = KerrBHEsGB_000060.3d.hdf5
+chk_prefix = KerrBH4dST_
+plot_prefix = KerrBH4dSTp_
+# restart_file = KerrBH4dST_000060.3d.hdf5
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 checkpoint_interval = 50
@@ -41,12 +41,13 @@ print_progress_only_to_rank_0 = 1
 G_Newton = 1.0
 
 # Scalar field initial data
-scalar_amplitude = 0.001
-scalar_width = 1.0
+scalar_amplitude = 0.00001
+scalar_width = 0.5
+scalar_r0 = 30. # set the Gaussian pulse far away so that it reaches the BH when the gauge has settled
 scalar_mass = 0.
 
 kerr_mass = 1.0
-kerr_spin = 0.5
+kerr_spin = 0.8
 # kerr_center = 64 64 64 # defauts to center
 
 #################################################
@@ -59,24 +60,24 @@ kerr_spin = 0.5
 # NB - if you have a non-cubic grid, you can specify 'N1' or 'N1_full',
 # 'N2' or 'N2_full' and 'N3' or 'N3_full' ( then dx_coarsest = L/N(max) )
 # NB - the N values need to be multiples of the block_factor
-N_full = 128
+N_full = 192
 L_full = 256
 
 # Maximum number of times you can regrid above coarsest level
-max_level = 5 # There are (max_level+1) grids, so min is zero
+max_level = 6 # There are (max_level+1) grids, so min is zero
 
 # Frequency of regridding at each level and thresholds on the tagging
 # Need one for each level except the top one, ie max_level items
 # Generally you do not need to regrid frequently on every level
-# Level Regridding:   0   1   2   3   4   5
-regrid_interval   =   4   0   0   0   0   0
+# Level Regridding:   0   1   2   3   4   5   6
+regrid_interval   =   4   0   0   0   0   0   0
 regrid_threshold = 0.05
 
 # Max and min box sizes
 max_box_size = 16
 min_box_size = 16
 
-# tag_buffer_size = 3
+tag_buffer_size = 0
 # grid_buffer_size = 8
 # fill_ratio = 0.7
 # num_ghosts = 3
@@ -122,7 +123,7 @@ nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 # Evolution parameters
 
 # dt will be dx*dt_multiplier on each grid level
-dt_multiplier = 0.0625
+dt_multiplier = 0.25
 stop_time = 150.0
 # max_steps = 100
 
@@ -142,8 +143,8 @@ shift_Gamma_coeff = 0.75
 eta = 0.5  #eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-kappa1 = 1.5 # seems the higher the spin the higher this value needs to be
-kappa2 = -0.5
+kappa1 = 2.0
+kappa2 = -0.1
 kappa3 = 1.
 covariantZ4 = 1 #0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 
@@ -152,14 +153,14 @@ a0 = 0.2
 b0 = 0.4
 
 # 4dst parameters
-lambda_GB = 10.
-cutoff_GB = 0.1 # might need to decrease it if the spin is too large (see fig. C1 in arXiv:2112.10567)
+lambda_GB = -0.2
+cutoff_GB = 0.05 # excision with chi; dependent on the spin (see fig. C1 in arXiv:2112.10567)
 factor_GB = 100.0
-quadratic_factor = 200.0
+quadratic_factor = 20.0
 quartic_factor = 0.
 
 # coefficient for KO numerical dissipation
-sigma = 4.0
+sigma = 2.0
 
 # min_chi = 1.e-4
 # min_lapse = 1.e-4
@@ -167,9 +168,9 @@ sigma = 4.0
 #################################################
 # Apparent Horizon Finder parameters
 
-AH_activate = 0
-AH_num_ranks = 20
-AH_num_points_u = 49
+AH_activate = 1
+AH_num_ranks = 65
+AH_num_points_u = 65
 AH_num_points_v = 48
 AH_solve_interval = 1
 AH_print_interval = 1
@@ -177,7 +178,7 @@ AH_track_center = false
 AH_predict_origin = false
 # AH_level_to_run = 0
 # AH_allow_re_attempt = 0
-AH_stop_if_max_fails = 5
+AH_stop_if_max_fails = 1
 # AH_start_time = 0.
 # AH_give_up_time = -1. # -1 to never
 # AH_max_fails_after_lost = 0 # -1 to never
