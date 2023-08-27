@@ -15,8 +15,11 @@ class CouplingAndPotential
     {
         double V_of_phi;
         double dVdphi;
-        double g2;
-        double dg2dphi;
+        double G2;
+        double dG2dphi;
+        double dG2dX;
+        double d2G2dXX;
+        double d2G2dXphi;
         double G3;
         double dG3dphi;
         double dG3dX;
@@ -37,7 +40,7 @@ class CouplingAndPotential
     template <class data_t>
     ALWAYS_INLINE data_t G2(const data_t phi, const data_t X) const
     {
-        return m_params.g2 * X * X;
+        return m_params.G2;
     } // G2
     template <class data_t>
     ALWAYS_INLINE data_t dV_dphi(const data_t phi, const data_t X) const
@@ -47,22 +50,22 @@ class CouplingAndPotential
     template <class data_t>
     ALWAYS_INLINE data_t dG2_dphi(const data_t phi, const data_t X) const
     {
-        return m_params.dg2dphi * X * X;
+        return m_params.dG2dphi;
     } // dG2_dphi
     template <class data_t>
     ALWAYS_INLINE data_t dG2_dX(const data_t phi, const data_t X) const
     {
-        return 2. * m_params.g2 * X;
+        return m_params.dG2dX;
     } // dG2_dX
     template <class data_t>
     ALWAYS_INLINE data_t d2G2_dXX(const data_t phi, const data_t X) const
     {
-        return 2. * m_params.g2;
+        return m_params.d2G2dXX;
     } // d2G2_dXX
     template <class data_t>
     ALWAYS_INLINE data_t d2G2_dXphi(const data_t phi, const data_t X) const
     {
-        return 2. * m_params.dg2dphi * X;
+        return m_params.d2G2dXphi;
     } // d2G2_dXphi
 
     template <class data_t>
