@@ -8,7 +8,7 @@
 
 # User needs to specify GRCHOMBO_SOURCE location, e.g. using
 # export GRCHOMBO_SOURCE = ~/GRChombo/Source
-export MODIFIEDGRAVITY_SOURCE = $(shell pwd)/../../Source
+export GRFOLRES_SOURCE = $(shell pwd)/../../Source
 
 ebase := Main_BinaryBH4dST
 
@@ -16,8 +16,8 @@ LibNames := AMRTimeDependent AMRTools BoxTools
 
 src_dirs := $(GRCHOMBO_SOURCE)/utils \
             $(GRCHOMBO_SOURCE)/simd  \
-            $(MODIFIEDGRAVITY_SOURCE)/ModifiedCCZ4  \
-	    $(MODIFIEDGRAVITY_SOURCE)/FourDerivScalarTensor  \
+            $(GRFOLRES_SOURCE)/ModifiedCCZ4  \
+	    $(GRFOLRES_SOURCE)/FourDerivScalarTensor  \
 	    $(GRCHOMBO_SOURCE)/CCZ4  \
             $(GRCHOMBO_SOURCE)/BoxUtils  \
             $(GRCHOMBO_SOURCE)/GRChomboCore  \
