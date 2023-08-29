@@ -50,62 +50,65 @@ class ModifiedGravitySimulationParametersBase : public SimulationParametersBase
         modified_ccz4_params.covariantZ4 = ccz4_base_params.covariantZ4;
 
         // Scalar extraction
-        std::string extraction_path;
-        if (pp.contains("extraction_subpath"))
+        if (activate_extraction)
         {
-            pp.load("extraction_subpath", extraction_path);
-            if (!extraction_path.empty() && extraction_path.back() != '/')
-                extraction_path += "/";
-            if (output_path != "./" && !output_path.empty())
-                extraction_path = output_path + extraction_path;
-        }
-        else
-            extraction_path = data_path;
+            std::string extraction_path;
+            if (pp.contains("extraction_subpath"))
+            {
+                pp.load("extraction_subpath", extraction_path);
+                if (!extraction_path.empty() && extraction_path.back() != '/')
+                    extraction_path += "/";
+                if (output_path != "./" && !output_path.empty())
+                    extraction_path = output_path + extraction_path;
+            }
+            else
+                extraction_path = data_path;
 
-        scalar_extraction_params.data_path = data_path;
-        scalar_extraction_params.extraction_path = extraction_path;
-        pp.load("scalar_integral_file_prefix",
-                scalar_extraction_params.integral_file_prefix,
-                std::string("scalar_mode_"));
-        // by default just extract on the same spheres and with the same
-        // parameters as for WeylExtraction
-        pp.load("scalar_num_extraction_radii",
-                scalar_extraction_params.num_extraction_radii,
-                extraction_params.num_extraction_radii);
-        pp.load("scalar_extraction_levels",
-                scalar_extraction_params.extraction_levels,
-                scalar_extraction_params.num_extraction_radii,
-                extraction_params.extraction_levels);
-        pp.load("scalar_extraction_radii",
-                scalar_extraction_params.extraction_radii,
-                scalar_extraction_params.num_extraction_radii,
-                extraction_params.extraction_radii);
-        pp.load("scalar_num_points_phi",
-                scalar_extraction_params.num_points_phi,
-                extraction_params.num_points_phi);
-        pp.load("scalar_num_points_theta",
-                scalar_extraction_params.num_points_theta,
-                extraction_params.num_points_theta);
-        pp.load("scalar_extraction_center", scalar_extraction_params.center,
-                extraction_params.center);
-        pp.load("scalar_write_extraction",
-                scalar_extraction_params.write_extraction,
-                extraction_params.write_extraction);
+            scalar_extraction_params.data_path = data_path;
+            scalar_extraction_params.extraction_path = extraction_path;
+            pp.load("scalar_integral_file_prefix",
+                    scalar_extraction_params.integral_file_prefix,
+                    std::string("scalar_mode_"));
+            // by default just extract on the same spheres and with the same
+            // parameters as for WeylExtraction
+            pp.load("scalar_num_extraction_radii",
+                    scalar_extraction_params.num_extraction_radii,
+                    extraction_params.num_extraction_radii);
+            pp.load("scalar_extraction_levels",
+                    scalar_extraction_params.extraction_levels,
+                    scalar_extraction_params.num_extraction_radii,
+                    extraction_params.extraction_levels);
+            pp.load("scalar_extraction_radii",
+                    scalar_extraction_params.extraction_radii,
+                    scalar_extraction_params.num_extraction_radii,
+                    extraction_params.extraction_radii);
+            pp.load("scalar_num_points_phi",
+                    scalar_extraction_params.num_points_phi,
+                    extraction_params.num_points_phi);
+            pp.load("scalar_num_points_theta",
+                    scalar_extraction_params.num_points_theta,
+                    extraction_params.num_points_theta);
+            pp.load("scalar_extraction_center", scalar_extraction_params.center,
+                    extraction_params.center);
+            pp.load("scalar_write_extraction",
+                    scalar_extraction_params.write_extraction,
+                    extraction_params.write_extraction);
 
-        // if scalar extraction is activated then the modes must be
-        // specified
-        pp.load("scalar_num_modes", scalar_extraction_params.num_modes);
-        std::vector<int> scalar_extraction_modes_vect(
-            2 * scalar_extraction_params.num_modes);
-        pp.load("scalar_modes", scalar_extraction_modes_vect,
+            // if scalar extraction is activated then the modes must be
+            // specified
+            pp.load("scalar_num_modes", scalar_extraction_params.num_modes);
+            std::vector<int> scalar_extraction_modes_vect(
                 2 * scalar_extraction_params.num_modes);
-        scalar_extraction_params.modes.resize(
-            scalar_extraction_params.num_modes);
-        for (int imode; imode < scalar_extraction_params.num_modes; ++imode)
-        {
-            scalar_extraction_params.modes[imode] = {
-                scalar_extraction_modes_vect[2 * imode],
-                scalar_extraction_modes_vect[2 * imode + 1]};
+            pp.load("scalar_modes", scalar_extraction_modes_vect,
+                    2 * scalar_extraction_params.num_modes);
+            scalar_extraction_params.modes.resize(
+                scalar_extraction_params.num_modes);
+            for (int imode; imode < scalar_extraction_params.num_modes; ++imode)
+            {
+                scalar_extraction_params.modes[imode] = {
+                    scalar_extraction_modes_vect[2 * imode],
+                    scalar_extraction_modes_vect[2 * imode + 1]};
+            }
         }
     }
 

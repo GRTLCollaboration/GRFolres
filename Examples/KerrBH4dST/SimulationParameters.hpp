@@ -45,6 +45,7 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         pp.load("G_Newton", G_Newton, 1.0);
 
         // Initial scalar field data
+        initial_params.center = center;
         pp.load("scalar_amplitude", initial_params.amplitude, 0.);
         pp.load("scalar_width", initial_params.width, 1.0);
         pp.load("scalar_r0", initial_params.r0, 0.);
