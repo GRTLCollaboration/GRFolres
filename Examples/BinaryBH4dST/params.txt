@@ -12,7 +12,7 @@ verbosity = 0
 # output_path = "" # Main path for all files. Must exist!
 chk_prefix = BinaryBHChk_
 plot_prefix = BinaryBHPlot_
-restart_file = hdf5/BinaryBHChk_000600.3d.hdf5
+# restart_file = hdf5/BinaryBHChk_000600.3d.hdf5
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 checkpoint_interval = 100
@@ -152,7 +152,7 @@ shift_Gamma_coeff = 0.75
 eta = 1.0 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
 
 # CCZ4 parameters
-kappa1 = 1.0 #0.35
+kappa1 = 1.0
 kappa2 = -0.1
 kappa3 = 1.
 covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse

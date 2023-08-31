@@ -10,7 +10,7 @@ verbosity = 0
 # output_path = "" # Main path for all files. Must exist!
 chk_prefix = KerrBH4dST_
 plot_prefix = KerrBH4dSTp_
-# restart_file = KerrBH4dST_000060.3d.hdf5
+# restart_file = hdf5/KerrBH4dST_000060.3d.hdf5
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 checkpoint_interval = 50
