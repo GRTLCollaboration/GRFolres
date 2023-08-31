@@ -50,7 +50,9 @@ class ModifiedGravitySimulationParametersBase : public SimulationParametersBase
         modified_ccz4_params.covariantZ4 = ccz4_base_params.covariantZ4;
 
         // Scalar extraction
-        if (activate_extraction)
+        pp.load("activate_scalar_extraction", activate_scalar_extraction,
+                false);
+        if (activate_scalar_extraction)
         {
             std::string extraction_path;
             if (pp.contains("extraction_subpath"))
@@ -131,6 +133,7 @@ class ModifiedGravitySimulationParametersBase : public SimulationParametersBase
     }
 
   public:
+    bool activate_scalar_extraction;
     // Collection of parameters necessary for the scalar extraction
     spherical_extraction_params_t scalar_extraction_params;
 

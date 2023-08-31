@@ -17,8 +17,8 @@ checkpoint_interval = 50
 # set to 0 to turn off plot files (except at t=0 and t=stop_time)
 # set to -1 to never ever print plotfiles
 plot_interval = 20
-num_plot_vars = 2
-plot_vars = chi Ham
+num_plot_vars = 3
+plot_vars = chi phi Ham
 
 # subpaths - specific directories for hdf5, pout, extraction data
 # (these are created at runtime)
@@ -38,12 +38,12 @@ print_progress_only_to_rank_0 = 1
 
 # Change the gravitational constant of the Universe!
 # Default is 1.0, for standard geometric units
-G_Newton = 1.0
+G_Newton = 1.
 
 # Scalar field initial data
 scalar_amplitude = 0.00001
 scalar_width = 0.5
-scalar_r0 = 30. # set the Gaussian pulse far away so that it reaches the BH when the gauge has settled
+scalar_r0 = 30. # we set the Gaussian pulse far away so that it reaches the BH when the gauge has settled
 scalar_mass = 0.
 
 kerr_mass = 1.0
@@ -153,10 +153,10 @@ a0 = 0.2
 b0 = 0.4
 
 # 4dst parameters
-lambda_GB = -0.2
+lambda_GB = -10.
 cutoff_GB = 0.05 # excision with chi; dependent on the spin (see fig. C1 in arXiv:2112.10567)
 factor_GB = 100.0
-quadratic_factor = 20.0
+quadratic_factor = 20000.
 quartic_factor = 0.
 
 # coefficient for KO numerical dissipation

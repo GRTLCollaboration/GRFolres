@@ -35,11 +35,23 @@ int runGRChombo(int argc, char *argv[])
 
     if (sim_params.just_check_params)
         return 0;
+    BHAMR bh_amr;
+
+    // must be before 'setupAMRObject' to define punctures for tagging criteria
+    if (sim_params.track_punctures)
+    {
+        // the tagging criterion used in this example means that the punctures
+        // should be on the max level but let's fill ghosts on the level below
+        // too just in case
+        int puncture_tracker_min_level = sim_params.max_level - 1;
+        bh_amr.m_puncture_tracker.initial_setup(
+            {sim_params.bh1_params.center, sim_params.bh2_params.center},
+            "punctures", sim_params.data_path, puncture_tracker_min_level);
+    }
 
     // The line below selects the problem that is simulated
     // (To simulate a different problem, define a new child of AMRLevel
     // and an associated LevelFactory)
-    BHAMR bh_amr;
     DefaultLevelFactory<BinaryBHCubicHorndeskiLevel> binary_sb_level_fact(
         bh_amr, sim_params);
     setupAMRObject(bh_amr, binary_sb_level_fact);
@@ -49,7 +61,12 @@ int runGRChombo(int argc, char *argv[])
     AMRInterpolator<Lagrange<4>> interpolator(
         bh_amr, sim_params.origin, sim_params.dx, sim_params.boundary_params,
         sim_params.verbosity);
-    bh_amr.set_interpolator(&interpolator);
+    bh_amr.set_interpolator(
+        &interpolator); // also sets puncture_tracker interpolator
+
+    // must be after interpolator is set
+    if (sim_params.track_punctures)
+        bh_amr.m_puncture_tracker.restart_punctures();
 
 #ifdef USE_AHFINDER
     if (sim_params.AH_activate)
@@ -76,8 +93,14 @@ int runGRChombo(int argc, char *argv[])
         if (level->time() == 0.)
             level->specificPostTimeStep();
     };
+    // call 'now' really now
     MultiLevelTaskPtr<> call_task(task);
     call_task.execute(bh_amr);
+    // or call at post-plotLevel, at every 'some_interval'
+    // int some_interval = 10;
+    // bool reverse_levels = true;
+    // MultiLevelTaskPtr<> call_task(task, reverse_levels, some_interval);
+    // bh_amr.schedule(call_task);
 
     bh_amr.run(sim_params.stop_time, sim_params.max_steps);
 

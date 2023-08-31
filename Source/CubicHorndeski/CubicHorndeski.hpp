@@ -41,7 +41,7 @@ template <class coupling_and_potential_t = DefaultCouplingAndPotential>
 class CubicHorndeski
 {
   public:
-    template <class data_t> struct expressions
+    template <class data_t> struct UsefulQuantities
     {
         data_t lie_deriv_Pi_no_lapse;
 
@@ -52,10 +52,6 @@ class CubicHorndeski
         data_t d2g2_dXphi, d2g3_dXphi;
         data_t d2g3_dphiphi;
 
-        data_t dcommon;
-
-        data_t Pi2, X, Xplus;
-
         data_t tau;
         Tensor<1, data_t> tau_i;
         Tensor<2, data_t> tau_ij;
@@ -63,9 +59,6 @@ class CubicHorndeski
         data_t tau_i_dot_dphi;
         Tensor<1, data_t> tau_ij_dot_dphi;
         data_t tau_ij_dot_dphi2;
-
-        data_t exprA, exprB;
-        data_t ders1, ders2;
     };
 
     CubicHorndeski(const coupling_and_potential_t a_coupling_and_potential)
@@ -156,12 +149,12 @@ class CubicHorndeski
     //! (called in 'add_theory_rhs')
     template <class data_t, template <typename> class vars_t,
               template <typename> class diff2_vars_t>
-    void pre_compute_no_gauge(expressions<data_t> &E,
-                              const vars_t<data_t> &vars,
-                              const vars_t<Tensor<1, data_t>> &d1,
-                              const diff2_vars_t<Tensor<2, data_t>> &d2,
-                              const Tensor<2, data_t> &h_UU,
-                              const Tensor<3, data_t> &chris_ULL) const;
+    void compute_useful_quantities(UsefulQuantities<data_t> &quantities,
+                                   const vars_t<data_t> &vars,
+                                   const vars_t<Tensor<1, data_t>> &d1,
+                                   const diff2_vars_t<Tensor<2, data_t>> &d2,
+                                   const Tensor<2, data_t> &h_UU,
+                                   const Tensor<3, data_t> &chris_ULL) const;
 
     //! The function which computes all the different components of rho,
     //! which are stored as diagnostics
