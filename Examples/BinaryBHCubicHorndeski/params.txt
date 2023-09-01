@@ -41,7 +41,7 @@ print_progress_only_to_rank_0 = 1
 G_Newton = 1.
 
 # Scalar field initial data
-scalar_amplitude = 0.
+scalar_amplitude = 0.0001
 scalar_width = 1.
 scalar_mass = 0.
 
@@ -161,7 +161,7 @@ covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
 a0 = 0.2
 b0 = 0.4
 
-# 4dST parameters
+# Cubic Horndeski parameters
 g2 = 5.
 g3 = 0.
 

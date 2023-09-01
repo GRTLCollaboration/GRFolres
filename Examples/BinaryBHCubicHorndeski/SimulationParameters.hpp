@@ -11,7 +11,6 @@
 #include "ModifiedGravitySimulationParametersBase.hpp"
 
 // Problem specific includes:
-#include "BinarySFTaggingCriterion.hpp"
 #include "BoostedBH.hpp"
 #include "CCZ4.hpp"
 #include "CouplingAndPotential.hpp"

@@ -36,6 +36,7 @@ RhoAndSi<data_t> CubicHorndeski<coupling_and_potential_t>::compute_rho_and_Si(
         dphi_dot_dphi += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j];
     }
 
+    // kinetic contribution to the energy density
     data_t Xplus = 0.5 * (vars.Pi * vars.Pi + dphi_dot_dphi);
 
     // rho = n^a n^b T_ab
@@ -85,14 +86,11 @@ CubicHorndeski<coupling_and_potential_t>::compute_Sij_TF_and_S(
         dphi_dot_dphi += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j];
     }
 
-    // X
+    // kinetic term in the Lagrangian
     data_t X = 0.5 * (vars.Pi * vars.Pi - dphi_dot_dphi);
 
     // compute potential and add contributions to EM Tensor
     const data_t chi_regularised = simd_max(vars.chi, 1e-6);
-
-    data_t repeated_quantity =
-        2. * vars.Pi * quantities.tau_i_dot_dphi - quantities.tau_ij_dot_dphi2;
 
     FOR(i, j)
     {
@@ -103,7 +101,8 @@ CubicHorndeski<coupling_and_potential_t>::compute_Sij_TF_and_S(
                             d1.phi[j] * quantities.tau_i[i]) -
                  (d1.phi[i] * quantities.tau_ij_dot_dphi[j] +
                   d1.phi[j] * quantities.tau_ij_dot_dphi[i]) -
-                 vars.h[i][j] * repeated_quantity +
+                 vars.h[i][j] * (2. * vars.Pi * quantities.tau_i_dot_dphi -
+                                 quantities.tau_ij_dot_dphi2) +
                  quantities.lie_deriv_Pi_no_lapse *
                      (-d1.phi[i] * d1.phi[j] +
                       vars.h[i][j] / chi_regularised * vars.Pi * vars.Pi)) +
@@ -186,8 +185,10 @@ void CubicHorndeski<coupling_and_potential_t>::compute_useful_quantities(
         dphi_dot_dphi += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j];
     }
 
-    // X
+    // kinetic term in the Lagrangian
     data_t X = 0.5 * (vars.Pi * vars.Pi - dphi_dot_dphi);
+
+    // kinetic contribution to the energy density
     data_t Xplus = 0.5 * (vars.Pi * vars.Pi + dphi_dot_dphi);
 
     ////////////////////////////////////////////////////////////////////////
@@ -276,7 +277,7 @@ void CubicHorndeski<coupling_and_potential_t>::compute_useful_quantities(
             h_UU[i][j] * d1.phi[i] * quantities.tau_i[j];
     }
 
-    data_t repeated_quantity =
+    data_t another_useful_quantity =
         2. * vars.Pi * quantities.tau_i_dot_dphi - quantities.tau_ij_dot_dphi2;
 
     ///////////////////////////////////////////////////////
@@ -300,11 +301,11 @@ void CubicHorndeski<coupling_and_potential_t>::compute_useful_quantities(
         quantities.tau * (1. + quantities.dg2_dX + 2. * quantities.dg3_dphi -
                           2. * X * quantities.d2g3_dXphi) -
         quantities.dg3_dX * quantities.dg3_dX *
-            (quantities.tau * X - 2. * vars.chi * repeated_quantity) * X +
-        (quantities.d2g2_dXX + 2. * quantities.d2g3_dXphi) * repeated_quantity *
-            vars.chi -
+            (quantities.tau * X - 2. * vars.chi * another_useful_quantity) * X +
+        (quantities.d2g2_dXX + 2. * quantities.d2g3_dXphi) *
+            another_useful_quantity * vars.chi -
         quantities.d2g3_dXX * vars.chi *
-            (-quantities.tau * repeated_quantity +
+            (-quantities.tau * another_useful_quantity +
              vars.chi * quantities.tau_i_dot_dphi * quantities.tau_i_dot_dphi) +
         quantities.dg2_dphi - quantities.dV_dphi -
         2. * X * (quantities.d2g3_dphiphi + quantities.d2g2_dXphi) -
@@ -360,6 +361,7 @@ AllRhos<data_t> CubicHorndeski<coupling_and_potential_t>::compute_all_rhos(
         dphi_dot_dphi += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j];
     }
 
+    // kinetic contribution to the energy density
     data_t Xplus = 0.5 * (vars.Pi * vars.Pi + dphi_dot_dphi);
 
     // rho = n^a n^b T_ab
