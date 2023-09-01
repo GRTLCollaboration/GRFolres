@@ -51,7 +51,7 @@ class CouplingAndPotential
                  exp(-m_params.quadratic_factor * vars.phi * vars.phi *
                      (1. + m_params.quartic_factor * vars.phi * vars.phi)) *
                  vars.phi *
-                 (1. + 2. * m_params.quadratic_factor * vars.phi * vars.phi);
+                 (1. + 2. * m_params.quartic_factor * vars.phi * vars.phi);
         // The second derivative of the GB coupling function
         d2fdphi2 =
             m_params.lambda_GB / cutoff_factor *

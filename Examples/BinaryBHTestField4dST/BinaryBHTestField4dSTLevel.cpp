@@ -7,7 +7,6 @@
 #include "AMRReductions.hpp"
 #include "BinaryBH.hpp"
 #include "BoxLoops.hpp"
-#include "CCZ4RHS.hpp"
 #include "ChiExtractionTaggingCriterion.hpp"
 #include "ChiPunctureExtractionTaggingCriterion.hpp"
 #include "ComputePack.hpp"
@@ -142,7 +141,7 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
                         // called during setup at t=0 from Main
     // bool first_step = (m_time == m_dt); // if not called in Main
 
-    if (m_p.activate_extraction == 1)
+    if (m_p.activate_extraction == 1 || m_p.activate_scalar_extraction == 1)
     {
         int min_level = m_p.extraction_params.min_extraction_level();
         bool calculate_weyl = at_level_timestep_multiple(min_level);
@@ -168,15 +167,20 @@ void BinaryBHTestField4dSTLevel::specificPostTimeStep()
                 m_gr_amr.fill_multilevel_ghosts(
                     VariableType::diagnostic, Interval(c_Weyl4_Re, c_Weyl4_Im),
                     min_level);
-                WeylExtraction my_extraction(m_p.extraction_params, m_dt,
-                                             m_time, first_step,
-                                             m_restart_time);
-                my_extraction.execute_query(m_gr_amr.m_interpolator);
-
-                ScalarExtraction phi_extraction(m_p.scalar_extraction_params,
-                                                m_dt, m_time, first_step,
-                                                m_restart_time);
-                phi_extraction.execute_query(m_gr_amr.m_interpolator);
+                if (m_p.activate_extraction)
+                {
+                    WeylExtraction my_extraction(m_p.extraction_params, m_dt,
+                                                 m_time, first_step,
+                                                 m_restart_time);
+                    my_extraction.execute_query(m_gr_amr.m_interpolator);
+                }
+                if (m_p.activate_scalar_extraction)
+                {
+                    ScalarExtraction phi_extraction(
+                        m_p.scalar_extraction_params, m_dt, m_time, first_step,
+                        m_restart_time);
+                    phi_extraction.execute_query(m_gr_amr.m_interpolator);
+                }
             }
         }
     }

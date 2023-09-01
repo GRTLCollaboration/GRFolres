@@ -12,6 +12,7 @@
 // Problem specific includes
 #include "CouplingAndPotential.hpp"
 #include "CubicHorndeski.hpp"
+#include "ModifiedPunctureGauge.hpp"
 
 class BinaryBHCubicHorndeskiLevel : public GRAMRLevel
 {
@@ -31,9 +32,6 @@ class BinaryBHCubicHorndeskiLevel : public GRAMRLevel
 
     /// Initial data calculation
     virtual void initialData() override;
-
-    //! routines to do before outputing plot file
-    virtual void prePlotLevel() override;
 
     /// Calculation of the right hand side for the time stepping
     virtual void specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
@@ -55,7 +53,10 @@ class BinaryBHCubicHorndeskiLevel : public GRAMRLevel
     // to do post each time step on every level
     virtual void specificPostTimeStep() override;
 
-    virtual void postRestart() override;
+#ifdef CH_USE_HDF5
+    // Any actions that should happen just before plot files output
+    virtual void prePlotLevel() override;
+#endif /* CH_USE_HDF5 */
 };
 
 #endif /* BINARYBHCUBICHORNDESKILEVEL_HPP_ */

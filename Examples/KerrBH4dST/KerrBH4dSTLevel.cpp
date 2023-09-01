@@ -5,7 +5,6 @@
 
 #include "KerrBH4dSTLevel.hpp"
 #include "BoxLoops.hpp"
-#include "CCZ4RHS.hpp"
 #include "ChiTaggingCriterion.hpp"
 #include "ComputePack.hpp"
 #include "InitialScalarData.hpp"
