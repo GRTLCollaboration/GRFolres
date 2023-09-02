@@ -1,3 +1,5 @@
+#This command creates a copy of paper.md, called paper_with_references.md, with the references and the bibliography filled in according to the format specified by vancouver.csl (I chose this format as the bibliography style of the Overleaf version is Vancouver;  different .csl files can be downloaded from https://www.zotero.org/styles ).
+
 pandoc -C -t markdown_strict -t commonmark --metadata link-citations paper.md --csl=vancouver.csl -o paper_with_references.md --bibliography=paper.bib
 awk '/# Summary/{exit} {print}' paper.md > temp.txt
 cat temp.txt paper_with_references.md > paper_with_references.md.tmp
