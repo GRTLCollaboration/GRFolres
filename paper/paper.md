@@ -93,7 +93,11 @@ In spherical symmetry several codes have been developed that implement Einstein-
 
 So far the code has been used to study a range of fundamental physics problems, as listed here.
 - The test field case was used in [@evstafyeva:2022rve] to model the scalar waves produced during the ringdown stage of binary black hole coalescence in Einstein-scalar-Gauss-Bonnet, and quantify the extent to which current and future gravitational wave detectors could observe the spectrum of scalar radiation emitted.
-![Contour plot of network SNR for the scalar ringdown of a BBH at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@evstafyeva:2022rve].\label{fig:testfield}](Figures/SNR_network.png)
+<p align="center">
+<img src="Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a BBH at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@evstafyeva:2022rve]." style="width: 45%;" />
+  <br>
+  <i>Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a BBH at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@evstafyeva:2022rve].</i>
+</p>
 
 - The regime of validity of effective field theory in collapse and binary evolutions in Cubic Horndeski theories were studied in [@Figueras:2020dzx;Figueras:2021abd]. It was found that the mismatch of the gravitational wave strain can be as large as 10\%–13\% in the Advanced LIGO mass range for such theories.
 <p align="center">
@@ -103,13 +107,25 @@ So far the code has been used to study a range of fundamental physics problems, 
 </p>
 
 - In the work [@AresteSalo:2022hua], the code was developed and tested, with waveforms for shift-symmetric theories of Einstein-scalar-Gauss-Bonnet gravity produced for equal mass binaries.
-![Modified gravity waveforms in $4\partial$ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua].\label{fig:waveform}](Figures/all_waves.pdf)
+<p align="center">
+<img src="Figures/all_waves.pdf" alt="Modified gravity waveforms in $4\partial$ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua]." style="width: 45%;" />
+  <br>
+  <i>Modified gravity waveforms in $4\partial$ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua].</i>
+</p>
     
 - In the work [@AresteSalo:2023mmd], the studies were extended to binary mergers in theories with spin-induced scalarisation. The clouds formed are dumbbell-like in shape.
-![The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd].\label{fig:spin}](Figures/rhophi.png)
+<p align="center">
+<img src="Figures/rhophi.png" alt="The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd]." style="width: 45%;" />
+  <br>
+  <i>The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd].</i>
+</p>
 
 - In the work [@Doneva:2023oww], the dependence of the conditions for hyperbolicity and weak coupling were studied for spin-induced scalarisation, and the critical thresholds found for a number of cases.
-![The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww].\label{fig:hyperbolicity}](Figures/discriminant_beta200.png)
+<p align="center">
+<img src="Figures/discriminant_beta200.png" alt="The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="width: 45%;" />
+  <br>
+  <i>The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww].</i>
+</p>
 
 # Acknowledgements
 
