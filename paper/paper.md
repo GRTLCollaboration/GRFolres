@@ -65,14 +65,23 @@ In the following sections we discuss the key features, motivations and applicati
 # Key features
 
 GRFolres inherits many of the features of GRChombo and Chombo. Here we list the key features.
+
 - Stable gauge evolution - The code implements the modified moving puncture gauge that ensures a well posed evolution in the weak coupling regime, as proposed in [@AresteSalo:2022hua]. The precise form of the gauge and its parameters can be changed and the standard moving puncture gauge is safely recovered by setting certain parameters to zero.
+
 - Modified gravity theories - The currently available theories in the code are 4∂ST and cubic Horndeski. The code is templated over the theory (in the same way that GRChombo is templated over a matter class) so that it can easily be changed without major code modifications. The code also provides an implementation of 4∂ST without backreaction onto the metric (but including the possibility of using the new gauge), to enable comparison with previous works in the perturbative limit.
+
 - Accuracy - The fields are evolved with a 4th order Runge-Kutta time integration and their derivatives calculated with the same finite difference stencils used in GRChombo (4th and 6th order are currently available).
+
 - Boundary Conditions - GRFolres inherits all the available boundary conditions in GRChombo, namely, extrapolating, Sommerfeld (radiative), reflective and periodic. 
+
 - Initial Conditions - The current examples use solutions that approximately or trivially solve the modified energy and momentum constraints of the theory. An elliptic solver for more general configurations is under development, using a modified CTTK formalism [@Aurrekoetxea:2022mpw;@Brady:2023dgu].
+
 - Diagnostics - GRFolres has routines for monitoring the constraint violation and calculating the energy densities associated with the different scalar terms in the action, as discussed in [@AresteSalo:2022hua;@AresteSalo:2023mmd;@Doneva:2023oww]. Other diagnostics can be added as required. We also extract data for the tensor and scalar gravitational waveforms.
+
 - C++ class structure - Following the structure of GRChombo, the GRFolres code is also written in C++ and uses object oriented programming (OOP) and templating.
+
 - Parallelism - GRChombo uses hybrid OpenMP/MPI parallelism with explicit vectorisation of the evolution equations via intrinsics, and is AVX-512 compliant.
+
 - Adaptive Mesh Refinement - The code inherits the flexible AMR grid structure of Chombo, which provides Berger-Oliger style [@Berger:1984zza] AMR with block-structured Berger-Rigoutsos grid generation [@Berger:1991]. Depending on the problem, the user may specify the refinement to be triggered by the additional degrees of freedom, i.e. the scalar field, or those of the metric tensor.
 
 # Statement of Need
@@ -92,6 +101,7 @@ In spherical symmetry several codes have been developed that implement Einstein-
 # Research projects to date using GRFolres
 
 So far the code has been used to study a range of fundamental physics problems, as listed here.
+
 - The test field case was used in [@Evstafyeva:2022rve] to model the scalar waves produced during the ringdown stage of binary black hole coalescence in Einstein-scalar-Gauss-Bonnet, and quantify the extent to which current and future gravitational wave detectors could observe the spectrum of scalar radiation emitted.
 <p align="center">
 <img src="Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve]." style="width: 45%;" />

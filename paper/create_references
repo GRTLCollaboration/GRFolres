@@ -1,0 +1,6 @@
+pandoc -C -t markdown_strict -t commonmark --metadata link-citations paper.md --csl=vancouver.csl -o paper_with_references.md --bibliography=paper.bib
+awk '/# Summary/{exit} {print}' paper.md > temp.txt
+cat temp.txt paper_with_references.md > paper_with_references.md.tmp
+mv paper_with_references.md.tmp paper_with_references.md
+rm temp.txt
+
