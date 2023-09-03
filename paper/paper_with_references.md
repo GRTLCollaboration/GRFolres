@@ -258,13 +258,13 @@ problems, as listed here.
   <br> <i>Contour plot of network signal-to-noise ratio (SNR) for the
   scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by
   the Virgo, Livingston and Hanford network of detectors at design
-  sensitivity. Taken from ([49](#ref-Evstafyeva:2022rve)).</i>
+  sensitivity. Taken from (49).</i>
   </p>
 - The regime of validity of effective field theory in collapse and
   binary evolutions in cubic Horndeski theories were studied in
-  \[([20](#ref-Figueras:2020dzx));Figueras:2021abd\]. It was found that
-  the mismatch of the gravitational wave strain can be as large as
-  10%–13% in the Advanced LIGO mass range for such theories.
+  ([20](#ref-Figueras:2020dzx),[21](#ref-Figueras:2021abd)). It was
+  found that the mismatch of the gravitational wave strain can be as
+  large as 10%–13% in the Advanced LIGO mass range for such theories.
   <p align="center">
   <img src="Figures/EnergyDensity_and_WFC.png" alt="Energy density (in blue) of the scalar field surrounding the binary black holes for the Horndeski theory at a representative instant of time during the inspiral phase. The apparent horizon of the black holes is shown in orange. The region where the weak coupling conditions are larger than one is depicted in brown. Taken from [@Figueras:2021abd]." style="width: 45%;" />
   <br> <i>Energy density (in blue) of the scalar field surrounding the
@@ -272,7 +272,7 @@ problems, as listed here.
   instant of time during the inspiral phase. The apparent horizon of the
   black holes is shown in orange. The region where the weak coupling
   conditions are larger than one is depicted in brown. Taken from
-  ([21](#ref-Figueras:2021abd)).</i>
+  (21).</i>
   </p>
 - In the work ([28](#ref-AresteSalo:2022hua)), the code was developed
   and tested, with waveforms for shift-symmetric theories of
@@ -280,7 +280,7 @@ problems, as listed here.
   <p align="center">
   <img src="Figures/all_waves.png" alt="Modified gravity waveforms in 4∂ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua]." style="width: 60%;" />
   <br> <i>Modified gravity waveforms in 4∂ST with a shift-symmetric
-  coupling. Taken from ([28](#ref-AresteSalo:2022hua)).</i>
+  coupling. Taken from (28).</i>
   </p>
 - In the work ([29](#ref-AresteSalo:2023mmd)), the studies were extended
   to binary mergers in theories with spin-induced scalarisation. The
@@ -290,7 +290,7 @@ problems, as listed here.
   <br> <i>The time evolution of the density of the scalar cloud that
   develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential
   coupling, resulting in spin-induced scalarisation. Taken from
-  ([29](#ref-AresteSalo:2023mmd)).</i>
+  (29).</i>
   </p>
 - In the work ([30](#ref-Doneva:2023oww)), the dependence of the
   conditions for hyperbolicity and weak coupling were studied for
@@ -301,7 +301,7 @@ problems, as listed here.
   <br> <i>The time evolution of the determinant of the effective metric
   in a case of spin-induced scalarisation. When the determinant is
   negative (in black), the theory has become ill-posed. Taken from
-  ([30](#ref-Doneva:2023oww)).</i>
+  (30).</i>
   </p>
 
 # Acknowledgements

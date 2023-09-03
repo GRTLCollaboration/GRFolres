@@ -109,7 +109,7 @@ So far the code has been used to study a range of fundamental physics problems, 
   <i>Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve].</i>
 </p>
 
-- The regime of validity of effective field theory in collapse and binary evolutions in cubic Horndeski theories were studied in [@Figueras:2020dzx;Figueras:2021abd]. It was found that the mismatch of the gravitational wave strain can be as large as 10\%–13\% in the Advanced LIGO mass range for such theories.
+- The regime of validity of effective field theory in collapse and binary evolutions in cubic Horndeski theories were studied in [@Figueras:2020dzx;@Figueras:2021abd]. It was found that the mismatch of the gravitational wave strain can be as large as 10\%–13\% in the Advanced LIGO mass range for such theories.
 <p align="center">
 <img src="Figures/EnergyDensity_and_WFC.png" alt="Energy density (in blue) of the scalar field surrounding the binary black holes for the Horndeski theory at a representative instant of time during the inspiral phase. The apparent horizon of the black holes is shown in orange. The region where the weak coupling conditions are larger than one is depicted in brown. Taken from [@Figueras:2021abd]." style="width: 45%;" />
   <br>
