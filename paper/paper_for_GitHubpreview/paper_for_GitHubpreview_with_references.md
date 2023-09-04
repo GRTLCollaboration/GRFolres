@@ -98,7 +98,7 @@ stable) formulations until relatively recently.
 An important breakthrough was made in 2020 by Kov'acs and Reall, who
 showed that Horndeski theories are indeed well-posed in a modified
 version of the harmonic gauge
-([22](#ref-Kovacs:2020pns),[23](#ref-Kovacs:2020ywu)) - a particular
+([22](#ref-Kovacs:2020pns),[23](#ref-Kovacs:2020ywu)) – a particular
 coordinate system already used in NR. Subsequently, several specific
 theories within these classes were probed in their highly dynamical and
 fully non-linear regimes
@@ -123,7 +123,7 @@ GRChombo ([31](#ref-Clough:2015sqa),[32](#ref-Andrade:2020dgc)), which
 itself uses the open source Chombo framework ([33](#ref-Adams:2015kgr))
 for solving partial differential equations (PDEs).
 
-In the following sections we discuss the key features, motivations and
+In the following sections we discuss the key features, motivations, and
 applications of the code.
 
 # Key features
@@ -144,8 +144,8 @@ list the key features.
   class) so that it can easily be changed without major code
   modifications. The code also provides an implementation of 4∂ST
   without backreaction onto the metric (but including the possibility of
-  using the new gauge), to enable comparison with previous works in the
-  perturbative limit.
+  using the new gauge), to enable comparison with previous works using
+  the decoupling limit approximation.
 
 - Accuracy - The fields are evolved with a 4th order Runge-Kutta time
   integration and their derivatives calculated with the same finite
@@ -258,10 +258,11 @@ problems, as listed here.
   the extent to which current and future gravitational wave detectors
   could observe the spectrum of scalar radiation emitted.
   <p align="center">
-  <img src="../Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve]." style="width: 45%;" />
+  <img src="../Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc in Einstein-scalar-Gauss-Bonnet gravity as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve]." style="width: 45%;" />
   <br> <i>Contour plot of network signal-to-noise ratio (SNR) for the
-  scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by
-  the Virgo, Livingston and Hanford network of detectors at design
+  scalar ringdown of a binary black hole (BBH) in
+  Einstein-scalar-Gauss-Bonnet gravity at 1 Gpc as observed by the
+  Virgo, Livingston and Hanford network of detectors at design
   sensitivity. Taken from (49).</i>
   </p>
 - The regime of validity of effective field theory in collapse and
@@ -301,10 +302,11 @@ problems, as listed here.
   spin-induced scalarisation, and the critical thresholds found for a
   number of cases.
   <p align="center">
-  <img src="../Figures/discriminant_beta200.png" alt="The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="width: 70%;" />
+  <img src="../Figures/discriminant_beta200.png" alt="The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black) outside the event horizon (depicted with a dashed white line), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="width: 70%;" />
   <br> <i>The time evolution of the determinant of the effective metric
   in a case of spin-induced scalarisation. When the determinant is
-  negative (in black), the theory has become ill-posed. Taken from
+  negative (in black) outside the event horizon (depicted with a dashed
+  white line), the theory has become ill-posed. Taken from
   (30).</i>
   </p>
 
@@ -321,7 +323,8 @@ studentship. DD acknowledges financial support via an Emmy Noether
 Research Group funded by the German Research Foundation (DFG) under
 grant no. DO 1771/1-1. LR is supported by a Royal Society Renewal Grant,
 No. URFR201026, and a Research Expenses Enhancement Award,
-No. RFERE210291.
+No. RFERE210291. TE is supported by the Centre for Doctoral Training
+(CDT) at the University of Cambridge funded through STFC.
 
 Development of the code used in this work utilised the ARCHER2 UK
 National Supercomputing Service (https://www.archer2.ac.uk) under the
