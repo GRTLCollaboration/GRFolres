@@ -1,7 +1,7 @@
 ---
 title: 'GRFolres: A code for modified gravity simulations in strong gravity'
 tags:
-  - c++
+  - C++
   - MPI
   - Open MP
   - vector intrinsics
@@ -10,7 +10,7 @@ tags:
   - numerical relativity
 authors:
 - name: Llibert Aresté Saló
-  orcid: 
+  orcid: 0000-0002-3812-8523
   affiliation: 1
 - name: Sam E. Brady
   orcid: 0009-0000-5568-839X
@@ -28,7 +28,7 @@ authors:
   orcid: 
   affiliation: 1
 - name: Tiago França
-  orcid: 
+  orcid: 0000-0002-1718-151X
   affiliation: 1
 - name: Lorenzo Rossi
   orcid: 0000-0001-9653-7088
@@ -41,12 +41,15 @@ affiliations:
   index: 1
 - name: Department of Applied Mathematics and Theoretical Physics (DAMTP), University of Cambridge, Centre for Mathematical Sciences, Wilberforce Road, Cambridge CB3 0WA, United Kingdom
   index: 2
-- name: Theoretical Astrophysics, Eberhard Karls University of T\"ubingen, T\"ubingen 72076, Germany
+- name: Theoretical Astrophysics, Eberhard Karls University of Tübingen, Tübingen 72076, Germany
   index: 3
-date: 2 Sep 2023
+date: 4 Sep 2023
 bibliography: paper.bib
 
 ---
+
+The following brief overview has been prepared as part of the submission
+of the GRFolres code[1] to the Journal of Open Source Software.
 
 # Summary
 
@@ -312,11 +315,12 @@ Research Grant ST/X000931/1 (Astronomy at Queen Mary 2023-2026). PF is
 supported by a Royal Society University Research Fellowship
 No. URFR201026, and No. RFERE210291. KC is supported by an STFC Ernest
 Rutherford fellowship, project reference ST/V003240/1. LAS is supported
-by a QMUL Ph.D. scholarship. DD acknowledges financial support via an
-Emmy Noether Research Group funded by the German Research Foundation
-(DFG) under grant no. DO 1771/1-1. LR is supported by a Royal Society
-Renewal Grant, No. URFR201026, and a Research Expenses Enhancement
-Award, No. RFERE210291.
+by a QMUL Ph.D. scholarship. SB is supported by a QMUL Principal
+studentship. DD acknowledges financial support via an Emmy Noether
+Research Group funded by the German Research Foundation (DFG) under
+grant no. DO 1771/1-1. LR is supported by a Royal Society Renewal Grant,
+No. URFR201026, and a Research Expenses Enhancement Award,
+No. RFERE210291.
 
 Development of the code used in this work utilised the ARCHER2 UK
 National Supercomputing Service (https://www.archer2.ac.uk) under the
@@ -1067,3 +1071,13 @@ Gauss-Bonnet Gravity</span>. Phys Rev D \[Internet\].
 </div>
 
 </div>
+
+[1] Folres (pronounced *fol-res*) is a word meaning covers or linings in
+the Catalan language. It has a specific application in the tradition of
+*Castells* (Human Towers), denoting the second layers of reinforcement
+above the base *pinya*. We use it here in analogy to our understanding
+of effective field theories (EFTs) of gravity as an infinite sum of
+terms organised as a derivative expansion, in which the first one
+corresponds to GR (with up to 2 derivatives), and the second one to
+modified theories up to 4 derivatives, which are those that we are able
+to simulate with GRFolres.
