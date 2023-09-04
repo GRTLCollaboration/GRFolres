@@ -48,8 +48,9 @@ bibliography: paper.bib
 
 ---
 
-The following brief overview has been prepared as part of the submission
-of the GRFolres code[1] to the Journal of Open Source Software.
+The following brief overview has been prepared as part of the submission of the GRFolres code[^1] to the Journal of Open Source Software.
+
+[^1]: Folres (pronounced *fol-res*) is a word meaning covers or linings in the Catalan language. It has a specific application in the tradition of *Castells* (Human Towers), denoting the second layers of reinforcement above the base *pinya*. We use it here in analogy to our understanding of effective field theories (EFTs) of gravity as an infinite sum of terms organised as a derivative expansion, in which the first one corresponds to GR (with up to 2 derivatives), and the second one to modified theories up to 4 derivatives, which are those that we are able to simulate with GRFolres.
 
 # Summary
 
@@ -257,7 +258,7 @@ problems, as listed here.
   the extent to which current and future gravitational wave detectors
   could observe the spectrum of scalar radiation emitted.
   <p align="center">
-  <img src="Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve]." style="width: 45%;" />
+  <img src="../Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve]." style="width: 45%;" />
   <br> <i>Contour plot of network signal-to-noise ratio (SNR) for the
   scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by
   the Virgo, Livingston and Hanford network of detectors at design
@@ -269,7 +270,7 @@ problems, as listed here.
   found that the mismatch of the gravitational wave strain can be as
   large as 10%–13% in the Advanced LIGO mass range for such theories.
   <p align="center">
-  <img src="Figures/EnergyDensity_and_WFC.png" alt="Energy density (in blue) of the scalar field surrounding the binary black holes for the Horndeski theory at a representative instant of time during the inspiral phase. The apparent horizon of the black holes is shown in orange. The region where the weak coupling conditions are larger than one is depicted in brown. Taken from [@Figueras:2021abd]." style="width: 45%;" />
+  <img src="../Figures/EnergyDensity_and_WFC.png" alt="Energy density (in blue) of the scalar field surrounding the binary black holes for the Horndeski theory at a representative instant of time during the inspiral phase. The apparent horizon of the black holes is shown in orange. The region where the weak coupling conditions are larger than one is depicted in brown. Taken from [@Figueras:2021abd]." style="width: 45%;" />
   <br> <i>Energy density (in blue) of the scalar field surrounding the
   binary black holes for the Horndeski theory at a representative
   instant of time during the inspiral phase. The apparent horizon of the
@@ -281,7 +282,7 @@ problems, as listed here.
   and tested, with waveforms for shift-symmetric theories of
   Einstein-scalar-Gauss-Bonnet gravity produced for equal mass binaries.
   <p align="center">
-  <img src="Figures/all_waves.png" alt="Modified gravity waveforms in 4∂ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua]." style="width: 60%;" />
+  <img src="../Figures/all_waves.png" alt="Modified gravity waveforms in 4∂ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua]." style="width: 60%;" />
   <br> <i>Modified gravity waveforms in 4∂ST with a shift-symmetric
   coupling. Taken from (28).</i>
   </p>
@@ -289,7 +290,7 @@ problems, as listed here.
   to binary mergers in theories with spin-induced scalarisation. The
   clouds formed are dumbbell-like in shape.
   <p align="center">
-  <img src="Figures/rhophi.png" alt="The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd]." style="width: 65%;" />
+  <img src="../Figures/rhophi.png" alt="The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd]." style="width: 65%;" />
   <br> <i>The time evolution of the density of the scalar cloud that
   develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential
   coupling, resulting in spin-induced scalarisation. Taken from
@@ -300,7 +301,7 @@ problems, as listed here.
   spin-induced scalarisation, and the critical thresholds found for a
   number of cases.
   <p align="center">
-  <img src="Figures/discriminant_beta200.png" alt="The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="width: 70%;" />
+  <img src="../Figures/discriminant_beta200.png" alt="The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="width: 70%;" />
   <br> <i>The time evolution of the determinant of the effective metric
   in a case of spin-induced scalarisation. When the determinant is
   negative (in black), the theory has become ill-posed. Taken from
@@ -1071,13 +1072,3 @@ Gauss-Bonnet Gravity</span>. Phys Rev D \[Internet\].
 </div>
 
 </div>
-
-[1] Folres (pronounced *fol-res*) is a word meaning covers or linings in
-the Catalan language. It has a specific application in the tradition of
-*Castells* (Human Towers), denoting the second layers of reinforcement
-above the base *pinya*. We use it here in analogy to our understanding
-of effective field theories (EFTs) of gravity as an infinite sum of
-terms organised as a derivative expansion, in which the first one
-corresponds to GR (with up to 2 derivatives), and the second one to
-modified theories up to 4 derivatives, which are those that we are able
-to simulate with GRFolres.
