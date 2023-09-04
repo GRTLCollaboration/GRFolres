@@ -60,11 +60,11 @@ Current waveforms are tested for consistency with GR by measuring parameterised 
 
 There are many ways to modify GR, one of the simplest being to couple an additional scalar degree of freedom, which may (if certain conditions are satisfied) result in so-called "hairy" stationary black hole solutions; that is, black holes with a stable, non trivial configuration of the scalar field around them (see [@Doneva:2022ewd] for a review). An example of this is the class of Horndeski models [@Horndeski:1974wa]. Cubic Horndeski theories have been studied in [@Figueras:2020dzx,@Figueras:2021abd] and an implementation of this is included in GRFolres. Another more general example within the Horndeski models is the four-derivative scalar-tensor theory (4∂ST), which is the most general theory with up to fourth powers of the derivatives (but still second order equations of motion). Despite their relative simplicity, they have lacked well-posed (and thus numerically stable) formulations until relatively recently.
 
-An important breakthrough was made in 2020 by Kov\'acs and Reall, who showed that Horndeski theories are indeed well-posed in a modified version of the harmonic gauge [@Kovacs:2020pns;@Kovacs:2020ywu] - a particular coordinate system already used in NR. Subsequently, several specific theories within these classes were probed in their highly dynamical and fully non-linear regimes [@East:2020hgw;@East:2021bqk;@East:2022rqi;@Corman:2022xqg]. The extension of the results of [@Kovacs:2020pns;@Kovacs:2020ywu] to the alternative "singularity avoiding" coordinates in [@AresteSalo:2022hua;@AresteSalo:2023mmd;@Doneva:2023oww] offers an alternative gauge in which to probe questions of hyperbolicity, and may offer stability advantages for certain cases such as unequal mass ratios, as studied in [@Corman:2022xqg]. Numerical work on these theories is still in the early stages of development and many technical details on their numerical implementation need to be further investigated. Equally, many scientific questions, concerning our accurate understanding of binary black holes' phenomenology in alternative theories of gravity and their implications for tests of GR, also remain unanswered. 
+An important breakthrough was made in 2020 by Kov\'acs and Reall, who showed that Horndeski theories are indeed well-posed in a modified version of the harmonic gauge [@Kovacs:2020pns;@Kovacs:2020ywu] -- a particular coordinate system already used in NR. Subsequently, several specific theories within these classes were probed in their highly dynamical and fully non-linear regimes [@East:2020hgw;@East:2021bqk;@East:2022rqi;@Corman:2022xqg]. The extension of the results of [@Kovacs:2020pns;@Kovacs:2020ywu] to the alternative "singularity avoiding" coordinates in [@AresteSalo:2022hua;@AresteSalo:2023mmd;@Doneva:2023oww] offers an alternative gauge in which to probe questions of hyperbolicity, and may offer stability advantages for certain cases such as unequal mass ratios, as studied in [@Corman:2022xqg]. Numerical work on these theories is still in the early stages of development and many technical details on their numerical implementation need to be further investigated. Equally, many scientific questions, concerning our accurate understanding of binary black holes' phenomenology in alternative theories of gravity and their implications for tests of GR, also remain unanswered.
 
 The goal of GRFolres is to meet this need for further research, and to provide a model code to help others develop and test their own implementations. The code is based on the publicly available NR code GRChombo [@Clough:2015sqa;@Andrade:2020dgc], which itself uses the open source Chombo framework [@Adams:2015kgr] for solving partial differential equations (PDEs).
 
-In the following sections we discuss the key features, motivations and applications of the code.
+In the following sections we discuss the key features, motivations, and applications of the code.
 
 # Key features
 
@@ -72,7 +72,7 @@ GRFolres inherits many of the features of GRChombo and Chombo. Here we list the 
 
 - Stable gauge evolution - The code implements the modified moving puncture gauge that ensures a well posed evolution in the weak coupling regime, as proposed in [@AresteSalo:2022hua]. The precise form of the gauge and its parameters can be changed and the standard moving puncture gauge is safely recovered by setting certain parameters to zero.
 
-- Modified gravity theories - The currently available theories in the code are 4∂ST and cubic Horndeski. The code is templated over the theory (in the same way that GRChombo is templated over a matter class) so that it can easily be changed without major code modifications. The code also provides an implementation of 4∂ST without backreaction onto the metric (but including the possibility of using the new gauge), to enable comparison with previous works in the perturbative limit.
+- Modified gravity theories - The currently available theories in the code are 4∂ST and cubic Horndeski. The code is templated over the theory (in the same way that GRChombo is templated over a matter class) so that it can easily be changed without major code modifications. The code also provides an implementation of 4∂ST without backreaction onto the metric (but including the possibility of using the new gauge), to enable comparison with previous works using the decoupling limit approximation.
 
 - Accuracy - The fields are evolved with a 4th order Runge-Kutta time integration and their derivatives calculated with the same finite difference stencils used in GRChombo (4th and 6th order are currently available).
 
@@ -108,9 +108,9 @@ So far the code has been used to study a range of fundamental physics problems, 
 
 - The test field case was used in [@Evstafyeva:2022rve] to model the scalar waves produced during the ringdown stage of binary black hole coalescence in Einstein-scalar-Gauss-Bonnet, and quantify the extent to which current and future gravitational wave detectors could observe the spectrum of scalar radiation emitted.
 <p align="center">
-<img src="../Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve]." style="width: 45%;" />
+<img src="../Figures/SNR_network.png" alt="Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc in Einstein-scalar-Gauss-Bonnet gravity as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve]." style="width: 45%;" />
   <br>
-  <i>Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve].</i>
+  <i>Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) in Einstein-scalar-Gauss-Bonnet gravity at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve].</i>
 </p>
 
 - The regime of validity of effective field theory in collapse and binary evolutions in cubic Horndeski theories were studied in [@Figueras:2020dzx;@Figueras:2021abd]. It was found that the mismatch of the gravitational wave strain can be as large as 10\%–13\% in the Advanced LIGO mass range for such theories.
@@ -136,9 +136,9 @@ So far the code has been used to study a range of fundamental physics problems, 
 
 - In the work [@Doneva:2023oww], the dependence of the conditions for hyperbolicity and weak coupling were studied for spin-induced scalarisation, and the critical thresholds found for a number of cases.
 <p align="center">
-<img src="../Figures/discriminant_beta200.png" alt="The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="width: 70%;" />
+<img src="../Figures/discriminant_beta200.png" alt="The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black) outside the event horizon (depicted with a dashed white line), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="width: 70%;" />
   <br>
-  <i>The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black), the theory has become ill-posed. Taken from [@Doneva:2023oww].</i>
+  <i>The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black) outside the event horizon (depicted with a dashed white line), the theory has become ill-posed. Taken from [@Doneva:2023oww].</i>
 </p>
 
 # Acknowledgements
@@ -146,6 +146,7 @@ So far the code has been used to study a range of fundamental physics problems, 
 We thank the entire GRChombo (www.grchombo.org) collaboration for their support and code development work. PF and KC are supported by an STFC Research Grant ST/X000931/1 (Astronomy at Queen Mary 2023-2026). PF is supported by a Royal Society University Research Fellowship  No. URF\textbackslash R\textbackslash 201026, and No. RF\textbackslash ERE\textbackslash 210291. KC is supported by an STFC Ernest Rutherford fellowship, project reference ST/V003240/1. LAS is supported by a QMUL Ph.D. scholarship. SB is supported by a QMUL Principal studentship.
 DD acknowledges financial support via an Emmy Noether Research Group funded by the German Research Foundation (DFG) under grant no. DO 1771/1-1. 
 LR is supported by a Royal Society Renewal Grant, No. URF\textbackslash R\textbackslash 201026, and a Research Expenses Enhancement Award, No. RF\textbackslash ERE\textbackslash 210291.
+TE is supported by the Centre for Doctoral Training (CDT) at the University of Cambridge funded through STFC.
 
 Development of the code used in this work utilised the ARCHER2 UK National Supercomputing Service (https://www.archer2.ac.uk) under the EPSRC HPC project no. E775, the CSD3 cluster in Cambridge under Projects No. DP128. The Cambridge Service for Data Driven Discovery (CSD3), partially operated by the University of Cambridge Research Computing on behalf of the STFC DiRAC HPC Facility. 
 The DiRAC component of CSD3 is funded by BEIS capital via STFC capital Grants No. ST/P002307/1 and No. ST/ R002452/1 and STFC operations Grant No. ST/R00689X/1. DiRAC is part of the National e-Infrastructure (www.dirac.ac.uk). 
