@@ -140,7 +140,7 @@ line), the theory has become ill-posed. Taken from [@Doneva:2023oww]." style="wi
 
 # Acknowledgements
 
-We thank the entire GRChombo (www.grchombo.org) collaboration for their support and code development work. PF and KC are supported by an STFC Research Grant ST/X000931/1 (Astronomy at Queen Mary 2023-2026). PF is supported by a Royal Society University Research Fellowship  No. URF\textbackslash R\textbackslash 201026, and No. RF\textbackslash ERE\textbackslash 210291. KC is supported by an STFC Ernest Rutherford fellowship, project reference ST/V003240/1. LAS is supported by a QMUL Ph.D. scholarship.
+We thank the entire GRChombo (www.grchombo.org) collaboration for their support and code development work. PF and KC are supported by an STFC Research Grant ST/X000931/1 (Astronomy at Queen Mary 2023-2026). PF is supported by a Royal Society University Research Fellowship  No. URF\textbackslash R\textbackslash 201026, and No. RF\textbackslash ERE\textbackslash 210291. KC is supported by an STFC Ernest Rutherford fellowship, project reference ST/V003240/1. LAS is supported by a QMUL Ph.D. scholarship. SB is supported by a QMUL Principal studentship
 DD acknowledges financial support via an Emmy Noether Research Group funded by the German Research Foundation (DFG) under grant no. DO 1771/1-1. 
 LR is supported by a Royal Society Renewal Grant, No. URF\textbackslash R\textbackslash 201026, and a Research Expenses Enhancement Award, No. RF\textbackslash ERE\textbackslash 210291. TE is supported by the Centre for Doctoral Training (CDT) at the University of Cambridge funded through STFC.
 
