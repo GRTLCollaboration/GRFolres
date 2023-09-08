@@ -19,13 +19,13 @@ authors:
   orcid: 0000-0001-8841-1522
   affiliation: 1
 - name: Daniela Doneva
-  orcid: 
+  orcid: 0000-0001-6519-000X
   affiliation: 3
 - name: Tamara Evstafyeva
-  orcid: 
+  orcid: 0000-0002-2818-701X
   affiliation: 2
 - name: Pau Figueras
-  orcid: 
+  orcid: 0000-0001-6438-315X
   affiliation: 1
 - name: Tiago França
   orcid: 0000-0002-1718-151X
@@ -34,7 +34,7 @@ authors:
   orcid: 0000-0001-9653-7088
   affiliation: 1
 - name: Shunhui Yao
-  orcid: 
+  orcid: 0009-0003-8207-0335
   affiliation: 1
 affiliations:
 - name: School of Mathematical Sciences, Queen Mary University of London, Mile End Road, London E1 4NS, United Kingdom
@@ -70,7 +70,7 @@ In the following sections we discuss the key features, motivations, and applicat
 
 GRFolres inherits many of the features of GRChombo and Chombo. Here we list the key features.
 
-- Stable gauge evolution - The code implements the modified moving puncture gauge that ensures a well posed evolution in the weak coupling regime, as proposed in [@AresteSalo:2022hua]. The precise form of the gauge and its parameters can be changed and the standard moving puncture gauge is safely recovered by setting certain parameters to zero.
+- Stable gauge evolution - The code implements the modified moving puncture gauge that ensures a well-posed evolution in the weak coupling regime, as proposed in [@AresteSalo:2022hua]. The precise form of the gauge and its parameters can be changed and the standard moving puncture gauge is safely recovered by setting certain parameters to zero.
 
 - Modified gravity theories - The currently available theories in the code are 4∂ST and cubic Horndeski. The code is templated over the theory (in the same way that GRChombo is templated over a matter class) so that it can easily be changed without major code modifications. The code also provides an implementation of 4∂ST without backreaction onto the metric (but including the possibility of using the new gauge), to enable comparison with previous works using the decoupling limit approximation.
 
@@ -90,17 +90,15 @@ GRFolres inherits many of the features of GRChombo and Chombo. Here we list the 
 
 # Statement of Need
 
-As far as we are aware there is currently no other publicly available code that implements the $4\partial$ST theory of modified gravity or the cubic Horndeski theory in 3+1-dimensional numerical relativity. 
+As far as we are aware there is currently no other publicly available code that implements the $4\partial$ST theory of modified gravity or the cubic Horndeski theory in (3+1)-dimensional numerical relativity. 
 
 There is at least one private code, based on the PAMR/AMRD and HAD [@East:2011aa;@Neilsen:2007ua] infrastructure, that was used in the first works to successfully implement the modified general harmonic gauge for $4\partial$ST [@East:2020hgw;@East:2021bqk;@East:2022rqi;@Corman:2022xqg]. 
 Since this code uses a Generalised Harmonic Coordinates (GHC) formulation, it necessitates excision of the interior of black holes, which can be difficult to implement in practice. As a consequence, many groups in the numerical relativity community have opted to use singularity avoiding coordinates such as the BSSN [@Nakamura:1987zz;@Shibata:1995we;@Baumgarte:1998te], Z4C [@Bona:2003fj;@Bernuzzi:2009ex] or CCZ4 [@Alic:2011gg;@Alic:2013xsa] formulations in the puncture gauge [@Campanelli:2005dd;@Baker:2005vv], which do not require the excision of the interior of black holes from the computational domain. 
 In GRFolres, we use the results of [@AresteSalo:2022hua;@AresteSalo:2023mmd;@Doneva:2023oww] to extend the well-posed formulations of modified gravity to singularity avoiding coordinates. This provides an alternative gauge to the modified GHC one used by other groups. Not only does this provide a valuable comparison to their work, but also eliminates the need for excision.
 
-There are also a number of 3+1-dimensional codes that implement the equations for the additional scalar degree of freedom in Einstein-scalar-Gauss-Bonnet without backreaction onto the metric tensor, including one implementation using GRChombo [@Evstafyeva:2022rve], which we have integrated into GRFolres to enable comparison between the methods. In particular, Canuda (https://bitbucket.org/canuda) [@Witek:2018dmd] which uses the Einstein Toolkit (http://einsteintoolkit.org/), with its related Cactus (http://cactuscode.org) [@Loffler:2011ay;@Schnetter:2003rb] and Kranc (http://kranccode.org) [@Husa:2004ip] infrastructure, was used in [@Richards:2023xsr;@Elley:2022ept;@R:2022tqa;@Silva:2020omi;@Witek:2018dmd]. Another implementation is based on the Spectral Einstein Code or SpEC (http://www.black-holes.org/SpEC.html) [@Pfeiffer:2002wt], as used in [@Okounkova:2020rqw].
-Whilst order-reduced methods like those in [@Richards:2023xsr;@R:2022tqa;@Okounkova:2022grv;@Elley:2022ept;@Doneva:2022byd;@Okounkova:2020rqw;@Silva:2020omi;@Okounkova:2019zjf;@Okounkova:2019dfo;@Witek:2018dmd;@Evstafyeva:2022rve] 
-provide an estimate of the scalar dynamics and associated energy losses, they may miss information about the fully non-linear impact on the metric and suffer from the accumulation of secular errors over long inspirals.
+There are also a number of (3+1)-dimensional codes that implement the equations for the additional scalar degree of freedom in Einstein-scalar-Gauss-Bonnet without backreaction onto the metric tensor, including one implementation using GRChombo [@Evstafyeva:2022rve], which we have integrated into GRFolres to enable comparison between the methods. In particular, Canuda (https://bitbucket.org/canuda) [@Witek:2018dmd] which uses the Einstein Toolkit (http://einsteintoolkit.org/), with its related Cactus (http://cactuscode.org) [@Loffler:2011ay;@Schnetter:2003rb] and Kranc (http://kranccode.org) [@Husa:2004ip] infrastructure, was used in [@Richards:2023xsr;@Elley:2022ept;@R:2022tqa;@Silva:2020omi;@Witek:2018dmd]. Another implementation is based on the Spectral Einstein Code or SpEC (http://www.black-holes.org/SpEC.html) [@Pfeiffer:2002wt], as used in [@Okounkova:2020rqw].A neutron star background was considered in [@Kuan:2023trn] with a modification of SACRA-MPI code [@Yamamoto:2008js;@Kiuchi:2017pte]. Whilst order-reduced methods like those in [@Richards:2023xsr;@R:2022tqa;@Okounkova:2022grv;@Elley:2022ept;@Doneva:2022byd;@Okounkova:2020rqw;@Silva:2020omi;@Okounkova:2019zjf;@Okounkova:2019dfo;@Witek:2018dmd;@Evstafyeva:2022rve] provide an estimate of the scalar dynamics and associated energy losses, they may miss information about the fully non-linear impact on the metric and suffer from the accumulation of secular errors over long inspirals.
 
-In spherical symmetry several codes have been developed that implement Einstein-scalar-Gauss-Bonnet (a subset of the $4\partial$ST theory that we include as an example in GRFolres). In particular, using the NRPy framework (http://astro.phys.wvu.edu/bhathome) [@Ruchlin:2017com] in [@Doneva:2022byd], and the private code of Ripley \& Pretorius in [@R:2022hlf;@Ripley:2020vpk;@Ripley:2019irj;@Ripley:2019hxt;@Ripley:2019aqj]. Spherical codes provide a useful testing ground in which coordinate ambiguities can be avoided [@R:2022hlf], but lack the generality required to study objects with angular momentum, or binary mergers.
+In spherical symmetry several codes have been developed that implement Einstein-scalar-Gauss-Bonnet (a subset of the $4\partial$ST theory that we include as an example in GRFolres). In particular, using the NRPy framework (http://astro.phys.wvu.edu/bhathome) [@Ruchlin:2017com] in [@Doneva:2022byd], and the private code of Ripley \& Pretorius in [@R:2022hlf;@Ripley:2020vpk;@Ripley:2019irj;@Ripley:2019hxt;@Ripley:2019aqj], and a modification of the GR1D code [@OConnor:2009iuz;@Gerosa:2016fri]. There is also the fully nonlinear spherical code developed in [@Corelli:2022pio;@Corelli:2022phw]. Spherical codes provide a useful testing ground in which coordinate ambiguities can be avoided [@R:2022hlf], but lack the generality required to study objects with angular momentum, or binary mergers.
 
 # Research projects to date using GRFolres
 
@@ -119,14 +117,14 @@ So far the code has been used to study a range of fundamental physics problems, 
 ![The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd].\label{fig:spin}](Figures/rhophi.png){width=65%} 
 
 - In the work [@Doneva:2023oww], the dependence of the conditions for hyperbolicity and weak coupling were studied for spin-induced scalarisation, and the critical thresholds found for a number of cases.
-![The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black) outside the event horizon (depicted with a dashed white line), the theory has become ill-posed. Taken from [@Doneva:2023oww].\label{fig:hyperbolicity}](Figures/discriminant_beta200.png){width=70%}
+![The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black) outside the apparent horizon (depicted with a dashed white line), the theory has become ill-posed. Taken from [@Doneva:2023oww].\label{fig:hyperbolicity}](Figures/discriminant_beta200.png){width=70%}
 
 # Acknowledgements
 
 We thank the entire GRChombo (www.grchombo.org) collaboration for their support and code development work. PF and KC are supported by an STFC Research Grant ST/X000931/1 (Astronomy at Queen Mary 2023-2026). PF is supported by a Royal Society University Research Fellowship  No. URF\textbackslash R\textbackslash 201026, and No. RF\textbackslash ERE\textbackslash 210291. KC is supported by an STFC Ernest Rutherford fellowship, project reference ST/V003240/1. LAS is supported by a QMUL Ph.D. scholarship. SB is supported by a QMUL Principal studentship.
 DD acknowledges financial support via an Emmy Noether Research Group funded by the German Research Foundation (DFG) under grant no. DO 1771/1-1. 
 LR is supported by a Royal Society Renewal Grant, No. URF\textbackslash R\textbackslash 201026, and a Research Expenses Enhancement Award, No. RF\textbackslash ERE\textbackslash 210291.
-TE is supported by the Centre for Doctoral Training (CDT) at the University of Cambridge funded through STFC.
+TE is supported by the Centre for Doctoral Training (CDT) at the University of Cambridge funded through STFC. SY acknowledges the support from China Scholarship Council.
 
 Development of the code used in this work utilised the ARCHER2 UK National Supercomputing Service (https://www.archer2.ac.uk) under the EPSRC HPC project no. E775, the CSD3 cluster in Cambridge under Projects No. DP128. The Cambridge Service for Data Driven Discovery (CSD3), partially operated by the University of Cambridge Research Computing on behalf of the STFC DiRAC HPC Facility. 
 The DiRAC component of CSD3 is funded by BEIS capital via STFC capital Grants No. ST/P002307/1 and No. ST/ R002452/1 and STFC operations Grant No. ST/R00689X/1. DiRAC is part of the National e-Infrastructure (www.dirac.ac.uk). 
