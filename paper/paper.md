@@ -107,6 +107,7 @@ So far the code has been used to study a range of fundamental physics problems, 
 - The test field case was used in [@Evstafyeva:2022rve] to model the scalar waves produced during the ringdown stage of binary black hole coalescence in Einstein-scalar-Gauss-Bonnet, and quantify the extent to which current and future gravitational wave detectors could observe the spectrum of scalar radiation emitted.
 
 ![Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) in Einstein-scalar-Gauss-Bonnet gravity at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve].\label{fig:testfield}](Figures/SNR_network.png){width=95%}
+
 *Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) in Einstein-scalar-Gauss-Bonnet gravity at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve].*
 
 - The regime of validity of effective field theory in collapse and binary evolutions in cubic Horndeski theories were studied in [@Figueras:2020dzx;@Figueras:2021abd]. It was found that the mismatch of the gravitational wave strain can be as large as 10\%–13\% in the Advanced LIGO mass range for such theories.
@@ -118,6 +119,7 @@ So far the code has been used to study a range of fundamental physics problems, 
 - In the work [@AresteSalo:2022hua], the code was developed and tested, with waveforms for shift-symmetric theories of Einstein-scalar-Gauss-Bonnet gravity produced for equal mass binaries.
 
 ![Modified gravity waveforms in $4\partial$ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua].\label{fig:waveform}](Figures/all_waves.png){width=95%}
+
 *Modified gravity waveforms in $4\partial$ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua].*
     
 - In the work [@AresteSalo:2023mmd], the studies were extended to binary mergers in theories with spin-induced scalarisation. The clouds formed are dumbbell-like in shape.
