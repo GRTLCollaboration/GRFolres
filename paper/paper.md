@@ -105,19 +105,29 @@ In spherical symmetry several codes have been developed that implement Einstein-
 So far the code has been used to study a range of fundamental physics problems, as listed here.
 
 - The test field case was used in [@Evstafyeva:2022rve] to model the scalar waves produced during the ringdown stage of binary black hole coalescence in Einstein-scalar-Gauss-Bonnet, and quantify the extent to which current and future gravitational wave detectors could observe the spectrum of scalar radiation emitted.
+
 ![Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) in Einstein-scalar-Gauss-Bonnet gravity at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve].\label{fig:testfield}](Figures/SNR_network.pdf){width=95%}
+*Contour plot of network signal-to-noise ratio (SNR) for the scalar ringdown of a binary black hole (BBH) in Einstein-scalar-Gauss-Bonnet gravity at 1 Gpc as observed by the Virgo, Livingston and Hanford network of detectors at design sensitivity. Taken from [@Evstafyeva:2022rve].*
 
 - The regime of validity of effective field theory in collapse and binary evolutions in cubic Horndeski theories were studied in [@Figueras:2020dzx;@Figueras:2021abd]. It was found that the mismatch of the gravitational wave strain can be as large as 10\%–13\% in the Advanced LIGO mass range for such theories.
+
 ![Energy density (in blue) of the scalar field surrounding the binary black holes for the Horndeski theory at a representative instant of time during the inspiral phase. The apparent horizon of the black holes is shown in orange. The region where the weak coupling conditions are larger than one is depicted in brown. Taken from [@Figueras:2021abd].\label{fig:cubic}](Figures/EnergyDensity_and_WFC.png){width=95%}
+*Energy density (in blue) of the scalar field surrounding the binary black holes for the Horndeski theory at a representative instant of time during the inspiral phase. The apparent horizon of the black holes is shown in orange. The region where the weak coupling conditions are larger than one is depicted in brown. Taken from [@Figueras:2021abd].*
 
 - In the work [@AresteSalo:2022hua], the code was developed and tested, with waveforms for shift-symmetric theories of Einstein-scalar-Gauss-Bonnet gravity produced for equal mass binaries.
+
 ![Modified gravity waveforms in $4\partial$ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua].\label{fig:waveform}](Figures/all_waves.pdf){width=95%}
+*Modified gravity waveforms in $4\partial$ST with a shift-symmetric coupling. Taken from [@AresteSalo:2022hua].*
     
 - In the work [@AresteSalo:2023mmd], the studies were extended to binary mergers in theories with spin-induced scalarisation. The clouds formed are dumbbell-like in shape.
+
 ![The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd].\label{fig:spin}](Figures/rhophi.png){width=95%} 
+*The time evolution of the density of the scalar cloud that develops in Einstein-scalar-Gauss-Bonnet gravity with an exponential coupling, resulting in spin-induced scalarisation. Taken from [@AresteSalo:2023mmd].*
 
 - In the work [@Doneva:2023oww], the dependence of the conditions for hyperbolicity and weak coupling were studied for spin-induced scalarisation, and the critical thresholds found for a number of cases.
+
 ![The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black) outside the apparent horizon (depicted with a dashed white line), the theory has become ill-posed. Taken from [@Doneva:2023oww].\label{fig:hyperbolicity}](Figures/discriminant_beta200.png){width=95%}
+*The time evolution of the determinant of the effective metric in a case of spin-induced scalarisation. When the determinant is negative (in black) outside the apparent horizon (depicted with a dashed white line), the theory has become ill-posed. Taken from [@Doneva:2023oww].*
 
 # Acknowledgements
 
