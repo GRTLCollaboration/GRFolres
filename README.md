@@ -27,7 +27,7 @@ for our coding style and testing policy before filing a pull request.
 GRFolres is licensed under the BSD 3-Clause License. Please see LICENSE for details.
 
 ## Citation
-If you use GRFolres as part of a paper, please cite our paper which has been submitted for review in the journal of Open Source Software:
+If you use GRFolres as part of a paper, please cite our paper which has been submitted for review in the Journal of Open Source Software:
 
 ```
 @article{AresteSalo:2023hcp,
