@@ -17,18 +17,30 @@ code, which makes use of the Chombo library for adaptive mesh refinement.
 
 ## Getting started
 Detailed installation instructions and usage examples are available in
-our [wiki](https://github.com/GRChombo/ModifiedGravity/wiki), with the home page giving guidance on where to start.
+our [wiki](https://github.com/GRChombo/GRFolres/wiki), with the home page giving guidance on where to start.
 
 ## Contributing
-We welcome feedback, bug reports, and contributions. Please consult the [wiki](https://github.com/GRChombo/ModifiedGravity/wiki)
+We welcome feedback, bug reports, and contributions. Please consult the [wiki](https://github.com/GRChombo/GRFolres/wiki)
 for our coding style and testing policy before filing a pull request.
 
 ## License
 GRFolres is licensed under the BSD 3-Clause License. Please see LICENSE for details.
 
 ## Citation
-A paper for this code is in preparation. In the meantime, please cite the GRChombo JOSS publication using the following bibtex reference:
+If you use GRFolres as part of a paper, please cite our paper which has been submitted for review in the journal of Open Source Software:
 
+```
+@article{AresteSalo:2023hcp,
+    author = "Arest\'e Sal\'o, Llibert and Brady, Sam E. and Clough, Katy and Doneva, Daniela and Evstafyeva, Tamara and Figueras, Pau and Fran\c{c}a, Tiago and Rossi, Lorenzo and Yao, Shunhui",
+    title = "{GRFolres: A code for modified gravity simulations in strong gravity}",
+    eprint = "2309.06225",
+    archivePrefix = "arXiv",
+    primaryClass = "gr-qc",
+    month = "9",
+    year = "2023"
+}
+```
+as well as the GRChombo JOSS publication, which has the following BibTeX reference:
 ```
 @article{Andrade2021,
   doi = {10.21105/joss.03703},
