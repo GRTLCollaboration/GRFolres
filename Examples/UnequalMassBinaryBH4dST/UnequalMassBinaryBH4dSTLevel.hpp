@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRChombo's root directory.
  */
 
-#ifndef BINARYBH4DSTLEVEL_HPP_
-#define BINARYBH4DSTLEVEL_HPP_
+#ifndef UNEQUALMASSBINARYBH4DSTLEVEL_HPP_
+#define UNEQUALMASSBINARYBH4DSTLEVEL_HPP_
 
 #include "BHAMR.hpp"
 #include "CouplingAndPotential.hpp"
@@ -15,9 +15,9 @@
 // TPAMR.hpp includes BHAMR.hpp
 #include "TPAMR.hpp"
 
-class BinaryBH4dSTLevel : public GRAMRLevel
+class UnequalMassBinaryBH4dSTLevel : public GRAMRLevel
 {
-    friend class DefaultLevelFactory<BinaryBH4dSTLevel>;
+    friend class DefaultLevelFactory<UnequalMassBinaryBH4dSTLevel>;
     // Inherit the contructors from GRAMRLevel
     using GRAMRLevel::GRAMRLevel;
 
@@ -63,4 +63,4 @@ class BinaryBH4dSTLevel : public GRAMRLevel
 #endif /* CH_USE_HDF5 */
 };
 
-#endif /* BINARYBH4DSTLEVEL_HPP_ */
+#endif /* UNEQUALMASSBINARYBH4DSTLEVEL_HPP_ */

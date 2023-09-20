@@ -33,6 +33,7 @@ src_dirs := $(GRCHOMBO_SOURCE)/utils \
             $(GRCHOMBO_SOURCE)/simd  \
             $(GRFOLRES_SOURCE)/ModifiedCCZ4  \
 	    $(GRFOLRES_SOURCE)/FourDerivScalarTensor  \
+	    $(GRFOLRES_SOURCE)/TaggingCriteria  \
 	    $(GRCHOMBO_SOURCE)/CCZ4  \
             $(GRCHOMBO_SOURCE)/BoxUtils  \
             $(GRCHOMBO_SOURCE)/GRChomboCore  \

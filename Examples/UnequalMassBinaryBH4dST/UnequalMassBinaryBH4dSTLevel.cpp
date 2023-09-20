@@ -25,9 +25,10 @@
 #include "TraceARemoval.hpp"
 #include "TwoPuncturesInitialData.hpp"
 #include "WeylExtraction.hpp"
+#include "BinaryPunctureTaggingCriterion.hpp"
 
 // Things to do during the advance step after RK4 steps
-void BinaryBH4dSTLevel::specificAdvance()
+void UnequalMassBinaryBH4dSTLevel::specificAdvance()
 {
     // Enforce the trace free A_ij condition and positive chi and alpha
     BoxLoops::loop(make_compute_pack(TraceARemoval(), PositiveChiAndAlpha()),
@@ -41,16 +42,16 @@ void BinaryBH4dSTLevel::specificAdvance()
 
 // This initial data uses an approximation for the metric which
 // is valid for small boosts
-void BinaryBH4dSTLevel::initialData()
+void UnequalMassBinaryBH4dSTLevel::initialData()
 {
-    CH_TIME("BinaryBH4dSTLevel::initialData");
+    CH_TIME("UnequalMassBinaryBH4dSTLevel::initialData");
     if (m_verbosity)
-        pout() << "BinaryBH4dSTLevel::initialData " << m_level << endl;
+        pout() << "UnequalMassBinaryBH4dSTLevel::initialData " << m_level << endl;
 #ifdef USE_TWOPUNCTURES
     TwoPuncturesInitialData two_punctures_initial_data(
         m_dx, m_p.center, m_tp_amr.m_two_punctures);
     // Can't use simd with this initial data
-    //BoxLoops::loop(two_punctures_initial_data, m_state_new, m_state_new,
+    // BoxLoops::loop(two_punctures_initial_data, m_state_new, m_state_new,
     //               INCLUDE_GHOST_CELLS, disable_simd());
     BoxLoops::loop(make_compute_pack(two_punctures_initial_data,
                    InitialScalarData(m_p.initial_params, m_dx)), m_state_new,
@@ -69,7 +70,7 @@ void BinaryBH4dSTLevel::initialData()
 }
 
 // Calculate RHS during RK4 substeps
-void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
+void UnequalMassBinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
                                         const double a_time)
 {
     // Enforce positive chi and alpha and trace free A
@@ -104,27 +105,27 @@ void BinaryBH4dSTLevel::specificEvalRHS(GRLevelData &a_soln, GRLevelData &a_rhs,
 }
 
 // enforce trace removal during RK4 substeps
-void BinaryBH4dSTLevel::specificUpdateODE(GRLevelData &a_soln,
+void UnequalMassBinaryBH4dSTLevel::specificUpdateODE(GRLevelData &a_soln,
                                           const GRLevelData &a_rhs, Real a_dt)
 {
     // Enforce the trace free A_ij condition
     BoxLoops::loop(TraceARemoval(), a_soln, a_soln, INCLUDE_GHOST_CELLS);
 }
 
-void BinaryBH4dSTLevel::preTagCells()
+void UnequalMassBinaryBH4dSTLevel::preTagCells()
 {
     // We only use chi in the tagging criterion so only fill the ghosts for chi
     fillAllGhosts(VariableType::evolution, Interval(c_chi, c_chi));
 }
 
 // specify the cells to tag
-void BinaryBH4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
+void UnequalMassBinaryBH4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                                 const FArrayBox &current_state)
 {
     if (m_p.track_punctures)
     {
         std::vector<double> puncture_masses;
-        //std::array<double,2> puncture_masses;
+        // std::array<double,2> puncture_masses;
 #ifdef USE_TWOPUNCTURES
         // use calculated bare masses from TwoPunctures
         puncture_masses = {m_tp_amr.m_two_punctures.mm,
@@ -134,11 +135,18 @@ void BinaryBH4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
 #endif /* USE_TWOPUNCTURES */
         auto puncture_coords =
             m_bh_amr.m_puncture_tracker.get_puncture_coords();
-        BoxLoops::loop(ChiPunctureExtractionTaggingCriterion(
+	/* BoxLoops::loop(ChiPunctureExtractionTaggingCriterion(
                            m_dx, m_level, m_p.max_level, m_p.extraction_params,
                            puncture_coords, m_p.activate_extraction,
                            m_p.track_punctures, puncture_masses),
-                       current_state, tagging_criterion);
+                       current_state, tagging_criterion);*/
+        BoxLoops::loop(BinaryPunctureTaggingCriterion<FourthOrderDerivatives>(
+                       m_dx, m_level, m_p.tag_horizons_max_levels,
+                       m_p.tag_punctures_max_levels, m_p.extraction_params,
+                       puncture_coords, m_p.activate_extraction, m_p.track_punctures,
+                       puncture_masses, m_p.bh_tagging_buffers,
+                       m_p.puncture_tag_min_separation),
+                   current_state, tagging_criterion);
     }
     else
     {
@@ -149,9 +157,9 @@ void BinaryBH4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
     }
 }
 
-void BinaryBH4dSTLevel::specificPostTimeStep()
+void UnequalMassBinaryBH4dSTLevel::specificPostTimeStep()
 {
-    CH_TIME("BinaryBH4dSTLevel::specificPostTimeStep");
+    CH_TIME("UnequalMassBinaryBH4dSTLevel::specificPostTimeStep");
 
     bool first_step =
         (m_time == 0.); // this form is used when 'specificPostTimeStep' was
@@ -267,7 +275,7 @@ void BinaryBH4dSTLevel::specificPostTimeStep()
 
 #ifdef CH_USE_HDF5
 // Things to do before a plot level - need to calculate the Weyl scalars
-void BinaryBH4dSTLevel::prePlotLevel()
+void UnequalMassBinaryBH4dSTLevel::prePlotLevel()
 {
     fillAllGhosts();
     if (m_p.activate_extraction == 1)

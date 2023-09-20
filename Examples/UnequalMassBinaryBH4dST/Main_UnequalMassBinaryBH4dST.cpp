@@ -52,7 +52,7 @@ int runGRChombo(int argc, char *argv[])
         // the tagging criterion used in this example means that the punctures
         // should be on the max level but let's fill ghosts on the level below
         // too just in case
-//        int puncture_tracker_min_level = sim_params.max_level - 1;
+	// int puncture_tracker_min_level = sim_params.max_level - 1;
         int puncture_tracker_min_level =
                 min(sim_params.tag_punctures_max_levels[0],
                     sim_params.tag_punctures_max_levels[1])
@@ -65,7 +65,7 @@ int runGRChombo(int argc, char *argv[])
     // The line below selects the problem that is simulated
     // (To simulate a different problem, define a new child of AMRLevel
     // and an associated LevelFactory)
-    DefaultLevelFactory<BinaryBH4dSTLevel> binary_bh_level_fact(bh_amr,
+    DefaultLevelFactory<UnequalMassBinaryBH4dSTLevel> binary_bh_level_fact(bh_amr,
                                                                 sim_params);
     setupAMRObject(bh_amr, binary_bh_level_fact);
 

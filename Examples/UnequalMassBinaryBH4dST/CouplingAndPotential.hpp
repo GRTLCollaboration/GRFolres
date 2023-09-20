@@ -16,10 +16,11 @@ class CouplingAndPotential
     {
         double lambda_GB;   // Gauss-Bonnet coupling
         double g2;          // coupling to the square of the kinetic term
+	double quadratic_factor; // phi^2 factor in the GB exponential coupling
+	double quartic_factor;   // phi^4 factor in the GB exponential coupling
         double cutoff_GB;   // cutoff for switching off the Gauss-Bonnet terms
                             // inside the BH
         double factor_GB;   // factor for the function smoothening the GB cutoff
-	double factor_exp_GB; //factor multiplying \phi^n in the exponential coupling
         double scalar_mass; // mass in the potential
     };
 
@@ -43,20 +44,51 @@ class CouplingAndPotential
         data_t cutoff_factor =
             1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
 
-        // Shift-symmetric coupling: f(\phi) = \lambda^{GB}\phi
+        if (abs(m_params.quadratic_factor)<1.e-10 && abs(m_params.quartic_factor)<1.e-10 ) 
+	{
+		// Shift-symmetric coupling: f(\phi) = \lambda^{GB}\phi
 
-        // The first derivative of the GB coupling function
-        dfdphi = m_params.lambda_GB / cutoff_factor;
-        // The second derivative of the GB coupling function
-        d2fdphi2 = 0.;
-        // The coupling to the square of the kinetic term
-        g2 = m_params.g2;
-        // The first derivative of the g2 coupling
-        dg2dphi = 0.;
-        // The potential of the scalar field
-        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
-        // The first derivative of the potential
-        dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
+	        // The first derivative of the GB coupling function
+	        dfdphi = m_params.lambda_GB / cutoff_factor;
+        	// The second derivative of the GB coupling function
+	        d2fdphi2 = 0.;
+        	// The coupling to the square of the kinetic term
+	        g2 = m_params.g2;
+        	// The first derivative of the g2 coupling
+	        dg2dphi = 0.;
+        	// The potential of the scalar field
+	        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
+        	// The first derivative of the potential
+	        dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
+	}
+	else
+	{
+		// Exponential coupling: f(\phi) = \lambda^{GB} / (2\beta)
+        	// (1-e^{-\beta\phi^2(1+\kappa\phi^2)}) The first derivative of the GB
+	        // coupling function
+        	dfdphi = m_params.lambda_GB / cutoff_factor *
+	                 exp(-m_params.quadratic_factor * vars.phi * vars.phi *
+                     	(1. + m_params.quartic_factor * vars.phi * vars.phi)) *
+                 	vars.phi *
+                	 (1. + 2. * m_params.quartic_factor * vars.phi * vars.phi);
+        	// The second derivative of the GB coupling function
+	        d2fdphi2 =
+        	    m_params.lambda_GB / cutoff_factor *
+	            exp(-m_params.quadratic_factor * vars.phi * vars.phi *
+                	(1. + m_params.quartic_factor * vars.phi * vars.phi)) *
+            	(1. + 3. * m_params.quartic_factor * vars.phi * vars.phi -
+        	     2. * m_params.quadratic_factor * vars.phi * vars.phi *
+	                 (1. + 2. * m_params.quartic_factor * vars.phi * vars.phi) *
+                 	(1. + 2. * m_params.quartic_factor * vars.phi * vars.phi));
+        	// The coupling to the square of the kinetic term
+	        g2 = 0.;
+	        // The first derivative of the g2 coupling
+	        dg2dphi = 0.;
+	        // The potential of the scalar field
+	        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
+	        // The first derivative of the potential
+	        dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
+	}
     }
 };
 
