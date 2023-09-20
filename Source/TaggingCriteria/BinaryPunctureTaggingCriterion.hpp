@@ -28,10 +28,10 @@ class BinaryPunctureTaggingCriterion
     const std::array<int, 2> m_puncture_max_levels;
     const bool m_activate_extraction;
     const bool m_track_punctures;
-    //const std::array<double, 2> m_puncture_masses;
+    // const std::array<double, 2> m_puncture_masses;
     const std::vector<double> m_puncture_masses;
+    // const SphericalExtraction::params_t m_params;
     const spherical_extraction_params_t m_params;
-//    const SphericalExtraction::params_t m_params;
     const derivative_t m_deriv;
     const std::vector<std::array<double, CH_SPACEDIM>> m_puncture_coords;
     const std::array<double, 2> m_buffers;
@@ -59,13 +59,13 @@ class BinaryPunctureTaggingCriterion
         const double dx, const int a_level,
         const std::array<int, 2> a_horizon_max_levels,
         const std::array<int, 2> a_puncture_max_levels,
-	const spherical_extraction_params_t a_params,
-//        const SphericalExtraction::params_t a_params,
+        // const SphericalExtraction::params_t a_params,
+        const spherical_extraction_params_t a_params,
         const std::vector<std::array<double, CH_SPACEDIM>> a_puncture_coords,
         const bool activate_extraction = false,
         const bool track_punctures = false,
-        //const std::array<double, 2> a_puncture_masses = {1.0, 1.0},
-	const std::vector<double> a_puncture_masses = {1.0, 1.0},
+        // const std::array<double, 2> a_puncture_masses = {1.0, 1.0},
+	    const std::vector<double> a_puncture_masses = {1.0, 1.0},
         const std::array<double, 2> a_buffers = {0.5, 0.5},
         const double a_puncture_min_separation = 1e-3)
         : m_dx(dx), m_deriv(dx), m_params(a_params), m_level(a_level),

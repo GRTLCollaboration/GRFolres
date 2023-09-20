@@ -50,8 +50,10 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         // Coupling and potential
         pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
         pp.load("g2", coupling_and_potential_params.g2, 0.);
-	pp.load("quadratic_factor", coupling_and_potential_params.quadratic_factor, 0.);
-        pp.load("quartic_factor", coupling_and_potential_params.quartic_factor, 0.);
+        pp.load("quadratic_factor",
+                coupling_and_potential_params.quadratic_factor, 0.);
+        pp.load("quartic_factor", coupling_and_potential_params.quartic_factor,
+                0.);
         pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
         pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
         pp.load("scalar_mass", coupling_and_potential_params.scalar_mass, 0.);
@@ -66,7 +68,7 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         pp.load("scalar_width", initial_params.width, 1.0);
         pp.load("scalar_r0", initial_params.r0, 0.);
 
-	// Tagging criterion for unequal mass binaries 
+        // Tagging criterion for unequal mass binaries
         pp.load("bh_tagging_buffers", bh_tagging_buffers, {0.5, 0.5});
         pp.load("tag_punctures_max_levels", tag_punctures_max_levels,
                 {max_level, max_level});
@@ -75,7 +77,7 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         pp.load("puncture_tag_min_separation", puncture_tag_min_separation,
                 1.0e-3);
 
-	/* // Initial BH data
+	    /* // Initial BH data
         pp.load("massA", bh1_params.mass);
         pp.load("momentumA", bh1_params.momentum);
         pp.load("massB", bh2_params.mass);
@@ -253,7 +255,8 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
         pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
         pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
-        pp.load("quadratic_factor", coupling_and_potential_params.quadratic_factor, 1.5);
+        +        pp.load("quadratic_factor",
++        coupling_and_potential_params.quadratic_factor, 1.5);
         pp.load("power_GB", coupling_and_potential_params.power_GB, 1);
         pp.load("g2", coupling_and_potential_params.g2, 0.);
         pp.load("a0", mod_gauge_params.a0, 0.);
@@ -271,10 +274,14 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
         pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
         pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
-        pp.load("quadratic_factor", coupling_and_potential_params.quadratic_factor, 0.);
-        pp.load("power_GB", coupling_and_potential_params.power_GB, 1);
-        pp.load("g2", coupling_and_potential_params.g2, 0.);
-        pp.load("a0", mod_gauge_params.a0, 0.);
+        pp.load("quadratic_factor",
+        coupling_and_potential_params.quadratic_factor, 0.); 
+        pp.load("power_GB",
+        coupling_and_potential_params.power_GB, 1); 
+        pp.load("g2",
+        coupling_and_potential_params.g2, 0.); 
+        pp.load("a0",
+        mod_gauge_params.a0, 0.); 
         pp.load("b0", mod_gauge_params.b0, 0.);*/
 
         // Initial data
@@ -400,7 +407,7 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
     BoostedBH::params_t bh2_params;
     BoostedBH::params_t bh1_params;
 
-    // Tagging criterion for unequal mass binaries 
+    // Tagging criterion for unequal mass binaries
     std::array<double, 2> bh_tagging_buffers;
     std::array<int, 2> tag_punctures_max_levels;
     std::array<int, 2> tag_horizons_max_levels;

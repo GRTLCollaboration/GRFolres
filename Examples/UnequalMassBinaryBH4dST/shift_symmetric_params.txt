@@ -1,0 +1,237 @@
+# See the wiki page for an explanation of the params!
+# https://github.com/GRChombo/GRChombo/wiki/Guide-to-parameters
+#################################################
+# Filesystem parameters
+verbosity = 0
+# location / naming of output files
+# output_path = "" # Main path for all files. Must exist!
+chk_prefix = UnequalMassBinaryBHChk_
+plot_prefix = UnequalMassBinaryBHPlot_
+#restart_file = UnequalMassBinaryBHChk_000600.3d.hdf5
+# subpaths - specific directories for hdf5, pout, extraction data
+# (these are created at runtime)
+hdf5_subpath = hdf5
+pout_subpath = pout
+data_subpath = data
+# change the name of output files
+# pout_prefix = "pout"
+print_progress_only_to_rank_0 = 1
+# ignore_checkpoint_name_mismatch = 0
+# write_plot_ghosts = 0
+# HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval - L,N,dt_multiplier are set below
+checkpoint_interval = 100
+# set to 0 to turn off plot files (except at t=0 and t=stop_time)
+# set to -1 to never ever print plotfiles
+# set to zero to turn off plot files, comps defined in UnequalMassBinaryBHLevel.cpp
+plot_interval = 10
+num_plot_vars = 4
+#plot_vars = chi Theta Weyl4_Re Ham
+plot_vars = chi lapse Ham phi
+# Unequal Mass Binary Puncture Tagging
+track_punctures = 1
+puncture_tracking_level = 4
+bh_tagging_buffers = 0.7 0.7
+tag_horizons_max_levels = 7 7
+tag_punctures_max_levels = 7 7
+# puncture_tag_min_separation = 1.0e-3
+#massA = 0.485
+#offsetA = -5.5 0.0 0.0
+#momentumA = 0.0 0.085 0.0 #0.0 0.09 0.0
+#massB = 0.485
+#offsetB = 5.5 0.0 0.0
+#momentumB = 0.0 -0.085 0.0 #0.0 -0.09 0.0
+calculate_constraint_norms = 1
+#################################################
+# Grid parameters
+# 'N' is the number of subdivisions in each direction of a cubic box
+# 'L' is the length of the longest side of the box, dx_coarsest = L/N
+# NB - If you use reflective BC and want to specify the subdivisions and side
+# of the box were there are no symmetries, specify 'N_full' and 'L_full' instead
+# NB - if you have a non-cubic grid, you can specify 'N1' or 'N1_full',
+# 'N2' or 'N2_full' and 'N3' or 'N3_full' ( then dx_coarsest = L/N(max) )
+# NB - the N values need to be multiples of the block_factor
+N_full = 352
+L_full = 768
+# Spatial derivative order (only affects CCZ4 RHS)
+max_spatial_derivative_order = 6 # can be 4 or 6
+# Maximum number of times you can regrid above coarsest level
+max_level = 7 # There are (max_level+1) grids, so min is zero
+# need max_level entries for regrid interval
+# Level Regridding: 0   1   2   3   4   5   6   7   8
+regrid_interval =   0   2   0   0   0   0   0   0   0
+regrid_threshold = 0.2 # 0.0109090909090909
+#puncture_tag_max_levels = 7 7
+puncture_tag_min_separation = 1.0e-3
+bh_tagging_buffers = 0.7 0.7
+# Max and min box sizes
+max_box_size = 16
+min_box_size = 8
+# tag_buffer_size = 3
+grid_buffer_size = 44
+# fill_ratio = 0.7
+# num_ghosts = 3
+# center = 256.0 256.0 256.0 # defaults to center of the grid
+#################################################
+# Boundary Conditions parameters
+# Periodic directions - 0 = false, 1 = true
+isPeriodic = 0 0 0
+# if not periodic, then specify the boundary type
+# 0 = static, 1 = sommerfeld, 2 = reflective
+# (see BoundaryConditions.hpp for details)
+hi_boundary = 1 1 1
+lo_boundary = 1 1 2
+# if reflective boundaries selected, must set
+# parity of all vars (in order given by UserVariables.hpp)
+# 0 = even
+# 1,2,3 = odd x, y, z
+# 4,5,6 = odd xy, yz, xz
+# 7     = odd xyz
+vars_parity            = 0 0 4 6 0 5 0    #chi and hij
+                         0 0 4 6 0 5 0    #K and Aij
+                         0 1 2 3          #Theta and Gamma
+                         0 1 2 3 1 2 3    #lapse shift and B
+             0 0              #phi and Kphi
+vars_parity_diagnostic = 0 1 2 3          #Ham and Mom
+                         0 7              #Weyl
+             0 0 0 0          #null_cond and weak_cond and weak_cond_h and disc
+#                         0 4              #Madm and Jadm
+# if sommerfeld boundaries selected, must select
+# asymptotic values (in order given by UserVariables.hpp)
+num_nonzero_asymptotic_vars = 5
+nonzero_asymptotic_vars = chi h11 h22 h33 lapse
+nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
+# if you are using extrapolating BC:
+# extrapolation_order = 1
+# num_extrapolating_vars = -1
+# extrapolating_vars =
+#################################################
+# Evolution parameters
+# Set up time steps
+# dt will be dx*dt_multiplier on each grid level
+dt_multiplier = 0.25
+stop_time = 1900.0
+# max_steps = 100
+nan_check = 1
+# Lapse evolution
+lapse_advec_coeff = 1.0
+lapse_coeff = 2.0
+lapse_power = 1.0
+# Shift evolution
+shift_advec_coeff = 1.0 # Usually no advection for beta
+shift_Gamma_coeff = 0.75
+eta = 0.5 # eta of gamma driver, should be of order ~1/M_ADM of spacetime
+# CCZ4 parameters
+formulation = 0 # 1 for BSSN, 0 for CCZ4
+kappa1 = 1.0 #0.1
+kappa2 = -0.1 #0.
+kappa3 = 1.
+a0 = 0.2
+b0 = 0.4
+power_GB = 1
+lambda_GB = 0.1 #-10. -2
+g2 = 0.
+quadratic_factor = 0
+quartic_factor = 0
+cutoff_GB = 0.07
+factor_GB = 200.
+#scalar_mass = ?
+covariantZ4 = 1 # 0: keep kappa1; 1 [default]: replace kappa1 -> kappa1/lapse
+scalar_amplitude = 0.00
+scalar_width = 1.
+scalar_position = 30.
+# coefficient for KO numerical dissipation
+sigma = 1.0 #0.5
+# min_chi = 1.e-4
+# min_lapse = 1.e-4
+#################################################
+# Extraction parameters
+# default of extraction_center is center, uncomment to change
+# extraction_center = 256 256 256 # defaults to center
+activate_extraction = 1 #true
+num_extraction_radii = 8
+extraction_radii = 60.0 70.0 80.0 90.0 100.0 110.0 120.0 130.0
+extraction_levels = 2 2 2 2 1 1 1 1
+num_points_phi = 32
+num_points_theta = 48
+write_extraction = 1
+num_modes = 12
+modes = 2 -2  2 -1  2 0  2 1  2 2
+        3 -3  3 -2  3 -1  3 0  3 1  3 2  3 3
+#        4 -4  4 -3  4 -2  4 -1  4 0  4 1  4 2  4 3  4 4
+#        5 -5  5 -4  5 -3  5 -2  5 -1  5 0  5 1  5 2  5 3  5 4  5 5
+#        6 -6  6 -5  6 -4  6 -3  6 -2  6 -1  6 0  6 1  6 2  6 3  6 4  6 5  6 6
+# integral_file_prefix = "Weyl4_mode_"
+# extraction_subpath = "data/extraction" # directory for 'write_extraction = 1'
+# extraction_file_prefix = "Weyl4_extraction_"
+# mass extraction params
+activate_mass_extraction = false
+mass_num_extraction_radii = 6
+mass_extraction_radii = 100.0 140.0 180.0 220.0 240.0 280.0
+mass_extraction_levels = 0 0 0 0 0 0
+mass_write_extraction = 0
+#################################################
+# Two Punctures parameters
+# Main BH params
+# Either calculate target masses or set bare masses explicitly below
+#TP_calculate_target_masses = true
+#TP_target_mass_plus = 0.5
+#TP_target_mass_minus = 0.5
+# TP_adm_tol = 1e-10
+TP_mass_plus = 0.9818671423753239 #with 0.485 value of TP_mass_plus and TP_mass_minus and TP_spin_plus=TP_spin_minus=[0.0 0.0 0.05], the total ADM mass is close to 1 and the target masses are close to 0.5
+TP_mass_minus = 0.4806001236142687
+# offset in x direction (or z if TP_swap_xz set true)
+TP_offset_plus = 5
+TP_offset_minus = -10
+#TP_swap_xz = false
+TP_momentum_plus = 0.0 0.128488732 0.0
+TP_momentum_minus = 0.0 -0.128488732 0.0
+TP_spin_plus = 0.0 0.0 0.0
+TP_spin_minus = 0.0 0.0 0.0
+# Solver params
+TP_npoints_A = 48
+TP_npoints_B = 48
+TP_npoints_phi = 24
+TP_Newton_tol = 1e-14
+TP_Newton_maxit = 10
+TP_epsilon = 1e-6
+# TP_Tiny = 0.0
+# TP_Extend_Radius = 0.0
+# Initial data params
+TP_use_spectral_interpolation = true
+TP_initial_lapse = psi^n
+TP_initial_lapse_psi_exponent = -2.0
+# Debug output
+# TP_do_residuum_debug_output = false
+# TP_do_initial_debug_output = false
+#################################################
+# Apparent Horizon Finder parameters
+#AH_activate = 1 #true
+#AH_num_ranks = 48
+#AH_num_points_u = 65
+#AH_num_points_v = 48
+#AH_solve_interval = 2
+#AH_print_interval = 1
+#AH_max_failed_convergences = 5
+#AH_max_fails_after_lost = 10
+#AH_num_extra_vars = 2
+#AH_extra_vars = phi chi
+#AH_level = 0
+#AH_updateCenter = true
+#AH_num_extra_vars = 6
+#AH_extra_vars = chi phi discriminant null_condition weak_condition weak_condition_h
+#use_punctures_for_ah_centers = true
+##AH_doArea = false
+##AH_doSpin = false
+
+AH_activate = 1
+AH_num_ranks = 4
+AH_num_points_u = 41
+AH_num_points_v = 40
+AH_solve_interval = 1
+AH_print_interval = 1
+#AH_merger_search_factor = 1
+AH_num_extra_vars = 2
+AH_extra_vars = phi chi
+AH_1_initial_guess = 0.49
+AH_2_initial_guess = 0.245
+AH_max_fails_after_lost = 5
