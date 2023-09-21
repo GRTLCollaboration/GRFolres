@@ -21,8 +21,8 @@ class CouplingAndPotential
             EXPONENTIAL, // exponential (quadratic and quartic in phi) case
             NONE         // no coupling
         };
-        int type_of_coupling = TypeOfCoupling::LINEAR; // default is linear
-        double lambda_GB;                              // Gauss-Bonnet coupling
+        int type_of_coupling;
+        double lambda_GB;        // Gauss-Bonnet coupling
         double g2;               // coupling to the square of the kinetic term
         double quadratic_factor; // phi^2 factor in the GB exponential coupling
         double quartic_factor;   // phi^4 factor in the GB exponential coupling
@@ -34,7 +34,6 @@ class CouplingAndPotential
 
   private:
     params_t m_params;
-    // TypeOfCoupling m_type_of_coupling;
 
   public:
     //! The constructor
