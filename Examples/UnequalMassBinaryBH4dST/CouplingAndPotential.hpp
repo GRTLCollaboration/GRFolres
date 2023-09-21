@@ -14,7 +14,15 @@ class CouplingAndPotential
   public:
     struct params_t
     {
-        double lambda_GB;        // Gauss-Bonnet coupling
+        // Type of Gauss-Bonnet coupling
+        enum TypeOfCoupling
+        {
+            LINEAR,      // linear (shift-symmetric) case
+            EXPONENTIAL, // exponential (quadratic and quartic in phi) case
+            NONE         // no coupling
+        };
+        int type_of_coupling = TypeOfCoupling::LINEAR; // default is linear
+        double lambda_GB;                              // Gauss-Bonnet coupling
         double g2;               // coupling to the square of the kinetic term
         double quadratic_factor; // phi^2 factor in the GB exponential coupling
         double quartic_factor;   // phi^4 factor in the GB exponential coupling
@@ -26,12 +34,13 @@ class CouplingAndPotential
 
   private:
     params_t m_params;
+    // TypeOfCoupling m_type_of_coupling;
 
   public:
     //! The constructor
     CouplingAndPotential(params_t a_params) : m_params(a_params) {}
 
-    //! Set the EsGB coupling function fhere
+    //! Set the potential and 4dST coupling function here
     template <class data_t, template <typename> class vars_t>
     void compute_coupling_and_potential(data_t &dfdphi, data_t &d2fdphi2,
                                         data_t &g2, data_t &dg2dphi,
@@ -44,8 +53,7 @@ class CouplingAndPotential
         data_t cutoff_factor =
             1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
 
-        if (abs(m_params.quadratic_factor) < 1.e-10 &&
-            abs(m_params.quartic_factor) < 1.e-10)
+        if (m_params.type_of_coupling == m_params.TypeOfCoupling::LINEAR)
         {
             // Shift-symmetric coupling: f(\phi) = \lambda^{GB}\phi
 
@@ -53,20 +61,14 @@ class CouplingAndPotential
             dfdphi = m_params.lambda_GB / cutoff_factor;
             // The second derivative of the GB coupling function
             d2fdphi2 = 0.;
-            // The coupling to the square of the kinetic term
-            g2 = m_params.g2;
-            // The first derivative of the g2 coupling
-            dg2dphi = 0.;
-            // The potential of the scalar field
-            V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
-            // The first derivative of the potential
-            dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
         }
-        else
+        else if (m_params.type_of_coupling ==
+                 m_params.TypeOfCoupling::EXPONENTIAL)
         {
             // Exponential coupling: f(\phi) = \lambda^{GB} / (2\beta)
-            // (1-e^{-\beta\phi^2(1+\kappa\phi^2)}) The first derivative of the
-            // GB coupling function
+            // (1-e^{-\beta\phi^2(1+\kappa\phi^2)}
+
+            // The first derivative of the GB coupling function
             dfdphi = m_params.lambda_GB / cutoff_factor *
                      exp(-m_params.quadratic_factor * vars.phi * vars.phi *
                          (1. + m_params.quartic_factor * vars.phi * vars.phi)) *
@@ -81,15 +83,20 @@ class CouplingAndPotential
                  2. * m_params.quadratic_factor * vars.phi * vars.phi *
                      (1. + 2. * m_params.quartic_factor * vars.phi * vars.phi) *
                      (1. + 2. * m_params.quartic_factor * vars.phi * vars.phi));
-            // The coupling to the square of the kinetic term
-            g2 = 0.;
-            // The first derivative of the g2 coupling
-            dg2dphi = 0.;
-            // The potential of the scalar field
-            V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
-            // The first derivative of the potential
-            dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
         }
+        else
+        {
+            dfdphi = 0.;
+            d2fdphi2 = 0.;
+        }
+        // The coupling to the square of the kinetic term
+        g2 = m_params.g2;
+        // The first derivative of the g2 coupling
+        dg2dphi = 0.;
+        // The potential of the scalar field
+        V_of_phi = 0.5 * pow(m_params.scalar_mass * vars.phi, 2.0);
+        // The first derivative of the potential
+        dVdphi = pow(m_params.scalar_mass, 2.0) * vars.phi;
     }
 };
 

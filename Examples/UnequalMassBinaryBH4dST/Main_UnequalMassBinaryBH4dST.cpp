@@ -52,11 +52,11 @@ int runGRChombo(int argc, char *argv[])
         // the tagging criterion used in this example means that the punctures
         // should be on the max level but let's fill ghosts on the level below
         // too just in case
-	    // int puncture_tracker_min_level = sim_params.max_level - 1;
+        // int puncture_tracker_min_level = sim_params.max_level - 1;
         int puncture_tracker_min_level =
-                min(sim_params.tag_punctures_max_levels[0],
-                    sim_params.tag_punctures_max_levels[1])
-                - 1;
+            min(sim_params.tag_punctures_max_levels[0],
+                sim_params.tag_punctures_max_levels[1]) -
+            1;
         bh_amr.m_puncture_tracker.initial_setup(
             {sim_params.bh1_params.center, sim_params.bh2_params.center},
             "punctures", sim_params.data_path, puncture_tracker_min_level);

@@ -139,11 +139,7 @@ void UnequalMassBinaryBH4dSTLevel::computeTaggingCriterion(
 #endif /* USE_TWOPUNCTURES */
         auto puncture_coords =
             m_bh_amr.m_puncture_tracker.get_puncture_coords();
-	    /* BoxLoops::loop(ChiPunctureExtractionTaggingCriterion(
-                           m_dx, m_level, m_p.max_level, m_p.extraction_params,
-                           puncture_coords, m_p.activate_extraction,
-                           m_p.track_punctures, puncture_masses),
-                       current_state, tagging_criterion);*/
+        // different tagging criterion for unequal mass binaries
         BoxLoops::loop(BinaryPunctureTaggingCriterion<FourthOrderDerivatives>(
                            m_dx, m_level, m_p.tag_horizons_max_levels,
                            m_p.tag_punctures_max_levels, m_p.extraction_params,

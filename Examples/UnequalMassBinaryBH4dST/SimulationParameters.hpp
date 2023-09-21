@@ -48,6 +48,8 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
                 false);
 
         // Coupling and potential
+        pp.load("type_of_coupling",
+                coupling_and_potential_params.type_of_coupling, 0);
         pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
         pp.load("g2", coupling_and_potential_params.g2, 0.);
         pp.load("quadratic_factor",
@@ -76,27 +78,6 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
                 {max_level, max_level});
         pp.load("puncture_tag_min_separation", puncture_tag_min_separation,
                 1.0e-3);
-
-	    /* // Initial BH data
-        pp.load("massA", bh1_params.mass);
-        pp.load("momentumA", bh1_params.momentum);
-        pp.load("massB", bh2_params.mass);
-        pp.load("momentumB", bh2_params.momentum);
-
-        // Get the centers of the BHs either explicitly or as
-        // an offset (not both, or they will be offset from center
-        // provided)
-        std::array<double, CH_SPACEDIM> centerA, centerB;
-        std::array<double, CH_SPACEDIM> offsetA, offsetB;
-        pp.load("centerA", centerA, center);
-        pp.load("centerB", centerB, center);
-        pp.load("offsetA", offsetA, {0.0, 0.0, 0.0});
-        pp.load("offsetB", offsetB, {0.0, 0.0, 0.0});
-        FOR(idir)
-        {
-            bh1_params.center[idir] = centerA[idir] + offsetA[idir];
-            bh2_params.center[idir] = centerB[idir] + offsetB[idir];
-        }*/
 
 #ifdef USE_AHFINDER
         pp.load("AH_1_initial_guess", AH_1_initial_guess,
@@ -246,51 +227,16 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         tp_params.mm = 0;
         tp_params.mp_adm = 0;
         tp_params.mm_adm = 0;
-
-        /* // Initial scalar field data
-        initial_params.center =
-            center; // already read in SimulationParametersBase
-        pp.load("scalar_amplitude", initial_params.amplitude, 0.);
-        pp.load("scalar_width", initial_params.width, 1.0);
-        pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
-        pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
-        pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
-        +        pp.load("quadratic_factor",
-+        coupling_and_potential_params.quadratic_factor, 1.5);
-        pp.load("power_GB", coupling_and_potential_params.power_GB, 1);
-        pp.load("g2", coupling_and_potential_params.g2, 0.);
-        pp.load("a0", mod_gauge_params.a0, 0.);
-        pp.load("b0", mod_gauge_params.b0, 0.);*/
     }
 #else
     /// Read BH parameters if not using two punctures
     void read_bh_params(GRParmParse &pp)
     {
-        /*  // Initial scalar field data
-        initial_params.center =
-            center; // already read in SimulationParametersBase
-        pp.load("scalar_amplitude", initial_params.amplitude, 0.);
-        pp.load("scalar_width", initial_params.width, 1.0);
-        pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
-        pp.load("cutoff_GB", coupling_and_potential_params.cutoff_GB, 0.15);
-        pp.load("factor_GB", coupling_and_potential_params.factor_GB, 100.);
-        pp.load("quadratic_factor",
-        coupling_and_potential_params.quadratic_factor, 0.); 
-        pp.load("power_GB",
-        coupling_and_potential_params.power_GB, 1); 
-        pp.load("g2",
-        coupling_and_potential_params.g2, 0.); 
-        pp.load("a0",
-        mod_gauge_params.a0, 0.); 
-        pp.load("b0", mod_gauge_params.b0, 0.);*/
-
-        // Initial data
+        // Initial BH data
         pp.load("massA", bh1_params.mass);
         pp.load("momentumA", bh1_params.momentum);
-        // pp.load("spinA", bh1_params.spin);
         pp.load("massB", bh2_params.mass);
         pp.load("momentumB", bh2_params.momentum);
-        // pp.load("spinB", bh2_params.spin);
 
         // Get the centers of the BHs either explicitly or as
         // an offset (not both, or they will be offset from center
@@ -404,6 +350,7 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
     double G_Newton;
     InitialScalarData::params_t initial_params;
     CouplingAndPotential::params_t coupling_and_potential_params;
+    // CouplingAndPotential::TypeOfCoupling TypeOfCoupling;
     BoostedBH::params_t bh2_params;
     BoostedBH::params_t bh1_params;
 

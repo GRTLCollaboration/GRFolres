@@ -65,7 +65,7 @@ class BinaryPunctureTaggingCriterion
         const bool activate_extraction = false,
         const bool track_punctures = false,
         // const std::array<double, 2> a_puncture_masses = {1.0, 1.0},
-	    const std::vector<double> a_puncture_masses = {1.0, 1.0},
+        const std::vector<double> a_puncture_masses = {1.0, 1.0},
         const std::array<double, 2> a_buffers = {0.5, 0.5},
         const double a_puncture_min_separation = 1e-3)
         : m_dx(dx), m_deriv(dx), m_params(a_params), m_level(a_level),
