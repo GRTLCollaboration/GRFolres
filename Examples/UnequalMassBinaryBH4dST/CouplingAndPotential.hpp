@@ -15,12 +15,12 @@ class CouplingAndPotential
     struct params_t
     {
         // Type of Gauss-Bonnet coupling
-        enum TypeOfCoupling
+        /*enum TypeOfCoupling
         {
             LINEAR,      // linear (shift-symmetric) case
             EXPONENTIAL, // exponential (quadratic and quartic in phi) case
             NONE         // no coupling
-        };
+        };*/
         int type_of_coupling;
         double lambda_GB;        // Gauss-Bonnet coupling
         double g2;               // coupling to the square of the kinetic term
@@ -52,7 +52,7 @@ class CouplingAndPotential
         data_t cutoff_factor =
             1. + exp(-m_params.factor_GB * (vars.chi - m_params.cutoff_GB));
 
-        if (m_params.type_of_coupling == m_params.TypeOfCoupling::LINEAR)
+        if (m_params.type_of_coupling == 0 /*m_params.TypeOfCoupling::LINEAR*/)
         {
             // Shift-symmetric coupling: f(\phi) = \lambda^{GB}\phi
 
@@ -62,7 +62,7 @@ class CouplingAndPotential
             d2fdphi2 = 0.;
         }
         else if (m_params.type_of_coupling ==
-                 m_params.TypeOfCoupling::EXPONENTIAL)
+                 1 /*m_params.TypeOfCoupling::EXPONENTIAL*/)
         {
             // Exponential coupling: f(\phi) = \lambda^{GB} / (2\beta)
             // (1-e^{-\beta\phi^2(1+\kappa\phi^2)}
