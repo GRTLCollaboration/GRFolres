@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[     82536,       2434]
-NotebookOptionsPosition[     82096,       2418]
-NotebookOutlinePosition[     82579,       2436]
-CellTagsIndexPosition[     82536,       2433]
+NotebookDataLength[     82648,       2438]
+NotebookOptionsPosition[     82228,       2423]
+NotebookOutlinePosition[     82691,       2440]
+CellTagsIndexPosition[     82648,       2437]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -1580,6 +1580,10 @@ Cell[BoxData[{
        RowBox[{"(", 
         RowBox[{"hu", " ", ".", " ", "Ni"}], ")"}], " ", ".", " ", "dK"}]}], 
      "-", 
+     RowBox[{"2", "\[Chi]", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{"hu", ".", "Ni"}], ")"}], ".", "Ni"}]}], "-", 
      RowBox[{
       RowBox[{"4", "/", "9"}], " ", 
       RowBox[{
@@ -1667,8 +1671,8 @@ Cell[BoxData[{
         RowBox[{"(", 
          RowBox[{"\[Chi]", " ", 
           RowBox[{"hu", " ", ".", " ", "d\[Phi]"}]}], ")"}], " ", ".", " ", 
-        "d\[Phi]"}]}], ")"}]}]}], ";"}], "\n", "\n", 
-  RowBox[{"(*", "advec", "*)"}]}], "\[IndentingNewLine]", 
+        "d\[Phi]"}]}], ")"}]}]}], ";"}], "\[IndentingNewLine]", "\n", 
+  RowBox[{"(*", "advec", "*)"}]}], "\n", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenAppend", "[", 
@@ -2413,14 +2417,14 @@ Cell[BoxData[{
    3.901934683187388*^9, 3.90193488502703*^9}, {3.901934926901585*^9, 
    3.901934927668377*^9}, 3.901935055402156*^9, 3.901935102429997*^9, {
    3.9019351373637657`*^9, 3.901935137681097*^9}, {3.901935171023473*^9, 
-   3.901935224315076*^9}, {3.901935593924872*^9, 3.9019355943061457`*^9}},
- CellLabel->"In[1]:=",ExpressionUUID->"ecd9c587-27c3-441b-bf7c-e3e9b8a5c032"]
+   3.901935224315076*^9}, {3.901935593924872*^9, 3.9019355943061457`*^9}, 
+   3.91518355320166*^9},ExpressionUUID->"ecd9c587-27c3-441b-bf7c-\
+e3e9b8a5c032"]
 },
 WindowSize->{807.75, 759.},
 WindowMargins->{{Automatic, 147.75}, {0, Automatic}},
-TaggingRules->Association[
- "CodeFormatter" -> Association["ToolbarState" -> False]],
-FrontEndVersion->"12.1 for Linux x86 (64-bit) (June 19, 2020)",
+TaggingRules-><|"CodeFormatter" -> <|"ToolbarState" -> False|>|>,
+FrontEndVersion->"13.3 for Linux x86 (64-bit) (July 24, 2023)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"306baacd-1a5b-452b-b982-c0236c99a578"
 ]
@@ -2435,7 +2439,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 81534, 2396, 6252, "Input",ExpressionUUID->"ecd9c587-27c3-441b-bf7c-e3e9b8a5c032"]
+Cell[558, 20, 81666, 2401, 6327, "Input",ExpressionUUID->"ecd9c587-27c3-441b-bf7c-e3e9b8a5c032"]
 }
 ]
 *)

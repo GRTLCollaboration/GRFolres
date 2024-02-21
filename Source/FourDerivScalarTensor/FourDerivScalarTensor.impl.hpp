@@ -424,7 +424,8 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     {
         RGB += 8. * Mij_TF_UU_over_chi[i][j] * Fij[i][j] +
                16. / 3. * vars.chi * h_UU[i][j] * d1.K[i] *
-                   (Ni[j] + 1. / 3. * d1.K[j]);
+                   (Ni[j] + 1. / 3. * d1.K[j]) +
+               8. * vars.chi * h_UU[i][j] * Ni[i] * Ni[j];
         FOR(k, l, m, n)
         RGB -= 8. * vars.chi * h_UU[i][l] * h_UU[j][m] * h_UU[k][n] *
                covd_Aphys_times_chi[m][n][l] *
@@ -665,9 +666,10 @@ void FourDerivScalarTensor<coupling_and_potential_t>::add_theory_rhs(
     FOR(i, j)
     {
         RGB_times_lapse +=
-            8 * Mij_TF_UU_over_chi[i][j] * Fij_times_lapse[i][j] +
+            8. * Mij_TF_UU_over_chi[i][j] * Fij_times_lapse[i][j] +
             16. / 3. * vars.chi * vars.lapse * h_UU[i][j] * d1.K[i] *
-                (Ni[j] + 1. / 3. * d1.K[j]);
+                (Ni[j] + 1. / 3. * d1.K[j]) +
+            8. * vars.chi * vars.lapse * h_UU[i][j] * Ni[i] * Ni[j];
         FOR(k, l, m, n)
         RGB_times_lapse -=
             8. * vars.chi * vars.lapse * h_UU[i][l] * h_UU[j][m] * h_UU[k][n] *
