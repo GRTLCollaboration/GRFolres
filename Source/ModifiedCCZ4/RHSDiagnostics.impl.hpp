@@ -16,9 +16,7 @@ RHSDiagnostics<theory_t, gauge_t, deriv_t>::RHSDiagnostics(
     double a_sigma, const std::array<double, CH_SPACEDIM> a_center,
     double a_G_Newton)
     : ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>(
-          a_theory, a_params, a_gauge, a_dx, a_sigma, a_center, a_G_Newton),
-      my_theory(a_theory), /*m_params(a_params)*/ my_gauge(a_gauge),
-      m_center(a_center), m_G_Newton(a_G_Newton)
+          a_theory, a_params, a_gauge, a_dx, a_sigma, a_center, a_G_Newton)
 {
 }
 
@@ -30,7 +28,7 @@ void RHSDiagnostics<theory_t, gauge_t, deriv_t>::compute(
     // copy data from chombo gridpoint into local variables
     const auto theory_vars = current_cell.template load_vars<Vars>();
     const auto d1 = this->m_deriv.template diff1<Vars>(current_cell);
-    const auto d2 = this->m_deriv.template diff2<Vars>(current_cell);
+    const auto d2 = this->m_deriv.template diff2<Diff2Vars>(current_cell);
     const auto advec =
         this->m_deriv.template advection<Vars>(current_cell, theory_vars.shift);
 
@@ -38,14 +36,16 @@ void RHSDiagnostics<theory_t, gauge_t, deriv_t>::compute(
     Vars<data_t> theory_rhs;
     this->rhs_equation(theory_rhs, theory_vars, d1, d2, advec);
 
-    Coordinates<data_t> coords{current_cell, this->m_deriv.m_dx, m_center};
+    Coordinates<data_t> coords{current_cell, this->m_deriv.m_dx,
+                               this->m_center};
 
     // add functions a(x) and b(x) of the modified gauge
-    // this->my_modified_class.add_a_and_b_rhs(theory_rhs, theory_vars, d1, d2,
-    // advec, coords);
+    this->template add_a_and_b_rhs(theory_rhs, theory_vars, d1, d2, advec,
+                                   coords);
 
     // add RHS theory terms from EM Tensor
-    // this->add_emtensor_rhs(theory_rhs, theory_vars, d1, d2, advec, coords);
+    this->template add_emtensor_rhs(theory_rhs, theory_vars, d1, d2, advec,
+                                    coords);
 
     // add evolution of theory fields themselves
     this->my_theory.add_theory_rhs(theory_rhs, theory_vars, d1, d2, advec,
@@ -56,8 +56,8 @@ void RHSDiagnostics<theory_t, gauge_t, deriv_t>::compute(
 
     // Compute diagnostics
     WeakCouplingConditions<data_t> weak_coupling_conditions =
-        my_theory.compute_weak_coupling_conditions(theory_rhs, theory_vars, d1,
-                                                   d2, advec, coords);
+        this->my_theory.compute_weak_coupling_conditions(
+            theory_rhs, theory_vars, d1, d2, advec, coords);
 
     // Write the constraints into the output FArrayBox
     current_cell.store_vars(weak_coupling_conditions.g2,

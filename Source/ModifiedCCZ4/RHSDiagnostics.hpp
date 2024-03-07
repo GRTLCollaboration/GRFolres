@@ -53,21 +53,6 @@ class RHSDiagnostics : public ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>
         typename ModifiedCCZ4RHS<theory_t, gauge_t,
                                  deriv_t>::template Diff2Vars<data_t>;
 
-    /*    // Inherit the variable definitions from CCZ4 + theory_t
-        template <class data_t>
-        struct BSSNTheoryVars : public BSSNVars::VarsNoGauge<data_t>,
-                                public TheoryVars<data_t>
-        {
-            /// Defines the mapping between members of Vars and Chombo grid
-            /// variables (enum in User_Variables)
-            template <typename mapping_function_t>
-            void enum_mapping(mapping_function_t mapping_function)
-            {
-                BSSNVars::VarsNoGauge<data_t>::enum_mapping(mapping_function);
-                TheoryVars<data_t>::enum_mapping(mapping_function);
-            }
-        };*/
-
     //! Constructor of class RHSDiagnostics
     RHSDiagnostics(theory_t a_theory, modified_params_t a_params,
                    gauge_t a_gauge, double a_dx, double a_sigma,
@@ -77,14 +62,6 @@ class RHSDiagnostics : public ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>
     //! The compute member which calculates the RHS at each point in the
     //! box
     template <class data_t> void compute(Cell<data_t> current_cell) const;
-
-  protected:
-    theory_t my_theory; //!< The theory object, e.g. 4dST
-    gauge_t my_gauge;   //!< The gauge object, which includes a(x) and b(x)
-    const std::array<double, CH_SPACEDIM> m_center; //!< The center of the grid
-    // const FourthOrderDerivatives m_deriv;
-    double m_G_Newton;
-    // modified_params_t m_params;
 };
 
 #include "RHSDiagnostics.impl.hpp"
