@@ -195,6 +195,21 @@ class FourDerivScalarTensor
             &d2, //!< the value of the 2nd derivs
         const Coordinates<data_t> &coords)
         const; //!< the value of the coordinates
+
+    //! The function which computes all the weak coupling conditions,
+    //! which are stored as diagnostics
+    template <class data_t, template <typename> class vars_t,
+              template <typename> class diff2_vars_t,
+              template <typename> class rhs_vars_t>
+    WeakCouplingConditions<data_t> compute_weak_coupling_conditions(
+        const rhs_vars_t<data_t> &rhs, //!< the value of the RHS for all vars
+        const vars_t<data_t> &vars,    //!< the value of the variables
+        const vars_t<Tensor<1, data_t>> &d1, //!< the value of the 1st derivs
+        const diff2_vars_t<Tensor<2, data_t>>
+            &d2,                     //!< the value of the 2nd derivs
+        const vars_t<data_t> &advec, //!< the value of the advection terms
+        const Coordinates<data_t> &coords)
+        const; //!< the value of the coordinates
 };
 
 #include "FourDerivScalarTensor.impl.hpp"

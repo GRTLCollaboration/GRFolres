@@ -18,6 +18,7 @@
 #include "NanCheck.hpp"
 #include "PositiveChiAndAlpha.hpp"
 #include "PunctureTracker.hpp"
+#include "RHSDiagnostics.hpp"
 #include "RhoDiagnostics.hpp"
 #include "ScalarExtraction.hpp"
 #include "SetValue.hpp"
@@ -298,8 +299,13 @@ void UnequalMassBinaryBH4dSTLevel::prePlotLevel()
         // CCZ4 is required since this code only works in this formulation
         RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
             rho_diagnostics(fdst, m_dx, m_p.center);
-        auto compute_pack =
-            make_compute_pack(weyl4, constraints, rho_diagnostics);
+        RHSDiagnostics<FourDerivScalarTensorWithCouplingAndPotential,
+                       ModifiedPunctureGauge, FourthOrderDerivatives>
+            rhs_diagnostics(fdst, m_p.modified_ccz4_params,
+                            modified_puncture_gauge, m_dx, m_p.sigma,
+                            m_p.center, m_p.G_Newton);
+        auto compute_pack = make_compute_pack(weyl4, constraints,
+                                              rho_diagnostics, rhs_diagnostics);
         BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
                        EXCLUDE_GHOST_CELLS);
     }
@@ -309,9 +315,16 @@ void UnequalMassBinaryBH4dSTLevel::prePlotLevel()
             m_p.coupling_and_potential_params);
         FourDerivScalarTensorWithCouplingAndPotential fdst(
             coupling_and_potential, m_p.G_Newton);
+        ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
         RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
             rho_diagnostics(fdst, m_dx, m_p.center);
-        BoxLoops::loop(rho_diagnostics, m_state_new, m_state_diagnostics,
+        RHSDiagnostics<FourDerivScalarTensorWithCouplingAndPotential,
+                       ModifiedPunctureGauge, FourthOrderDerivatives>
+            rhs_diagnostics(fdst, m_p.modified_ccz4_params,
+                            modified_puncture_gauge, m_dx, m_p.sigma,
+                            m_p.center, m_p.G_Newton);
+        auto compute_pack = make_compute_pack(rho_diagnostics, rhs_diagnostics);
+        BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
                        EXCLUDE_GHOST_CELLS);
     }
 }

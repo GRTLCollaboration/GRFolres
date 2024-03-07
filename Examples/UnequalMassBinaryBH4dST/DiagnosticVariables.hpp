@@ -23,6 +23,10 @@ enum
     c_rho_g3,
     c_rho_GB,
 
+    c_weak_coupling_condition_g2,
+    c_weak_coupling_condition_g3,
+    c_weak_coupling_condition_GB,
+
     NUM_DIAGNOSTIC_VARS
 };
 
@@ -31,11 +35,21 @@ namespace DiagnosticVariables
 static const std::array<std::string, NUM_DIAGNOSTIC_VARS> variable_names = {
     "Ham",
 
-    "Mom1",     "Mom2",     "Mom3",
+    "Mom1",
+    "Mom2",
+    "Mom3",
 
-    "Weyl4_Re", "Weyl4_Im",
+    "Weyl4_Re",
+    "Weyl4_Im",
 
-    "rho_phi",  "rho_g2",   "rho_g3", "rho_GB"};
+    "rho_phi",
+    "rho_g2",
+    "rho_g3",
+    "rho_GB",
+
+    "weak_coupling_condition_g2",
+    "weak_coupling_condition_g3",
+    "weak_coupling_condition_GB"};
 }
 
 #endif /* DIAGNOSTICVARIABLES_HPP */

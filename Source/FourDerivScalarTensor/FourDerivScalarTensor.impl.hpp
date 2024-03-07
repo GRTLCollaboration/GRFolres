@@ -1003,4 +1003,238 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_all_rhos(
     return out;
 }
 
+// Function to compute all the weak coupling conditions (used as diagnostics)
+template <class coupling_and_potential_t>
+template <class data_t, template <typename> class vars_t,
+          template <typename> class diff2_vars_t,
+          template <typename> class rhs_vars_t>
+WeakCouplingConditions<data_t> FourDerivScalarTensor<coupling_and_potential_t>::
+    compute_weak_coupling_conditions(const rhs_vars_t<data_t> &rhs_vars,
+                                     const vars_t<data_t> &vars,
+                                     const vars_t<Tensor<1, data_t>> &d1,
+                                     const diff2_vars_t<Tensor<2, data_t>> &d2,
+                                     const vars_t<data_t> &advec,
+                                     const Coordinates<data_t> &coords) const
+{
+    WeakCouplingConditions<data_t> out;
+    // set the coupling and potential values
+    data_t dfdphi = 0.;
+    data_t d2fdphi2 = 0.;
+    data_t g2 = 0.;
+    data_t dg2dphi = 0.;
+    data_t V_of_phi = 0.;
+    data_t dVdphi = 0.;
+
+    // compute coupling and potential
+    my_coupling_and_potential.compute_coupling_and_potential(
+        dfdphi, d2fdphi2, g2, dg2dphi, V_of_phi, dVdphi, vars, coords);
+
+    using namespace TensorAlgebra;
+    const auto h_UU = compute_inverse_sym(vars.h);
+    const auto chris = compute_christoffel(d1.h, h_UU);
+
+    // Compute useful quantities for the Gauss-Bonnet sector
+
+    const data_t chi_regularised = simd_max(1e-6, vars.chi);
+    const data_t lapse_regularised = simd_max(1e-6, vars.lapse);
+
+    ScalarVectorTensor<data_t> SVT = compute_M_Ni_and_Mij(vars, d1, d2);
+    data_t M = SVT.scalar;
+    Tensor<1, data_t> Ni = SVT.vector;
+    Tensor<2, data_t> Mij = SVT.tensor;
+
+    data_t divshift = compute_trace(d1.shift);
+    data_t dlapse_dot_dchi = compute_dot_product(d1.lapse, d1.chi, h_UU);
+
+    Tensor<2, data_t> covdtilde2lapse;
+    Tensor<2, data_t> covd2lapse_times_chi;
+    FOR(k, l)
+    {
+        covdtilde2lapse[k][l] = d2.lapse[k][l];
+        FOR(m) covdtilde2lapse[k][l] -= chris.ULL[m][k][l] * d1.lapse[m];
+        covd2lapse_times_chi[k][l] =
+            vars.chi * covdtilde2lapse[k][l] +
+            0.5 * (d1.lapse[k] * d1.chi[l] + d1.chi[k] * d1.lapse[l] -
+                   vars.h[k][l] * dlapse_dot_dchi);
+    }
+    data_t tr_covd2lapse = -(GR_SPACEDIM / 2.0) * dlapse_dot_dchi;
+    FOR1(i)
+    {
+        tr_covd2lapse -= vars.chi * chris.contracted[i] * d1.lapse[i];
+        FOR1(j)
+        {
+            tr_covd2lapse += h_UU[i][j] * (vars.chi * d2.lapse[i][j] +
+                                           d1.lapse[i] * d1.chi[j]);
+        }
+    }
+
+    Tensor<2, data_t> A_UU = raise_all(vars.A, h_UU);
+
+    // A^{ij} A_{ij}. - Note the abuse of the compute trace function.
+    data_t tr_A2 = compute_trace(vars.A, A_UU);
+
+    // F_{ij} = \chi{\mathcal L}_nAphys_{ij} + \chi D_iD_j\alpha/\alpha
+    //+ A_{ik}A^k_{~j})
+
+    Tensor<2, data_t> Fij;
+    FOR(i, j)
+    {
+        Fij[i][j] =
+            (rhs_vars.A[i][j] - advec.A[i][j] + covd2lapse_times_chi[i][j]) /
+                lapse_regularised -
+            2. / 3. * vars.A[i][j] * (vars.K - divshift / lapse_regularised);
+        FOR(k)
+        {
+            Fij[i][j] -= (vars.A[k][i] * d1.shift[k][j] +
+                          vars.A[k][j] * d1.shift[k][i]) /
+                         lapse_regularised;
+            FOR(l)
+            Fij[i][j] += h_UU[k][l] * vars.A[i][k] * vars.A[l][j];
+        }
+    }
+
+    // F = {\mathcal L}_nK + D^i_D_i\alpha/\alpha - K_{ij}K^{ij}
+    data_t F = (rhs_vars.K - advec.K + tr_covd2lapse) / lapse_regularised -
+               (tr_A2 + vars.K * vars.K / 3.);
+
+    // other useful quantities
+    Tensor<3, data_t> covdtilde_A;
+    Tensor<3, data_t> covd_Aphys_times_chi;
+    FOR(i, j, k)
+    {
+        covdtilde_A[j][k][i] = d1.A[j][k][i];
+        FOR(l)
+        {
+            covdtilde_A[j][k][i] += -chris.ULL[l][i][j] * vars.A[l][k] -
+                                    chris.ULL[l][i][k] * vars.A[l][j];
+        }
+        covd_Aphys_times_chi[j][k][i] =
+            covdtilde_A[j][k][i] +
+            (vars.A[i][k] * d1.chi[j] + vars.A[i][j] * d1.chi[k]) /
+                (2. * chi_regularised);
+        FOR(l, m)
+        {
+            covd_Aphys_times_chi[j][k][i] -=
+                h_UU[l][m] * d1.chi[m] / (2. * chi_regularised) *
+                (vars.h[i][j] * vars.A[k][l] + vars.h[i][k] * vars.A[j][l]);
+        }
+    }
+
+    Tensor<2, data_t> Mij_TF = Mij;
+    make_trace_free(Mij_TF, vars.h, h_UU);
+    Tensor<2, data_t> Mij_TF_UU_over_chi =
+        raise_all(Mij_TF, h_UU); // raise all indexs
+    FOR(i, j) Mij_TF_UU_over_chi[i][j] *= vars.chi;
+
+    // rhs of the Gauss-Bonnet curvature (multiplied by the lapse)
+    data_t RGB = -4. / 3. * M * F;
+    FOR(i, j)
+    {
+        RGB += 8. * Mij_TF_UU_over_chi[i][j] * Fij[i][j] +
+               16. / 3. * vars.chi * h_UU[i][j] * d1.K[i] *
+                   (Ni[j] + 1. / 3. * d1.K[j]) +
+               8. * vars.chi * h_UU[i][j] * Ni[i] * Ni[j];
+        FOR(k, l, m, n)
+        RGB -= 8. * vars.chi * h_UU[i][l] * h_UU[j][m] * h_UU[k][n] *
+               covd_Aphys_times_chi[m][n][l] *
+               (covd_Aphys_times_chi[j][k][i] - covd_Aphys_times_chi[i][j][k]);
+    }
+
+    // data_t nabla_phi = abs(rhs.phi);
+    data_t nabla_phi = sqrt(rhs_vars.phi * rhs_vars.phi);
+    FOR(i)
+    {
+        data_t a = sqrt(d1.phi[i] * d1.phi[i]);
+        nabla_phi = simd_max(nabla_phi, a);
+    }
+
+    Tensor<2, data_t> covdtilde2phi;
+    Tensor<2, data_t> covd2phi;
+    data_t dphi_dot_dchi = compute_dot_product(d1.phi, d1.chi, h_UU);
+    FOR(k, l)
+    {
+        covdtilde2phi[k][l] = d2.phi[k][l];
+        FOR1(m) { covdtilde2phi[k][l] -= chris.ULL[m][k][l] * d1.phi[m]; }
+        covd2phi[k][l] = covdtilde2phi[k][l] +
+                         0.5 *
+                             (d1.phi[k] * d1.chi[l] + d1.chi[k] * d1.phi[l] -
+                              vars.h[k][l] * dphi_dot_dchi) /
+                             chi_regularised;
+    }
+
+    // decomposition of \nabla_{\mu}\nabla_{\nu}\phi
+    Tensor<1, data_t> C_i;
+    Tensor<2, data_t> C_ij;
+
+    FOR(i)
+    {
+        C_i[i] = -d1.Pi[i] - vars.K / 3. * d1.phi[i];
+        FOR(j, k) C_i[i] -= h_UU[j][k] * vars.A[i][j] * d1.phi[k];
+    }
+
+    FOR(i, j)
+    {
+        C_ij[i][j] =
+            covd2phi[i][j] + vars.Pi / chi_regularised *
+                                 (vars.A[i][j] + vars.K / 3. * vars.h[i][j]);
+    }
+
+    data_t Cnn_times_lapse =
+        rhs_vars.Pi - advec.Pi -
+        vars.chi * compute_dot_product(d1.phi, d1.lapse, h_UU);
+
+    data_t nabla2_phi_00 = vars.lapse * Cnn_times_lapse;
+    FOR(i)
+    {
+        nabla2_phi_00 -= 2. * vars.lapse * vars.shift[i] * C_i[i];
+        FOR(j) nabla2_phi_00 += vars.shift[i] * vars.shift[j] * C_ij[i][j];
+    }
+    Tensor<1, data_t> nabla2_phi_0i;
+    FOR(i)
+    {
+        nabla2_phi_0i[i] = vars.lapse * C_i[i];
+        FOR(j) nabla2_phi_0i[i] += vars.shift[j] * C_ij[i][j];
+    }
+
+    // data_t nabla2_phi = abs(nabla2_phi_00);
+    data_t nabla2_phi = sqrt(nabla2_phi_00 * nabla2_phi_00);
+    FOR(i)
+    {
+        // nabla2_phi = simd_max(nabla2_phi, abs(nabla2_phi_0i[i]));
+        data_t m = sqrt(nabla2_phi_0i[i] * nabla2_phi_0i[i]);
+        nabla2_phi = simd_max(nabla2_phi, m);
+        // FOR(j) nabla2_phi = simd_max(nabla2_phi, abs(Omega_ij[i][j]));
+        FOR(j)
+        {
+            data_t n = sqrt(C_ij[i][j] * C_ij[i][j]);
+            nabla2_phi = simd_max(nabla2_phi, n);
+        }
+    }
+
+    const auto ricci0 =
+        CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
+
+    data_t s = sqrt(sqrt(nabla2_phi * nabla2_phi));
+    data_t l = sqrt(nabla_phi * nabla_phi);
+    data_t Lm1 = simd_max(l, s);
+    FOR(i, j)
+    {
+        data_t r = sqrt(sqrt(ricci0.LL[i][j] * ricci0.LL[i][j]));
+        Lm1 = simd_max(Lm1, r);
+    }
+    RGB = sqrt(RGB * RGB);
+    Lm1 = simd_max(Lm1, sqrt(sqrt(RGB)));
+    out.GB = Lm1 * Lm1 * dfdphi;
+
+    data_t weak_g2 = vars.Pi * vars.Pi;
+    data_t dphi2 = 0.;
+    FOR(i, j) { dphi2 += vars.chi * h_UU[i][j] * d1.phi[i] * d1.phi[j]; }
+    weak_g2 = simd_max(weak_g2, sqrt(dphi2 * dphi2));
+    out.g2 = weak_g2 * g2;
+
+    out.g3 = 0.;
+
+    return out;
+}
+
 #endif /* FOURDERIVSCALARTENSOR_IMPL_HPP_ */

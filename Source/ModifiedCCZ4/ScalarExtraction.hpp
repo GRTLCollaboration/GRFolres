@@ -50,9 +50,8 @@ class ScalarExtraction : public SphericalExtraction
             mode_integrals(m_num_modes);
 
         // note that this is normalised by multiplying by radius
-        auto normalised_scalar =
-            [](std::vector<double> scalar_reim_parts, double r, double, double)
-        {
+        auto normalised_scalar = [](std::vector<double> scalar_reim_parts,
+                                    double r, double, double) {
             // here the std::vector<double> passed will have the
             // values of scalar_Re = scalar and scalar_Im = 0.0 as its first two
             // components
