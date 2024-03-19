@@ -168,31 +168,9 @@ void UnequalMassBinaryBH4dSTLevel::specificPostTimeStep()
                         // called during setup at t=0 from Main
     // bool first_step = (m_time == m_dt); // if not called in Main
 
-    int min_level = 0;
-    bool calculate_quantities = at_level_timestep_multiple(min_level);
-    if (m_level == min_level && calculate_quantities)
-    {
-        fillAllGhosts();
-        CouplingAndPotential coupling_and_potential(
-            m_p.coupling_and_potential_params);
-        FourDerivScalarTensorWithCouplingAndPotential fdst(
-            coupling_and_potential, m_p.G_Newton);
-        ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
-        RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
-            rho_diagnostics(fdst, m_dx, m_p.center);
-        RHSDiagnostics<FourDerivScalarTensorWithCouplingAndPotential,
-                       ModifiedPunctureGauge, FourthOrderDerivatives>
-            rhs_diagnostics(fdst, m_p.modified_ccz4_params,
-                            modified_puncture_gauge, m_dx, m_p.sigma,
-                            m_p.center, m_p.G_Newton);
-        auto compute_pack = make_compute_pack(rho_diagnostics, rhs_diagnostics);
-        BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
-                       EXCLUDE_GHOST_CELLS);
-    }
-
     if (m_p.activate_extraction == 1 || m_p.activate_scalar_extraction == 1)
     {
-        min_level = m_p.extraction_params.min_extraction_level();
+        int min_level = m_p.extraction_params.min_extraction_level();
         bool calculate_weyl = at_level_timestep_multiple(min_level);
         if (calculate_weyl)
         {
@@ -243,6 +221,22 @@ void UnequalMassBinaryBH4dSTLevel::specificPostTimeStep()
             }
         }
     }
+
+    fillAllGhosts();
+    CouplingAndPotential coupling_and_potential(
+        m_p.coupling_and_potential_params);
+    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
+                                                       m_p.G_Newton);
+    ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
+    RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
+        rho_diagnostics(fdst, m_dx, m_p.center);
+    RHSDiagnostics<FourDerivScalarTensorWithCouplingAndPotential,
+                   ModifiedPunctureGauge, FourthOrderDerivatives>
+        rhs_diagnostics(fdst, m_p.modified_ccz4_params, modified_puncture_gauge,
+                        m_dx, m_p.sigma, m_p.center, m_p.G_Newton);
+    auto compute_pack = make_compute_pack(rho_diagnostics, rhs_diagnostics);
+    BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
+                   EXCLUDE_GHOST_CELLS);
 
     if (m_p.calculate_constraint_norms)
     {
