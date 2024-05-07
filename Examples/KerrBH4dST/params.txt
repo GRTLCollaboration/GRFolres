@@ -10,7 +10,7 @@ verbosity = 0
 # output_path = "" # Main path for all files. Must exist!
 chk_prefix = KerrBH4dST_
 plot_prefix = KerrBH4dSTp_
-# restart_file = hdf5/KerrBH4dST_000060.3d.hdf5
+# restart_file = hdf5/KerrBH4dST_000200.3d.hdf5
 
 # HDF5files are written every dt = L/N*dt_multiplier*checkpoint_interval
 checkpoint_interval = 50
@@ -38,12 +38,12 @@ print_progress_only_to_rank_0 = 1
 
 # Change the gravitational constant of the Universe!
 # Default is 1.0, for standard geometric units
-G_Newton = 1.
+G_Newton = 0.01989436788648692 # set 16*pi*G=1 in order to match the notation in arXiv:2306.14966
 
 # Scalar field initial data
 scalar_amplitude = 0.00001
 scalar_width = 0.5
-scalar_r0 = 30. # we set the Gaussian pulse far away so that it reaches the BH when the gauge has settled
+scalar_r0 = 20. # we set the Gaussian pulse far away so that it reaches the BH when the gauge has settled
 scalar_mass = 0.
 
 kerr_mass = 1.0
@@ -60,8 +60,8 @@ kerr_spin = 0.8
 # NB - if you have a non-cubic grid, you can specify 'N1' or 'N1_full',
 # 'N2' or 'N2_full' and 'N3' or 'N3_full' ( then dx_coarsest = L/N(max) )
 # NB - the N values need to be multiples of the block_factor
-N_full = 192
-L_full = 256
+N_full = 128
+L_full = 128
 
 # Maximum number of times you can regrid above coarsest level
 max_level = 6 # There are (max_level+1) grids, so min is zero
@@ -124,7 +124,7 @@ nonzero_asymptotic_values = 1.0 1.0 1.0 1.0 1.0
 
 # dt will be dx*dt_multiplier on each grid level
 dt_multiplier = 0.25
-stop_time = 150.0
+stop_time = 100.0
 # max_steps = 100
 
 # Spatial derivative order (only affects CCZ4 RHS)
@@ -156,11 +156,13 @@ b0 = 0.4
 lambda_GB = -10.
 cutoff_GB = 0.05 # excision with chi; dependent on the spin (see fig. C1 in arXiv:2112.10567)
 factor_GB = 100.0
-quadratic_factor = 20000.
+quadratic_factor = 200.
 quartic_factor = 0.
 
 # coefficient for KO numerical dissipation
 sigma = 2.0
+
+calculate_diagnostic_norms = 1
 
 # min_chi = 1.e-4
 # min_lapse = 1.e-4

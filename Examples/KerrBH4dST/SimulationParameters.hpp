@@ -31,6 +31,10 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
     /// Read parameters from the parameter file
     void read_params(GRParmParse &pp)
     {
+        // Do we want diagnostic norm calculation?
+        pp.load("calculate_diagnostic_norms", calculate_diagnostic_norms,
+                false);
+
         // Coupling and potential
         pp.load("lambda_GB", coupling_and_potential_params.lambda_GB, 0.);
         pp.load("quadratic_factor",
@@ -79,6 +83,7 @@ class SimulationParameters : public ModifiedGravitySimulationParametersBase<
         }
     }
 
+    bool calculate_diagnostic_norms;
     double G_Newton;
     InitialScalarData::params_t initial_params;
     CouplingAndPotential::params_t coupling_and_potential_params;
