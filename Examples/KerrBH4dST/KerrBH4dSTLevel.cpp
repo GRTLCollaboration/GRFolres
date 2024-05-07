@@ -4,10 +4,9 @@
  */
 
 #include "KerrBH4dSTLevel.hpp"
-#include "AMRReductions.hpp"
 #include "BoxLoops.hpp"
+#include "ChiTaggingCriterion.hpp"
 #include "ComputePack.hpp"
-#include "FixedGridsTaggingCriterion.hpp"
 #include "InitialScalarData.hpp"
 #include "ModifiedCCZ4RHS.hpp"
 #include "ModifiedGravityConstraints.hpp"
@@ -16,7 +15,6 @@
 #include "RhoDiagnostics.hpp"
 #include "SetValue.hpp"
 #include "SixthOrderDerivatives.hpp"
-#include "SmallDataIO.hpp"
 #include "TraceARemoval.hpp"
 
 // Initial data
@@ -84,7 +82,11 @@ void KerrBH4dSTLevel::prePlotLevel()
     ModifiedGravityConstraints<FourDerivScalarTensorWithCouplingAndPotential>
         constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
                     Interval(c_Mom1, c_Mom3));
-    BoxLoops::loop(constraints, m_state_new, m_state_diagnostics,
+    RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
+        rho_diagnostics(fdst, m_dx, m_p.center);
+    auto compute_pack = make_compute_pack(constraints, rho_diagnostics);
+
+    BoxLoops::loop(compute_pack, m_state_new, m_state_diagnostics,
                    EXCLUDE_GHOST_CELLS);
 }
 #endif /* CH_USE_HDF5 */
@@ -132,73 +134,35 @@ void KerrBH4dSTLevel::specificUpdateODE(GRLevelData &a_soln,
 
 void KerrBH4dSTLevel::preTagCells()
 {
-    // we don't need any ghosts filled for the fixed grids tagging criterion
-    // used here so don't fill any
+    // We only use chi in the tagging criterion so only fill the ghosts for chi
+    fillAllGhosts(VariableType::evolution, Interval(c_chi, c_chi));
 }
 
 void KerrBH4dSTLevel::computeTaggingCriterion(FArrayBox &tagging_criterion,
                                               const FArrayBox &current_state)
 {
-    BoxLoops::loop(FixedGridsTaggingCriterion(m_dx, m_level, m_p.L, m_p.center),
-                   current_state, tagging_criterion);
+    BoxLoops::loop(ChiTaggingCriterion(m_dx), current_state, tagging_criterion);
 }
 
 void KerrBH4dSTLevel::specificPostTimeStep()
 {
     CH_TIME("KerrBHLevel::specificPostTimeStep");
-
-    bool first_step =
-        (m_time == 0.); // this form is used when 'specificPostTimeStep' was
-                        // called during setup at t=0 from Main
-                        //     // bool first_step = (m_time == m_dt); // if not
-                        //     called in Main
-
-    fillAllGhosts();
-    CouplingAndPotential coupling_and_potential(
-        m_p.coupling_and_potential_params);
-    FourDerivScalarTensorWithCouplingAndPotential fdst(coupling_and_potential,
-                                                       m_p.G_Newton);
-    ModifiedPunctureGauge modified_puncture_gauge(m_p.modified_ccz4_params);
-    RhoDiagnostics<FourDerivScalarTensorWithCouplingAndPotential>
-        rho_diagnostics(fdst, m_dx, m_p.center);
-    BoxLoops::loop(rho_diagnostics, m_state_new, m_state_diagnostics,
-                   EXCLUDE_GHOST_CELLS);
-
-    if (m_p.calculate_diagnostic_norms)
+#ifdef USE_AHFINDER
+    // if print is on and there are Diagnostics to write, calculate them!
+    if (m_bh_amr.m_ah_finder.need_diagnostics(m_dt, m_time))
     {
         CouplingAndPotential coupling_and_potential(
             m_p.coupling_and_potential_params);
         FourDerivScalarTensorWithCouplingAndPotential fdst(
             coupling_and_potential, m_p.G_Newton);
         fillAllGhosts();
-        BoxLoops::loop(ModifiedGravityConstraints<
-                           FourDerivScalarTensorWithCouplingAndPotential>(
-                           fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
-                           Interval(c_Mom1, c_Mom3)),
-                       m_state_new, m_state_diagnostics, EXCLUDE_GHOST_CELLS);
-        if (m_level == 0)
-        {
-            AMRReductions<VariableType::diagnostic> amr_reductions(m_gr_amr);
-            bool normalise_by_volume = true;
-            double L2_Ham = amr_reductions.norm(c_Ham, 2, normalise_by_volume);
-            double L2_Mom = amr_reductions.norm(Interval(c_Mom1, c_Mom3), 2,
-                                                normalise_by_volume);
-            double L2_rho_phi =
-                amr_reductions.norm(c_rho_phi, 2, normalise_by_volume);
-            SmallDataIO diagnostics_file(m_p.data_path + "diagnostic_norms",
-                                         m_dt, m_time, m_restart_time,
-                                         SmallDataIO::APPEND, first_step);
-            diagnostics_file.remove_duplicate_time_data();
-            if (first_step)
-            {
-                diagnostics_file.write_header_line(
-                    {"L^2_Ham", "L^2_Mom", "L^2_rho_phi"});
-            }
-            diagnostics_file.write_time_data_line({L2_Ham, L2_Mom, L2_rho_phi});
-        }
+        ModifiedGravityConstraints<
+            FourDerivScalarTensorWithCouplingAndPotential>
+            constraints(fdst, m_dx, m_p.center, m_p.G_Newton, c_Ham,
+                        Interval(c_Mom1, c_Mom3));
+        BoxLoops::loop(constraints, m_state_new, m_state_diagnostics,
+                       EXCLUDE_GHOST_CELLS);
     }
-
-#ifdef USE_AHFINDER
     if (m_p.AH_activate && m_level == m_p.AH_params.level_to_run)
         m_bh_amr.m_ah_finder.solve(m_dt, m_time, m_restart_time);
 #endif
