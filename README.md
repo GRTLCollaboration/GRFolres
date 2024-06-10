@@ -1,7 +1,7 @@
 # GRFolres
 
-[![status](https://joss.theoj.org/papers/af52e7f1b7637bfa68818fde7c1a34de/status.svg)](https://joss.theoj.org/papers/af52e7f1b7637bfa68818fde7c1a34de)
-[![DOI](https://zenodo.org/badge/118786602.svg)](https://zenodo.org/badge/latestdoi/118786602)
+[![status](https://joss.theoj.org/papers/03d23fccf89bc534ea2303cade092e60/status.svg)](https://joss.theoj.org/papers/03d23fccf89bc534ea2303cade092e60)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11500211.svg)](https://doi.org/10.5281/zenodo.11500211)
 
 GRFolres is an open-source code for performing simulations in modified 
 theories of gravity, based on the publicly available 
@@ -27,7 +27,7 @@ for our coding style and testing policy before filing a pull request.
 GRFolres is licensed under the BSD 3-Clause License. Please see LICENSE for details.
 
 ## Citation
-If you use GRFolres as part of a paper, please cite our paper which has been submitted for review in the Journal of Open Source Software:
+If you use GRFolres as part of a paper, please cite our JOSS publication which you can do using the following BibTeX entry:
 
 ```
 @article{AresteSalo:2023hcp,
@@ -37,7 +37,12 @@ If you use GRFolres as part of a paper, please cite our paper which has been sub
     archivePrefix = "arXiv",
     primaryClass = "gr-qc",
     month = "9",
-    year = "2023"
+    doi = "10.21105/joss.06369",
+    journal = "J. Open Source Softw.",
+    volume = "9",
+    number = "98",
+    pages = "6369",
+    year = "2024"
 }
 ```
 as well as the GRChombo JOSS publication, which has the following BibTeX reference:
