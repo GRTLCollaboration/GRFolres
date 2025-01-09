@@ -242,8 +242,8 @@ ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::get_full_kappa_times_Sij_TF(
     // solve linear system for the theory fields that require it (e.g. 4dST)
     my_theory.solve_lhs(theory_rhs, theory_vars, d1, d2, advec, coords);
 
-    Tensor<2, data_t> out = theory_rhs.A;
-    FOR(i, j) out[i][j] += -rhs.A[i][j];
+    Tensor<2, data_t> out = -theory_rhs.A;
+    FOR(i, j) out[i][j] += rhs.A[i][j];
     FOR(i, j) out[i][j] /= chi_regularised;
 
     return out;
