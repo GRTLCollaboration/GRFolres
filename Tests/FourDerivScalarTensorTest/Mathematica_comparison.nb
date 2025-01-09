@@ -10,10 +10,10 @@
 NotebookFileLineBreakTest
 NotebookFileLineBreakTest
 NotebookDataPosition[       158,          7]
-NotebookDataLength[    111907,       3121]
-NotebookOptionsPosition[    111460,       3105]
-NotebookOutlinePosition[    111949,       3123]
-CellTagsIndexPosition[    111906,       3120]
+NotebookDataLength[    111954,       3120]
+NotebookOptionsPosition[    111504,       3104]
+NotebookOutlinePosition[    111996,       3122]
+CellTagsIndexPosition[    111953,       3119]
 WindowFrame->Normal*)
 
 (* Beginning of Notebook Content *)
@@ -44,7 +44,7 @@ Cell[BoxData[{
    RowBox[{"Vofphi", "=", 
     RowBox[{"RandomReal", "[", "]"}]}], ";", 
    RowBox[{"dVdphi", "=", 
-    RowBox[{"RandomReal", "[", "]"}]}], ";"}], "\n"}], "\[IndentingNewLine]", 
+    RowBox[{"RandomReal", "[", "]"}]}], ";"}], "\[IndentingNewLine]"}], "\n", 
 
  RowBox[{
   RowBox[{
@@ -56,7 +56,7 @@ Cell[BoxData[{
     RowBox[{"RandomReal", "[", "]"}]}], ";", 
    RowBox[{"dg2dphi", "=", 
     RowBox[{"RandomReal", "[", "]"}]}], ";"}], 
-  "\n"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"chi", "=", 
    RowBox[{"RandomReal", "[", "]"}]}], ";", 
@@ -335,7 +335,7 @@ Cell[BoxData[{
        RowBox[{"i", ",", "1", ",", "3"}], "}"}], ",", 
       RowBox[{"{", 
        RowBox[{"j", ",", "1", ",", "3"}], "}"}]}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"d2chi", "=", 
    RowBox[{"Table", "[", 
@@ -410,8 +410,8 @@ Cell[BoxData[{
       RowBox[{"{", 
        RowBox[{"j", ",", "1", ",", "3"}], "}"}], ",", 
       RowBox[{"{", 
-       RowBox[{"l", ",", "1", ",", "3"}], "}"}]}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]", "\n", 
+       RowBox[{"l", ",", "1", ",", "3"}], "}"}]}], "]"}]}], ";"}], "\n", 
+  "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{"Make", " ", "the", " ", "derivatives", " ", "symmetric"}], 
    "*)"}]}], "\[IndentingNewLine]", 
@@ -486,7 +486,7 @@ Cell[BoxData[{
       RowBox[{"i", ",", "1", ",", "3"}], "}"}], ",", 
      RowBox[{"{", 
       RowBox[{"j", ",", "1", ",", "3"}], "}"}]}], "]"}], ";"}], 
-  "\n"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenWrite", "[", 
@@ -500,7 +500,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{
    RowBox[{"Close", "[", "stream", "]"}], ";"}], 
-  "\n"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{"stream", "=", 
    RowBox[{"OpenAppend", "[", 
@@ -914,7 +914,7 @@ Cell[BoxData[{
       RowBox[{"k", ",", "1", ",", "3"}], "}"}], ",", 
      RowBox[{"{", 
       RowBox[{"l", ",", "1", ",", "3"}], "}"}]}], "]"}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"WriteLine", "[", 
    RowBox[{"stream", ",", 
@@ -1083,8 +1083,8 @@ Cell[BoxData[{
         RowBox[{"{", 
          RowBox[{"1", ",", "4"}], "}"}], ",", 
         RowBox[{"{", 
-         RowBox[{"2", ",", "5"}], "}"}]}], "}"}]}], "]"}]}], ";"}], 
-  "\[IndentingNewLine]", "\n", 
+         RowBox[{"2", ",", "5"}], "}"}]}], "}"}]}], "]"}]}], ";"}], "\n", 
+  "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{"Calculate", " ", "ricci"}], "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
@@ -1291,9 +1291,9 @@ Cell[BoxData[{
     RowBox[{"Tr", "[", 
      RowBox[{"\[Chi]", " ", 
       RowBox[{"hu", ".", "ricci"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
-  "\[IndentingNewLine]", 
+  "\n", 
   RowBox[{"(*", 
-   RowBox[{"define", " ", "variables"}], "*)"}]}], "\n", 
+   RowBox[{"define", " ", "variables"}], "*)"}]}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Aa", "=", "A"}], ";", 
   RowBox[{"\[Alpha]", "=", "lapse"}], ";", 
@@ -1546,11 +1546,11 @@ Cell[BoxData[{
      RowBox[{"Transpose", "[", 
       RowBox[{"covdA\[Chi]", ",", 
        RowBox[{"{", 
-        RowBox[{"2", ",", "1", ",", "3"}], "}"}]}], "]"}]}]}], ";"}], "\n", 
-  "\[IndentingNewLine]", 
+        RowBox[{"2", ",", "1", ",", "3"}], "}"}]}], "]"}]}]}], ";"}], 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
   RowBox[{"(*", 
    RowBox[{"Calculate", " ", "\[Rho]GB", " ", "and", " ", "JGB"}], 
-   "*)"}]}], "\[IndentingNewLine]", 
+   "*)"}]}], "\n", 
  RowBox[{
   RowBox[{"\[Rho]GB", "=", 
    RowBox[{
@@ -1605,10 +1605,9 @@ Cell[BoxData[{
            RowBox[{"1", ",", "4"}], "}"}], ",", 
           RowBox[{"{", 
            RowBox[{"2", ",", "5"}], "}"}]}], "}"}]}], "]"}]}]}]}], ";"}], 
-  "\n", "\[IndentingNewLine]", 
+  "\[IndentingNewLine]", "\[IndentingNewLine]", 
   RowBox[{"(*", 
-   RowBox[{"calculate", " ", "S", " ", "terms"}], 
-   "*)"}]}], "\[IndentingNewLine]", 
+   RowBox[{"calculate", " ", "S", " ", "terms"}], "*)"}]}], "\n", 
  RowBox[{
   RowBox[{"L\[Beta]A", "=", 
    RowBox[{
@@ -1676,7 +1675,7 @@ Cell[BoxData[{
            RowBox[{"2", ",", "5"}], "}"}], ",", 
           RowBox[{"{", 
            RowBox[{"3", ",", "6"}], "}"}]}], "}"}]}], "]"}]}]}]}], ";"}], 
-  "\[IndentingNewLine]"}], "\n", 
+  "\n"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"SK\[Phi]", "=", 
    RowBox[{
@@ -1889,10 +1888,8 @@ Cell[BoxData[{
        RowBox[{"(", 
         RowBox[{"9", " ", "\[Chi]"}], ")"}]}], " ", "hh", " ", 
       RowBox[{"(", 
-       RowBox[{"trcovd2lapse", "+", 
-        RowBox[{"\[Alpha]", " ", "trA2"}], "-", 
-        RowBox[{"Tr", "[", 
-         RowBox[{"hu", ".", "L\[Beta]A"}], "]"}]}], ")"}]}], "-", 
+       RowBox[{"trcovd2lapse", "-", 
+        RowBox[{"\[Alpha]", " ", "trA2"}]}], ")"}]}], "-", 
      RowBox[{"2", " ", 
       RowBox[{"Symmetrize", "[", 
        RowBox[{"TensorContract", "[", 
@@ -2708,7 +2705,7 @@ Cell[BoxData[{
           RowBox[{"hu", ".", "d\[Phi]"}], ")"}]}], ")"}], ".", 
        RowBox[{"(", 
         RowBox[{"hu", ".", "d\[Phi]"}], ")"}]}]}]}]}], ";"}], 
-  "\n"}], "\[IndentingNewLine]", 
+  "\[IndentingNewLine]"}], "\n", 
  RowBox[{
   RowBox[{
    RowBox[{"df2", " ", "=", 
@@ -2784,8 +2781,7 @@ Cell[BoxData[{
   ";"}], "\n", 
  RowBox[{
   RowBox[{"XK\[Phi]", "=", 
-   RowBox[{
-    RowBox[{"\[Chi]", "/", "2"}], " ", 
+   RowBox[{"2", "\[Chi]", " ", 
     RowBox[{"hu", ".", "Mtf", ".", "hu"}], " ", "df"}]}], ";"}], "\n", 
  RowBox[{
   RowBox[{"Yij", "=", 
@@ -2810,7 +2806,7 @@ Cell[BoxData[{
   RowBox[{"YK\[Phi]", "=", 
    RowBox[{
     RowBox[{
-     RowBox[{"-", "1"}], "/", "12"}], " ", "df", " ", "M"}]}], ";"}], "\n", 
+     RowBox[{"-", "1"}], "/", "3"}], " ", "df", " ", "M"}]}], ";"}], "\n", 
  RowBox[{
   RowBox[{
    RowBox[{"mat", "=", 
@@ -3100,11 +3096,14 @@ Cell[BoxData[{
    3.901890490604434*^9, 3.901890661252363*^9}, {3.901890736101222*^9, 
    3.901890764916051*^9}, {3.9018908738600693`*^9, 3.901890877152804*^9}, {
    3.901890971545923*^9, 3.9018909720408287`*^9}, {3.9019353806230383`*^9, 
-   3.901935454974388*^9}, {3.915183445953743*^9, 3.915183457864848*^9}},
- CellLabel->"In[1]:=",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
+   3.901935454974388*^9}, {3.915183445953743*^9, 3.915183457864848*^9}, {
+   3.945421980214201*^9, 3.94542198432117*^9}, {3.94542202399296*^9, 
+   3.9454220299263144`*^9}, {3.9454222768594723`*^9, 3.945422277619046*^9}},
+ CellLabel->
+  "In[185]:=",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
 },
-WindowSize->{802.5, 669.75},
-WindowMargins->{{Automatic, 282}, {0, Automatic}},
+WindowSize->{802.5, 618},
+WindowMargins->{{-1081.5, Automatic}, {Automatic, 183}},
 TaggingRules->{
  "WelcomeScreenSettings" -> {"FEStarting" -> False}, "TryRealOnly" -> False},
 FrontEndVersion->"13.3 for Linux x86 (64-bit) (July 24, 2023)",
@@ -3122,7 +3121,7 @@ CellTagsIndex->{}
 *)
 (*NotebookFileOutline
 Notebook[{
-Cell[558, 20, 110898, 3083, 7166, "Input",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
+Cell[558, 20, 110942, 3082, 7146, "Input",ExpressionUUID->"8b4b8e8e-49ac-434c-83d5-300cdefd8c2e"]
 }
 ]
 *)

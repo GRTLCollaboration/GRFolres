@@ -488,13 +488,17 @@ FourDerivScalarTensor<coupling_and_potential_t>::compute_Sij_TF_and_S(
     Tensor<2, data_t> SijGB;
     FOR(i, j)
     {
-        SijGB[i][j] = -2. / 3. * Omega_ij_TF[i][j] *
-                          (F + 2. * (tr_covd2lapse * one_over_lapse - tr_A2)) -
-                      2. * Mij_TF[i][j] *
-                          (Omega - 4. * d2fdphi2 * Vt + 4. * quadratic_terms) -
-                      2. * Omega / 3. * Fij_TF[i][j] / chi_regularised +
-                      2. * ((Ni[i] + d1.K[i] / 3.) * Omega_i[j] +
-                            (Ni[j] + d1.K[j] / 3.) * Omega_i[i]);
+        SijGB[i][j] =
+            -2. / 3. * Omega_ij_TF[i][j] *
+                (F + 2. * (tr_covd2lapse * one_over_lapse - tr_A2)) -
+            2. * Mij_TF[i][j] *
+                (Omega - 4. * d2fdphi2 * Vt + 4. * quadratic_terms) -
+            2. * Omega / 3. *
+                (Fij[i][j] -
+                 vars.h[i][j] / 3. * (tr_covd2lapse * one_over_lapse - tr_A2)) /
+                chi_regularised +
+            2. * ((Ni[i] + d1.K[i] / 3.) * Omega_i[j] +
+                  (Ni[j] + d1.K[j] / 3.) * Omega_i[i]);
         FOR(k, l)
         {
             SijGB[i][j] +=
@@ -877,13 +881,13 @@ void FourDerivScalarTensor<coupling_and_potential_t>::compute_lhs(
             continue;
 
         LHS_mat[N - 1][idx] = 0.;
-        LHS_mat[idx][N - 1] = -2. * dfdphi * Mij_TF_UU_over_chi[i][j];
+        LHS_mat[idx][N - 1] = -8. * dfdphi * Mij_TF_UU_over_chi[i][j];
         if (i != j)
-            LHS_mat[idx][N - 1] += -2. * dfdphi * Mij_TF_UU_over_chi[j][i];
+            LHS_mat[idx][N - 1] += -8. * dfdphi * Mij_TF_UU_over_chi[j][i];
         ++idx;
     }
     LHS_mat[N - 1][N - 2] = 0.;
-    LHS_mat[N - 2][N - 1] = dfdphi * M / 3.;
+    LHS_mat[N - 2][N - 1] = 4. * dfdphi * M / 3.;
     LHS_mat[N - 1][N - 1] = 1. + g2 * (2. * vars.Pi * vars.Pi - Vt);
 
     for (int row = 0; row < N; ++row)
