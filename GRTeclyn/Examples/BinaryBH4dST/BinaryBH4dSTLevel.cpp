@@ -51,8 +51,10 @@
 //           add_a_and_b_rhs      -- a(x)/b(x) modified-gauge terms, called
 //                                   just before add_emtensor_rhs
 //           add_emtensor_rhs     -- kappa * T sources
-//           add_matter_rhs       -- theory (phi, Pi) field evolution
+//           add_theory_rhs       -- theory (phi, Pi) field evolution
+//                                   (wraps theory_t::add_theory_rhs)
 //           solve_lhs            -- per-cell principal-part linear solve (4dST)
+//                                   (wraps theory_t::solve_lhs)
 //           apply_dissipation    -- Kreiss-Oliger dissipation
 //         each (int ix,int iy,int iz, Array4<Real> &rhs,
 //               Array4<const Real> &state) const
@@ -64,9 +66,10 @@
 //         sets the base moving-puncture lapse/shift/B RHS
 //       - params_t with a0, b0 (+ standard gauge params) + check/fill_params
 //
-//   ModifiedGravityConstraints<theory_t>   -> derived record "constraints"
-//   ModifiedGravityWeyl4<theory_t, deriv_t> -> derived record "Weyl4"
-//   RhoDiagnostics<theory_t>               -> rho_phi/rho_g2/rho_g3/rho_GB
+//   ModifiedGravityConstraints<theory_t>  -> derived record "constraints"
+//   ModifiedGravityWeyl4<theory_t>        -> derived record "Weyl4"
+//   RhoDiagnostics<theory_t>              -> record "rho_diagnostics"
+//                                            (rho_phi/rho_g2/rho_g3/rho_GB)
 //       each with a static set_up(int state_index) + compute_mf(...)
 //
 //   ScalarExtraction : public SphericalExtraction<1>
@@ -142,7 +145,7 @@ void eval_rhs_impl(amrex::MultiFab &a_soln, amrex::MultiFab &a_rhs,
                                           const_soln_arrays[box_no]);
             modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
                                            const_soln_arrays[box_no]);
-            modified_ccz4.add_matter_rhs(ix, iy, iz, rhs_arrays[box_no],
+            modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
                                          const_soln_arrays[box_no]);
             // solve the linear system for the fields that need it (4dST)
             modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
@@ -175,8 +178,10 @@ void BinaryBH4dSTLevel::variableSetUp()
         FourDerivScalarTensorWithCouplingAndPotential<FourthOrderDerivatives>;
 
     // Register the modified-gravity diagnostics as AMReX derived records.
+    // (These diagnostic classes always use 4th-order derivatives, like the
+    // vacuum Constraints / Weyl4, so they are not templated on deriv_t.)
     ModifiedGravityConstraints<theory_t>::set_up(state_index);
-    ModifiedGravityWeyl4<theory_t, FourthOrderDerivatives>::set_up(state_index);
+    ModifiedGravityWeyl4<theory_t>::set_up(state_index);
     RhoDiagnostics<theory_t>::set_up(state_index);
 }
 

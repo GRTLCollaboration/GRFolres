@@ -44,6 +44,16 @@ struct ScalarVectorTensor
     Tensor::Rank2 tensor;
 };
 
+// Individual contributions to rho = T_ab n^a n^b, stored as diagnostics.
+// Note: additional components may be needed for some theories.
+struct AllRhos
+{
+    amrex::Real phi; //!< minimally-coupled scalar contribution
+    amrex::Real g2;  //!< k_2(phi) X^2 (k-essence) contribution
+    amrex::Real g3;  //!< g_3(phi) box(phi) X contribution
+    amrex::Real GB;  //!< Gauss-Bonnet contribution
+};
+
 
 template <class theory_t, class deriv_t = FourthOrderDerivatives>
 class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>

@@ -21,6 +21,7 @@
 #include "TwoPuncturesInitialData.hpp"
 #endif
 
+// GRFolres specific
 #include "CouplingAndPotential.hpp"
 #include "FourDerivScalarTensor.hpp"
 #include "InitialScalarData.hpp"
