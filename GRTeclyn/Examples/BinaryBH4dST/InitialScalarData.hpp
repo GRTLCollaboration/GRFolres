@@ -18,8 +18,8 @@
 #include <array>
 #include <cmath>
 
-//! Sets a spherically-symmetric Gaussian bump for the scalar field phi with
-//! zero conjugate momentum Pi, matching the GRChombo BinaryBH4dST example.
+// Sets a spherically-symmetric Gaussian bump for the scalar field phi with
+// zero conjugate momentum Pi, matching the GRChombo BinaryBH4dST example.
 class InitialScalarData
 {
   public:
@@ -68,6 +68,7 @@ class InitialScalarData
         m_params.fill_params();
     }
 
+    //! Function to compute the value of all the initial vars on the grid
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
     operator()(int ix, int iy, int iz,
                const amrex::Array4<amrex::Real> &state) const

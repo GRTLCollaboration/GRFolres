@@ -27,40 +27,49 @@
 #include "InitialScalarData.hpp"
 
 // 4dST / modified-gravity source classes.
-// NOTE: the include files below do not exist yet and Llibert will port them in Source 
-// and presumable they will be in  GRTeclyn/Source/{FourDerivScalarTensor,ModifiedCCZ4}/ 
-// For this example I assume the following
-// I assume the same names as the GRFolres ones for the classes but expressed in
-// GRTeclyn's split-kernel / derived-variable style:
+// NOTE: the include files below do not exist yet and Llibert will port them in
+// Source and presumably they will be in
+// GRTeclyn/Source/{FourDerivScalarTensor,ModifiedCCZ4}/
+// For this example I assume the following: the same class names as the GRFolres
+// ones, but expressed in GRTeclyn's split-kernel / derived-variable style, and
+// with NO gauge template parameter (GRTeclyn's CCZ4RHS is not templated on the
+// gauge -- the gauge is a separate object the Level constructs and calls):
 //
 //   FourDerivScalarTensor<coupling_and_potential_t, deriv_t>
 //       - default ctor + explicit ctor(coupling_and_potential_t)
 //       - nested Vars : public CCZ4Vars  (adds phi(), Pi())
 //       - params_t::{check_params, fill_params}  (reads G_Newton)
 //
-//   ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t> : public CCZ4RHS<deriv_t>
-//       - ctor(amrex::Real dx); owns theory_t + gauge_t and reads their params
-//       - compute(int ix, int iy, int iz,
-//                 Array4<Real> &rhs, Array4<const Real> &state) const
-//         the per-cell port of GRChombo's ModifiedCCZ4RHS::compute(Cell): the
-//         whole pipeline in one call -- vacuum CCZ4, the modified-gauge a(x)/b(x)
-//         terms, the kappa*T sources, the theory (phi, Pi) evolution, the
-//         principal-part solve and Kreiss-Oliger dissipation. Its internal
-//         steps (add_a_and_b_rhs, add_emtensor_rhs, add_theory_rhs, solve_lhs)
-//         are exercised one by one only by the GRFolres Tests, not here.
-//         If the port instead follows GRTeclyn's CCZ4RHSWithMatter and exposes
-//         those steps for the Level to orchestrate across several ParallelFor
-//         kernels (as ScalarFieldLevel does), replace the single compute() call
-//         in eval_rhs_impl with that sequence.
+//   ModifiedCCZ4RHS<theory_t, deriv_t> : public CCZ4RHS<deriv_t>
+//       - ctor(amrex::Real dx); owns a theory_t and reads its params plus the
+//         modified-gauge constants a0, b0 (modified_gauge.* scope)
+//       - the RHS is built by the Level from these per-cell device methods,
+//         following ScalarFieldLevel and the order of GRChombo's
+//         ModifiedCCZ4RHS::compute(Cell):
+//           compute_chi_and_h_ij              (inherited from CCZ4RHS)
+//           compute_A_ij_and_Theta_and_Gamma  (inherited from CCZ4RHS)
+//           add_a_and_b_rhs      -- a(x)/b(x) modified-gauge terms, called
+//                                   just before add_emtensor_rhs
+//           add_emtensor_rhs     -- kappa * T sources
+//           add_theory_rhs       -- theory (phi, Pi) field evolution
+//                                   (wraps theory_t::add_theory_rhs)
+//           solve_lhs            -- per-cell principal-part linear solve (4dST)
+//                                   (wraps theory_t::solve_lhs)
+//           apply_dissipation    -- Kreiss-Oliger dissipation
+//         each (int ix,int iy,int iz, Array4<Real> &rhs,
+//               Array4<const Real> &state) const
 //
 //   ModifiedPunctureGauge<deriv_t>
-//       - ctor(amrex::Real dx); owned/constructed by ModifiedCCZ4RHS and
-//         ModifiedGravityWeyl4 (the example never calls it directly)
+//       - ctor(amrex::Real dx); standalone gauge object (like GRTeclyn's
+//         MovingPunctureGauge / IntegratedMovingPunctureGauge)
+//       - calculate_rhs(int,int,int, Array4<Real>&, Array4<const Real>&) const
+//         sets the base moving-puncture lapse/shift/B RHS
 //       - params_t with a0, b0 (+ standard gauge params) + check/fill_params
 //
-//   ModifiedGravityConstraints<theory_t>   -> derived record "constraints"
-//   ModifiedGravityWeyl4<theory_t, gauge_t, deriv_t> -> derived record "Weyl4"
-//   RhoDiagnostics<theory_t>               -> rho_phi/rho_g2/rho_g3/rho_GB
+//   ModifiedGravityConstraints<theory_t>  -> derived record "constraints"
+//   ModifiedGravityWeyl4<theory_t>        -> derived record "Weyl4"
+//   RhoDiagnostics<theory_t>              -> record "rho_diagnostics"
+//                                            (rho_phi/rho_g2/rho_g3/rho_GB)
 //       each with a static set_up(int state_index) + compute_mf(...)
 //
 //   ScalarExtraction : public SphericalExtraction<1>
@@ -81,29 +90,69 @@
 
 namespace
 {
-//! The full modified-CCZ4 + 4dST right hand side for one derivative order.
-//! One device call to ModifiedCCZ4RHS::compute per cell, mirroring the single
-//! BoxLoops::loop(my_modified_ccz4, ...) in GRChombo's
-//! BinaryBH4dSTLevel::specificEvalRHS.
+// The full modified-CCZ4 + 4dST right hand side for one derivative order.
+//
+// GRTeclyn splits the CCZ4 RHS into several device kernels so that not all the
+// first/second derivatives have to live in GPU registers at once (see
+// ScalarFieldLevel and BinaryBHLevel). We follow the same pattern and add the
+// modified-gravity pieces explicitly, in the order of GRChombo's
+// ModifiedCCZ4RHS::compute(Cell):
+//   vacuum CCZ4  ->  base moving-puncture gauge  ->  a(x)/b(x) gauge terms
+//   ->  kappa * T sources  ->  theory (phi, Pi) evolution
+//   ->  principal-part solve  ->  Kreiss-Oliger dissipation
 template <class deriv_t>
 void eval_rhs_impl(amrex::MultiFab &a_soln, amrex::MultiFab &a_rhs,
                    amrex::Real a_dx)
 {
-    using theory_t = FourDerivScalarTensor<CouplingAndPotential, deriv_t>;
-    using gauge_t  = ModifiedPunctureGauge<deriv_t>;
+    using theory_t = FourDerivScalarTensorWithCouplingAndPotential<deriv_t>;
 
     const auto &const_soln_arrays = a_soln.const_arrays();
     const auto &rhs_arrays        = a_rhs.arrays();
 
-    const ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t> modified_ccz4(a_dx);
+    const ModifiedCCZ4RHS<theory_t, deriv_t> modified_ccz4(a_dx);
+    const ModifiedPunctureGauge<deriv_t> modified_puncture_gauge(a_dx);
 
+    // 1. chi and h_ij
     amrex::ParallelFor(a_rhs,
                        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
                        {
-                           modified_ccz4.compute(ix, iy, iz,
-                                                 rhs_arrays[box_no],
-                                                 const_soln_arrays[box_no]);
+                           modified_ccz4.compute_chi_and_h_ij(
+                               ix, iy, iz, rhs_arrays[box_no],
+                               const_soln_arrays[box_no]);
                        });
+
+    // 2. A_ij, Theta and Gamma
+    amrex::ParallelFor(a_rhs,
+                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+                       {
+                           modified_ccz4.compute_A_ij_and_Theta_and_Gamma(
+                               ix, iy, iz, rhs_arrays[box_no],
+                               const_soln_arrays[box_no]);
+                       });
+
+    // 3. base gauge, modified-gauge a(x)/b(x) terms, matter sources, theory
+    //    field evolution, principal-part solve and dissipation
+    amrex::ParallelFor(
+        a_rhs,
+        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+        {
+            // base moving-puncture lapse/shift/B RHS (sets, does not add)
+            modified_puncture_gauge.calculate_rhs(ix, iy, iz,
+                                                  rhs_arrays[box_no],
+                                                  const_soln_arrays[box_no]);
+            // a(x)/b(x) modified-gauge terms, added just before the EM tensor
+            modified_ccz4.add_a_and_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                          const_soln_arrays[box_no]);
+            modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                           const_soln_arrays[box_no]);
+            modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                         const_soln_arrays[box_no]);
+            // solve the linear system for the fields that need it (4dST)
+            modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
+                                    const_soln_arrays[box_no]);
+            modified_ccz4.apply_dissipation(ix, iy, iz, rhs_arrays[box_no],
+                                            const_soln_arrays[box_no]);
+        });
 }
 } // namespace
 
@@ -127,12 +176,12 @@ void BinaryBH4dSTLevel::variableSetUp()
 
     using theory_t =
         FourDerivScalarTensorWithCouplingAndPotential<FourthOrderDerivatives>;
-    using gauge_t = ModifiedPunctureGauge<FourthOrderDerivatives>;
 
     // Register the modified-gravity diagnostics as AMReX derived records.
+    // (These diagnostic classes always use 4th-order derivatives, like the
+    // vacuum Constraints / Weyl4, so they are not templated on deriv_t.)
     ModifiedGravityConstraints<theory_t>::set_up(state_index);
-    ModifiedGravityWeyl4<theory_t, gauge_t, FourthOrderDerivatives>::set_up(
-        state_index);
+    ModifiedGravityWeyl4<theory_t>::set_up(state_index);
     RhoDiagnostics<theory_t>::set_up(state_index);
 }
 
@@ -272,6 +321,7 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     const auto soln_ghosts  = a_soln.nGrowVect();
     const amrex::Real dx    = Geom().CellSize(0);
 
+    // The classes to be used
     const AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
     const PositiveChiAndLapse positive_chi_lapse;
 
@@ -301,6 +351,7 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
 }
 
 // enforce algebraic constraints during RK4 substeps
+// I think GRFolres doesn't do this?
 void BinaryBH4dSTLevel::specific_update_ode(amrex::MultiFab &a_soln)
 {
     BL_PROFILE("BinaryBH4dSTLevel::specific_update_ode()");
@@ -426,7 +477,7 @@ void BinaryBH4dSTLevel::specific_post_timestep()
 {
     BL_PROFILE("BinaryBH4dSTLevel::specific_post_timestep");
 
-    // ---- puncture tracking ------------------------------------------------
+    // puncture tracking 
     if (get_bh_amr_ptr()->puncture_tracking_enabled())
     {
         GRParmParse puncture_tracking_pp("puncture_tracking");
@@ -448,7 +499,7 @@ void BinaryBH4dSTLevel::specific_post_timestep()
         }
     }
 
-    // ---- Weyl4 extraction ------------------------------------------------
+    // Weyl4 extraction
     spherical_extraction_params_t weyl_params("weyl_extraction");
     weyl_params.fill_params();
     if (weyl_params.enabled)
@@ -469,7 +520,7 @@ void BinaryBH4dSTLevel::specific_post_timestep()
         }
     }
 
-    // ---- scalar-field extraction -------------------------------------------
+    // scalar-field extraction 
     spherical_extraction_params_t scalar_params("scalar_extraction");
     scalar_params.fill_params();
     if (scalar_params.enabled)
@@ -490,8 +541,8 @@ void BinaryBH4dSTLevel::specific_post_timestep()
         }
     }
 
-    // NOTE: GRChombo's calculate_constraint_norms (needs AMRReductions) and
-    // the apparent-horizon finder are not yet available in GRTeclyn and are
-    // omitted. The "constraints" derived record is still registered for
+    // NOTE: GRChombo's calculate_constraint_norms (needs AMRReductions) and the
+    // apparent-horizon finder are not yet available in GRTeclyn, so I omit them
+    // for now. The "constraints" derived record is still registered for
     // plotfile output.
 }

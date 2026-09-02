@@ -14,21 +14,21 @@
 
 #include <cmath>
 
-//! Shift-symmetric (linear) Einstein-scalar-Gauss-Bonnet coupling plus an
-//! optional quadratic potential, as used in the GRChombo BinaryBH4dST example.
-//! f(phi) = lambda_GB * phi, with a smooth interior excision based on chi.
-//! g2(phi) = g2 (constant coupling to the square of the kinetic term X).
-//! V(phi)  = 1/2 (scalar_mass * phi)^2.
+// Shift-symmetric Einstein-scalar-Gauss-Bonnet coupling plus an
+// optional quadratic potential, as used in the GRChombo BinaryBH4dST example.
+// f(phi) = lambda_GB * phi, with a smooth interior excision based on chi.
+// g2(phi) = g2 (constant coupling to the square of the kinetic term X).
+// V(phi)  = 1/2 (scalar_mass * phi)^2.
 class CouplingAndPotential
 {
   public:
     struct params_t
     {
-        amrex::Real lambda_GB{0.0};   //!< Gauss-Bonnet coupling
-        amrex::Real g2{0.0};          //!< coupling to the square of X
-        amrex::Real cutoff_GB{0.15};  //!< chi cutoff for the interior excision
-        amrex::Real factor_GB{100.0}; //!< sharpness of the excision transition
-        amrex::Real scalar_mass{0.0}; //!< mass in the potential
+        amrex::Real lambda_GB{0.0};   // Gauss-Bonnet coupling
+        amrex::Real g2{0.0};          // coupling to the square of X
+        amrex::Real cutoff_GB{0.1};  // chi cutoff for the interior excision
+        amrex::Real factor_GB{100.0}; // sharpness of the excision transition
+        amrex::Real scalar_mass{0.0}; // mass in the potential
 
         static void check_params()
         {
@@ -40,7 +40,7 @@ class CouplingAndPotential
             amrex::Real g2{0.0};
             fdst_pp.queryAdd("g2", g2);
 
-            amrex::Real cutoff_GB{0.15};
+            amrex::Real cutoff_GB{0.1};
             fdst_pp.queryAdd("cutoff_GB", cutoff_GB);
 
             amrex::Real factor_GB{100.0};
@@ -73,8 +73,8 @@ class CouplingAndPotential
     {
     }
 
-    //! Set the EsGB coupling function and the scalar potential.
-    //! vars must provide vars.chi() and vars.phi().
+    // Set the EsGB coupling function and the scalar potential.
+    // vars must provide vars.chi() and vars.phi().
     // NOLINTBEGIN(bugprone-easily-swappable-parameters)
     template <class vars_t>
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void compute_coupling_and_potential(
@@ -82,22 +82,27 @@ class CouplingAndPotential
         amrex::Real &dg2dphi, amrex::Real &V_of_phi, amrex::Real &dVdphi,
         const vars_t &vars, const Coordinates & /*coords*/) const
     {
-        // excision: switch the coupling off smoothly in the BH interior
+        // excision setting the coupling to 0 in the interior of the BH with a
+	// smooth function
         const amrex::Real cutoff_factor =
             1.0 +
             std::exp(-m_params.factor_GB * (vars.chi() - m_params.cutoff_GB));
 
         // Shift-symmetric coupling f(phi) = lambda_GB * phi
+	// The first derivative of the GB coupling function
         dfdphi   = m_params.lambda_GB / cutoff_factor;
+	// The second derivative of the GB coupling function
         d2fdphi2 = 0.0;
 
         // coupling to the square of the kinetic term
         g2      = m_params.g2;
+	// The first derivative of the g2 coupling
         dg2dphi = 0.0;
 
         // quadratic potential
         const amrex::Real mass_times_phi = m_params.scalar_mass * vars.phi();
         V_of_phi = 0.5 * mass_times_phi * mass_times_phi;
+	// The first derivative of the potential
         dVdphi   = m_params.scalar_mass * m_params.scalar_mass * vars.phi();
     }
     // NOLINTEND(bugprone-easily-swappable-parameters)
