@@ -68,11 +68,32 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_a_and_b_rhs(
         Mom(i) = -(GR_SPACEDIM - 1.) * d1_K(i) / GR_SPACEDIM;
     }
 
-    rhs_cell_data[c_K] += -0.5 * GR_SPACEDIM / (GR_SPACEDIM - 1.) * factor_b * vars.lapse() * Ham;
-    rhs_cell_data[c_Theta] += -0.5 * factor_b * vars.lapse() * Ham;
+    rhs_cell_data[c_K] += GR_SPACEDIM * factor_b * 
+	    (-0.5 / (GR_SPACEDIM - 1.) * vars.lapse() * Ham + 
+	     kappa1_times_lapse * (1. + 0.5 * m_params.kappa2));
 
-    FOR2_SYM(i, j) rhs_cell_data[c_Gamma1 + i] += -factor_b * 2. * h_UU(i, j) * vars.lapse() * (d1_Theta(j) + Mom(j)) ;
+    rhs_cell_data[c_Theta] += 0.5 * factor_b * (-vars.lapse() * Ham +
+         vars.Theta() * kappa1_times_lapse * 
+	      ((GR_SPACEDIM - 3.) / (2. + m_params.modb) +
+	      (GR_SPACEDIM + 1.) + m_params.kappa2 * (GR_SPACEDIM - 1.)));
 
+    FOR (i)
+    {
+	amrex::Real mod_gauge_term_Gamma = 2.0 * factor_b * Z_over_chi(i) * 
+		(1.0 / GR_SPACEDIM * vars.lapse() * vars.K()  + 
+		kappa1_times_lapse);
+	FOR (j)
+	{
+	    mod_gauge_term_Gamma += 
+                -factor_b * 2. * h_UU(i, j) * vars.lapse() * 
+		        (d1_Theta(j) + Mom(j));
+	    FOR (k)
+	    {
+	       mod_gauge_term_Gamma += factor_b * 2. * vars.lapse() * vars.h(j, k) * Z_over_chi(k);
+	    }        
+	}
+        rhs_cell_data[c_Gamma1 + i] += mod_gauge_term_Gamma;
+    }
 }
 
 // Function to add in EM Tensor matter terms to CCZ4 RHS
@@ -110,15 +131,12 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_emtensor_rhs(
         ccz4_coeff * (rhs_cell_data[c_Theta] + ccz4_Theta_matter_rhs);
 
     // Update RHS for other variables
-    Tensor::Rank2 S_TF = source.S;
-
-    CCZ4Geometry::make_trace_free(S_TF, vars, h_UU);
 
     FOR2_SYM(i, j)
     {
 
         rhs_cell_data[sym_var_idx(c_A11, i, j)] -=
-            vars.chi() * vars.lapse() * S_TF(i, j);
+            vars.chi() * vars.lapse() * source.S_TF(i, j);
     }
 
     FOR (i)

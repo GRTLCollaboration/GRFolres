@@ -25,16 +25,16 @@
    an example of a matter_t. \sa CCZ4RHS(), ScalarField()
 */
 
-struct RhoAndSi
+struct RhoAndJ
 {
-    Tensor::Rank1 Si; //!< S_i = T_ia_n^a
+    Tensor::Rank1 j; //!< S_i = T_ia_n^a
     amrex::Real rho;           //!< rho = T_ab n^a n^b
 };
 
-struct SijTFAndS
+struct STFAndTrS
 {
-    Tensor::Rank2 Sij_TF; //!< S_ij_TF = (T_ab\gamma_i^a\gamma_j^b)^TF
-    amrex::Real S;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
+    Tensor::Rank2 STF; //!< S_ij_TF = (T_ab\gamma_i^a\gamma_j^b)^TF
+    amrex::Real trS;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
 };
 
 struct ScalarVectorTensor
@@ -42,6 +42,14 @@ struct ScalarVectorTensor
     amrex::Real scalar;
     Tensor::Rank1 vector;
     Tensor::Rank2 tensor;
+};
+
+struct einstein_sources_TF
+{
+    amrex::Real rho;
+    Tensor::Rank1 j;
+    Tensor::Rank2 S_TF;
+    amrex::Real trS;
 };
 
 

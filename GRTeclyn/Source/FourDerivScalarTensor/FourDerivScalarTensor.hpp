@@ -117,7 +117,7 @@ class FourDerivScalarTensor
         const int ix, const int iy, const int iz,
 	const amrex::Array4<const amrex::Real> &state,
 	const deriv_t &a_deriv,
-	const int N, amrex::Real *LHS)
+	const int matrix_dim, amrex::Real *LHS)
 	const;
 
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void solve_lhs(
