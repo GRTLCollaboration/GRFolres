@@ -10,11 +10,92 @@
 #ifndef FOURDERIVSCALARTENSOR_IMPL_HPP_
 #define FOURDERIVSCALARTENSOR_IMPL_HPP_
 
-// Calculate the stress energy tensor elements
-template <class potential_t, class deriv_t>
-AMREX_GPU_DEVICE emtensor_t FourDerivScalarTensor<potential_t, deriv_t>::compute_emtensor(
+template <class coupling_and_potential_t, class deriv_t>
+AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_M_Ni_and_Mij(
     const int ix, const int iy, const int iz,
-    const amrex::Array4<const amrex::Real> &state, const deriv_t &a_deriv,
+    const amrex::Array4<const amrex::Real> &state,
+    const deriv_t &a_deriv) const
+{
+    ScalarVectorTensor out;
+
+    return out;
+}
+
+template <class coupling_and_potential_t, class deriv_t>
+AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_Omega_munu(
+    const int ix, const int iy, const int iz,
+    const amrex::Array4<const amrex::Real> &state,
+    const deriv_t &a_deriv) const
+{
+    ScalarVectorTensor out;
+
+    return out;
+}
+
+// Calculate the stress energy tensor elements
+template <class coupling_and_potential_t, class deriv_t>
+AMREX_GPU_DEVICE emtensor_t FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_rho_and_j(
+    const int ix, const int iy, const int iz,
+    const amrex::Array4<const amrex::Real> &state, 
+    const deriv_t &a_deriv,
+    const Tensor::Rank2 &h_UU) const
+{
+    RhoAnd_t out;
+
+    const amrex::CellData<const amrex::Real> &state_cell_data =
+        state.cellData(ix, iy, iz);
+
+    const Vars vars(state_cell_data);
+
+    auto d1_phi = a_deriv.d1_scalar(ix, iy, iz, state, c_phi);
+
+    //    Useful quantity Vt
+    amrex::Real Vt = -vars.Pi() * vars.Pi();
+    FOR (i, j)
+    {
+        Vt += vars.chi() * h_UU(i, j) * d1_phi(i) * d1_phi(j);
+    }
+
+    // set the coupling and potential values
+    amrex::Real dfdphi   = 0.0;
+    amrex::Real d2fphi2  = 0.0;
+    amrex::Real V_of_phi = 0.0;
+    amrex::Real dVdphi   = 0.0;
+    amrex::Real g2       = 0.0;
+    amrex::Real dg2dphi  = 0.0;
+    // compute coupling and potential and add constributions to EM Tensor
+    m_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, g2, dg2dphi, vars);
+
+    // Calculate components of EM Tensor
+    // S = T_ij
+    FOR (i, j)
+    {
+        out.S(i, j) = -0.5 * vars.h(i, j) * Vt / vars.chi() +
+                      d1_phi(i) * d1_phi(j) -
+                      vars.h(i, j) * V_of_phi / vars.chi();
+    }
+
+    // rho = n^a n^b T_ab
+    out.rho = vars.Pi() * vars.Pi() + 0.5 * Vt + V_of_phi;
+
+    // trS = Tr_S_ij
+    out.trS = vars.chi() * TensorAlgebra::compute_trace(out.S, h_UU);
+
+    //    j_i (note lower index) = - n^a T_ai
+    FOR (i)
+    {
+        out.j(i) = -d1_phi(i) * vars.Pi();
+    }
+
+    return out;
+}
+
+// Calculate the stress energy tensor elements
+template <class coupling_and_potential_t, class deriv_t>
+AMREX_GPU_DEVICE emtensor_t FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_STF_and_trS(
+    const int ix, const int iy, const int iz,
+    const amrex::Array4<const amrex::Real> &state,
+    const deriv_t &a_deriv,
     const Tensor::Rank2 &h_UU) const
 {
     emtensor_t out;
@@ -67,7 +148,8 @@ AMREX_GPU_DEVICE emtensor_t FourDerivScalarTensor<potential_t, deriv_t>::compute
     return out;
 }
 
-template <class potential_t, class deriv_t>
+
+template <class coupling_and_potential_t, class deriv_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE einstein_sources_t
 FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_einstein_sources(
     int ix, int iy, int iz, const amrex::Array4<const amrex::Real> &state,
@@ -153,6 +235,22 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
                                    chris.ULL(k, i, j) * d1_phi(k);
         }
     }
+}
+
+template <class coupling_and_potential_t, class deriv_t>
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
+FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_lhs(
+    int ix, int iy, int iz, const amrex::Array4<amrex::Real> &rhs_state,
+    const amrex::Array4<const amrex::Real> &state, const deriv_t &a_deriv) const
+{
+}
+
+template <class coupling_and_potential_t, class deriv_t>
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
+FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::solve_lhs(
+    int ix, int iy, int iz, const amrex::Array4<amrex::Real> &rhs_state,
+    const amrex::Array4<const amrex::Real> &state, const deriv_t &a_deriv) const
+{
 }
 
 #endif /* FOURDERIVSCALARTENSOR_IMPL_HPP_ */

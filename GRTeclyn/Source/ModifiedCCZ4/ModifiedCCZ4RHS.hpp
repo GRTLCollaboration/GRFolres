@@ -25,7 +25,27 @@
    an example of a matter_t. \sa CCZ4RHS(), ScalarField()
 */
 
-template <class matter_t, class deriv_t = FourthOrderDerivatives>
+struct RhoAndSi
+{
+    Tensor::Rank1 Si; //!< S_i = T_ia_n^a
+    amrex::Real rho;           //!< rho = T_ab n^a n^b
+};
+
+struct SijTFAndS
+{
+    Tensor::Rank2 Sij_TF; //!< S_ij_TF = (T_ab\gamma_i^a\gamma_j^b)^TF
+    amrex::Real S;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
+};
+
+struct ScalarVectorTensor
+{
+    amrex::Real scalar;
+    Tensor::Rank1 vector;
+    Tensor::Rank2 tensor;
+};
+
+
+template <class theory_t, class deriv_t = FourthOrderDerivatives>
 class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
 {
   public:
@@ -65,7 +85,7 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
 
     //! Add the evolution equations for the matter variables.
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
-    add_matter_rhs(const int ix, const int iy, const int iz,
+    add_theory_rhs(const int ix, const int iy, const int iz,
                    const amrex::Array4<amrex::Real> &rhs_state,
                    const amrex::Array4<const amrex::Real> &state) const;
 
