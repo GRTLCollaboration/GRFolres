@@ -28,16 +28,27 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
     const auto chris = CCZ4Geometry::compute_christoffel(d1_h, h_UU);
 
     auto d1_A = a_deriv.d1_sym_tensor(ix, iy, iz, state, c_A11);
+    auto d1_K     = a_deriv.d1_scalar(ix, iy, iz, state, c_K);
     auto d1_chi   = a_deriv.d1_scalar(ix, iy, iz, state, c_chi);
     auto d1_Gamma = a_deriv.d1_vector(ix, iy, iz, state, c_Gamma1);
     auto d2_chi   = a_deriv.d2_scalar(ix, iy, iz, state, c_chi);
     auto d2_h = a_deriv.d2_sym_tensor(ix, iy, iz, state, c_h11);
 
+    // Compute Ricci
     auto ricci = CCZ4Geometry::compute_ricci(vars, d1_chi, d1_Gamma, d1_h,
                                                  d2_chi, d2_h, h_UU, chris);
 
-    out.tensor(i, j) = ricci.LL(i, j) + vars.K() / (3.0 * chi) *
+    // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
+    FOR(i, j)
+    {
+	out.tensor(i, j) = ricci.LL(i, j) + vars.K() / (3.0 * chi) *
 	                 (vars.A(i, j) + 2. / 3. * vars.K() * vars.h(i, j));
+	FOR(k, l)
+	{
+            out.tensor(i, j) += -vars.A(i, k) * vars.A(j, l) * h_UU(k, l) / vars.chi();
+	}
+    }
+    // M = \gamma^{ij}M_{ij} (vacuum GR Hamiltonian constraint)
     out.scalar = vars.chi() * TensorAlgebra::compute_trace(out.tensor, h_UU);
 
     // Covariant derivative of \bar A_ij
@@ -51,13 +62,14 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
                                chris.ULL(l, i, k) * vars.A(l, j);
         }
     }
+    // N_i = D^jK_{ij} - D_iK (vacuum GR momentum constraint)
     FOR (i)
     {
         out.vector(i) = -(GR_SPACEDIM - 1.) * d1_K(i) / GR_SPACEDIM;
 	FOR (j, k)
 	{
 	    out.vector(i) += h_UU(j, k) * (covdA(i, j, k) - 
-			    0.5 * GR_SPACEDIM * vars.A(i, j) * d1.chi() / vars.chi();
+			    0.5 * GR_SPACEDIM * vars.A(i, j) * d1.chi(k) / vars.chi();
 	}
     }
     return out;
@@ -95,6 +107,7 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
     // compute coupling and potential and add constributions to EM Tensor
     m_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, g2, dg2dphi, vars);
 
+    // relevant quantities
     amrex::Real dphi_dot_chi = 
 	    TensorAlgebra::compute_dot_product(d1_phi, d1_chi, h_UU);
     Tensor::Rank2 covd2phi_phys_times_chi{};
@@ -108,14 +121,20 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
 	        d1_phi(j) * d1_chi(i) - vars.h(i, j) * dphi_dot_dchi / vars.chi();
 	}
     }
-    FOR2(i, j)
+
+    // Omega_{ij}=\gamma^{\mu}_{~i}\gamma^{\nu}_{~j}\Omega_{\mu\nu}
+    FOR(i, j)
     {
         out.tensor(i, j) = 4.0 * dfdphi * 
 	                   (covd2phi_phys_times_chi(i, j) + vars.Pi() / vars.chi() *
 			       (vars.A(i, j) + vars.h(i, j) * vars.K() / GR_SPACEDIM) +
                            4.0 * d2fdfphi2 * d1_phi(i) * d1_phi(j);
     }
+
+    // trace of Omega_ij
     out.scalar = vars.chi() * TensorAlgebra::compute_trace(out.tensor, h_UU);
+
+    // Omega_i = -\gamma^{\mu}_{~i}n^{\nu}\Omega_{\mu\nu}
     FOR (i)
     {
         out.vector(i) = -4.0 * d2fdphi2 * vars.Pi() * d1_phi(i) +
@@ -128,7 +147,8 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
     return out;
 }
 
-// Calculate the stress energy tensor elements
+// Calculate the rho and j components of the effective stress energy tensor
+// (ONLY MINIMALLY COUPLED SCALAR FIELD TERMS FOR NOW)
 template <class coupling_and_potential_t, class deriv_t>
 AMREX_GPU_DEVICE emtensor_t FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_rho_and_j(
     const int ix, const int iy, const int iz,
@@ -175,7 +195,8 @@ AMREX_GPU_DEVICE emtensor_t FourDerivScalarTensor<coupling_and_potential_t, deri
     return out;
 }
 
-// Calculate the stress energy tensor elements
+// Calculate the S_TF and trS component of the effective stress energy tensor
+// (ONLY MINIMALLY COUPLED SCALAR FIELD FOR NOW)
 template <class coupling_and_potential_t, class deriv_t>
 AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_S_TF_and_trS(
     const int ix, const int iy, const int iz,
@@ -192,7 +213,7 @@ AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deri
 
     auto d1_phi = a_deriv.d1_scalar(ix, iy, iz, state, c_phi);
 
-    //    Useful quantity Vt
+    // Useful quantity Vt
     amrex::Real Vt = -vars.Pi() * vars.Pi();
     FOR (i, j)
     {
@@ -210,7 +231,7 @@ AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deri
     m_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, g2, dg2dphi, vars);
 
     // Calculate components of EM Tensor
-    // S = T_ij
+    // S_TF = T_ij^{TF}
     FOR (i, j)
     {
         out.S_TF(i, j) = -0.5 * vars.h(i, j) * Vt / vars.chi() +
@@ -220,12 +241,8 @@ AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deri
 
     // trS = Tr_S_ij
     out.trS = vars.chi() * TensorAlgebra::compute_trace(out.S, h_UU);
-
-    //    j_i (note lower index) = - n^a T_ai
-    FOR (i)
-    {
-        out.j(i) = -d1_phi(i) * vars.Pi();
-    }
+    
+    TensorAlgebra::make_trace_free(out.S, vars.h(), h_UU);
 
     return out;
 }
@@ -256,7 +273,7 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_einstein_sourc
     return out;
 }
 
-// Adds in the RHS for the theory vars
+// Adds in the RHS for the theory vars (ONLY MINIMALLY COUPLED SCALAR FIELD TERMS FOR NOW)
 template <class coupling_and_potential_t, class deriv_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
 FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
@@ -320,6 +337,7 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
     }
 }
 
+// Computes the LHS matrix (IN PROGRESS)
 template <class coupling_and_potential_t, class deriv_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
 FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_lhs(
@@ -328,7 +346,31 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_lhs(
     const int matrix_dim, amrex::Real *LHS) const
 {
     amrex::Real LHS_mat[matrix_dim][matrix_dim];
+
+    const amrex::CellData<const amrex::Real> &state_cell_data =
+        state.cellData(ix, iy, iz);
+
+    const Vars vars(state_cell_data);
+
+    const auto h_UU  = CCZ4Geometry::compute_inverse_metric(vars);
+    auto d1_h        = a_deriv.d1_sym_tensor(ix, iy, iz, state, c_h11);
+    const auto chris = CCZ4Geometry::compute_christoffel(d1_h, h_UU);
     
+    // set the coupling and potential values
+    amrex::Real dfdphi   = 0.0;
+    amrex::Real d2fdphi2 = 0.0;
+    amrex::Real V_of_phi = 0.0;
+    amrex::Real dVdphi   = 0.0;
+    amrex::Real g2       = 0.0;
+    amrex::Real dg2dphi  = 0.0;
+    m_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, g2, dg2dphi, vars);
+
+    // Compute useful quantities for the Gauss-Bonnet sector
+
+    ScalarVectorTensor SVT = compute_M_Ni_and_Mij(ix, iy, iz, rhs_state, state, a_deriv);
+    amrex::Real M = SVT.scalar;
+    Tensor::Rank2 Mij = SVT.tensor;
+
     for (int row = 0; row < matrix_dim; ++row)
     {
         for (int col = 0; col < matrix_dim; ++col)
