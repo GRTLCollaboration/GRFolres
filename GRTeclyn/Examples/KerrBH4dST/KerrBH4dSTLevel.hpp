@@ -3,27 +3,28 @@
  * Please refer to LICENSE in GRTeclyn's root directory.
  */
 
-#ifndef SCALARFIELDLEVEL_HPP_
-#define SCALARFIELDLEVEL_HPP_
+#ifndef KERRBH4DSTLEVEL_HPP_
+#define KERRBH4DSTLEVEL_HPP_
 
+// Evolutionlevel for a Kerr black hole in 4dST.
+#include "CouplingAndPotential.hpp"
 #include "DefaultLevelBld.hpp"
+#include "FourDerivScalarTensor.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GRAmrLevel.hpp"
-#include "Potential.hpp"
-#include "ScalarField.hpp"
-#include "ScalarFieldAmr.hpp"
+#include "KerrBH4dSTAmr.hpp"
 #include "SixthOrderDerivatives.hpp"
 
-/// Evolution level for a real scalar field minimally coupled to gravity.
-class ScalarFieldLevel : public GRAmrLevel
+class KerrBH4dSTLevel : public GRAmrLevel
 {
   public:
     using GRAmrLevel::GRAmrLevel;
 
     template <class deriv_t = FourthOrderDerivatives>
-    using ScalarFieldWithPotential = ScalarField<Potential, deriv_t>;
+    using KerrBH4dSTWithCouplingAndPotential =
+        FourDerivScalarTensor<CouplingAndPotential, deriv_t>;
 
-    ScalarFieldAmr *get_scalar_field_amr_ptr();
+    KerrBH4dSTAmr *get_kerrbh4dst_amr_ptr();
 
     static void variableSetUp();
 
@@ -42,4 +43,4 @@ class ScalarFieldLevel : public GRAmrLevel
                    amrex::Real a_regrid_threshold) final;
 };
 
-#endif /* SCALARFIELDLEVEL_HPP_ */
+#endif /* KERRBH4DSTLEVEL_HPP_ */

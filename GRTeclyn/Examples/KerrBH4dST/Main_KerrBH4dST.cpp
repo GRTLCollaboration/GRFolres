@@ -9,8 +9,8 @@
 #include "SetupFunctions.hpp"
 #include "SimulationParameters.hpp"
 
-#include "ScalarFieldAmr.hpp"
-#include "ScalarFieldLevel.hpp"
+#include "KerrBH4dSTAmr.hpp"
+#include "KerrBH4dSTLevel.hpp"
 
 int runGRTeclyn()
 {
@@ -23,8 +23,8 @@ int runGRTeclyn()
         return 0;
     }
 
-    DefaultLevelBld<ScalarFieldLevel> scalar_field_level_bld;
-    ScalarFieldAmr gr_amr(&scalar_field_level_bld);
+    DefaultLevelBld<KerrBH4dSTLevel> kerr_bh_4dst_level_bld;
+    KerrBH4dSTAmr gr_amr(&kerr_bh_4dst_level_bld);
 
     amrex::Real stop_time{};
     pp.get("evolution.stop_time", stop_time);

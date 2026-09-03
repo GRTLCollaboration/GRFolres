@@ -8,11 +8,12 @@
 
 #include "BaseParameterChecker.hpp"
 #include "CCZ4RHS.hpp"
+#include "CouplingAndPotential.hpp"
 #include "FixedGridsTagger.hpp"
+#include "FourDerivScalarTensor.hpp"
 #include "IntegratedMovingPunctureGauge.hpp"
 #include "LineExtractionParameters.hpp"
-#include "Potential.hpp"
-#include "ScalarField.hpp"
+#include "ScalarFieldInitialData.hpp"
 
 class SimulationParameters
 {
@@ -27,8 +28,10 @@ class SimulationParameters
             FourthOrderDerivatives>::params_t::check_params();
         FixedGridsTagger::check_params();
 
-        ScalarField<Potential>::params_t::check_params();
-        Potential::params_t::check_params();
+        FourDerivScalarTensor<CouplingAndPotential,
+                              FourthOrderDerivatives>::params_t::check_params();
+        ScalarFieldInitialData::params_t::check_params();
+        CouplingAndPotential::params_t::check_params();
         line_extraction_params_t::check_params("phi_line_extraction");
         line_extraction_params_t::check_params("rho_line_extraction");
     }

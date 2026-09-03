@@ -3,22 +3,20 @@
  * Please refer to LICENSE in GRTeclyn's root directory.
  */
 
-#ifndef SCALARFIELDAMR_HPP_
-#define SCALARFIELDAMR_HPP_
+#ifndef KERRBH4DSTAMR_HPP_
+#define KERRBH4DSTAMR_HPP_
 
 #include "GRAmr.hpp"
 #include "ParticleInterpolator.hpp"
 
 //! AMR hierarchy carrying the interpolators used for line extraction.
-class ScalarFieldAmr : public GRAmr
+class KerrBH4dSTAmr : public GRAmr
 {
   public:
     ParticleInterpolator<1> phi_interpolator;
     ParticleInterpolator<1> rho_interpolator;
 
-    explicit ScalarFieldAmr(amrex::LevelBld *a_level_bld) : GRAmr(a_level_bld)
-    {
-    }
+    explicit KerrBH4dSTAmr(amrex::LevelBld *a_level_bld) : GRAmr(a_level_bld) {}
 
     void init(amrex::Real a_start_time, amrex::Real a_stop_time) override
     {
@@ -29,4 +27,4 @@ class ScalarFieldAmr : public GRAmr
     }
 };
 
-#endif /* SCALARFIELDAMR_HPP_ */
+#endif /* KERRBH4DSTAMR_HPP_ */
