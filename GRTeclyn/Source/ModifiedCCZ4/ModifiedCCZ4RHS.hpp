@@ -10,19 +10,22 @@
 #include "CCZ4RHS.hpp"
 #include "CCZ4Vars.hpp"
 #include "FourthOrderDerivatives.hpp"
+#include "GRParmParse.hpp"
 #include "StateVariables.hpp" //This files needs NUM_VARS - total number of components
 #include "TensorAlgebra.hpp"
 
-//!  Calculates RHS using CCZ4 including matter terms, and matter variable
-//!  evolution
+//!  Calculates RHS using CCZ4 (in the modified gauge) including theory terms, 
+//!  and matter variable evolution
 /*!
      The class calculates the RHS evolution for all the variables. It inherits
-   from the CCZ4RHS class, which it uses to do the non matter evolution of
-   variables. It then adds in the additional matter terms to the CCZ4 evolution
-   (those including the stress energy tensor), and calculates the evolution of
-   the matter variables. It does not assume a specific form of matter but is
-   templated over a matter class matter_t. Please see the class ScalarField as
-   an example of a matter_t. \sa CCZ4RHS(), ScalarField()
+   from the CCZ4RHS class, which it uses to do the vacuum GR evolution of
+   variables. It then adds in the additional terms from the modified CCZ4 gauge.
+   Next, it adds the source terms of the metric sector corresponding to the RHS
+   of Einstein's equations (those including via an effective stress energy tensor),
+   which may include solving a linear system. Finally it calculates the evolution 
+   of the non-metric variables, if any. It does not assume a specific theory but is
+   templated over a theory class theory_t. Please see the class FourDerivScalarTensor 
+   as an example of a theory_t. \sa CCZ4RHS(), FourDerivScalarTensor()
 */
 
 struct RhoAndJ
@@ -78,7 +81,18 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
        default-constructed matter object supplies stress-energy sources with
        their gravitational coupling already applied.
     */
-    ModifiedCCZ4RHS(amrex::Real a_dx);
+
+    static void check_params()
+    {
+        // To be added checker for mod_a and mod_b params
+    }
+
+    ModifiedCCZ4RHS(amrex::Real a_dx)
+    {
+        GRParmParse mod_gauge_pp("mod_gauge");
+	mod_gauge_pp.get("mod_a", m_mod_a);
+	mod_gauge_pp.get("mod_b", m_mod_b);
+    };
 
     //! Add the modified gauge terms to the CCZ4 RHS
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void add_a_and_b_rhs(
@@ -116,6 +130,8 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
   protected:
     // Class members
     theory_t m_theory; //!< The matter object, e.g. a scalar field.
+    amrex::Real m_mod_a;
+    amrex::Real m_mod_b;
 };
 
 #include "MODIFIEDCCZ4RHS.impl.hpp"
