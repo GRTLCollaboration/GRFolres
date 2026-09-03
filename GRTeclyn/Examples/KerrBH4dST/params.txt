@@ -24,9 +24,16 @@ amr.plot_vars = chi lapse phi Pi
 amr.derive_plot_vars = constraints
 
 #################################################
-# Generic 4dST parameters
+# 4dST parameters
 
 four_deriv_scalar_tensor.G_Newton = 1.0
+four_deriv_scalar_tensor.coupling_type = 0  # 0. Shift-Symmetric / 1. Exponential
+four_deriv_scalar_tensor.lambda = 0.0
+four_deriv_scalar_tensor.cutoff = 0.07
+four_deriv_scalar_tensor.factor = 100.
+# four_deriv_scalar_tensor.beta only relevant for four_deriv_scalar_tensor.coupling_type = 1.
+four_deriv_scalar_tensor.beta = 100.
+four_deriv_scalar_tensor.g2 = 0.0
 
 #################################################
 # Scalar-field parameters
@@ -109,12 +116,10 @@ evolution.sigma = 0.5
 # ccz4.min_chi = 1.e-4
 # ccz4.min_lapse = 1.e-4
 
-gauss_bonnet.coupling_type = 1
-gauss_bonnet.lambda = 0.0
-gauss_bonnet.cutoff = 0.07
-gauss_bonnet.factor = 100.
-# gauss_bonnet.beta only relevant for gauss_bonnet.coupling_type = 2.
-gauss_bonnet.beta = 100.
+# Modified gauge params
+
+mod_gauge.mod_a = 0.2
+mod_gauge.mod_b = 0.4
 
 #################################################
 # Line extraction parameters

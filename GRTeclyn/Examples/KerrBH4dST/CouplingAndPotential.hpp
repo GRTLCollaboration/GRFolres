@@ -27,15 +27,18 @@ class CouplingAndPotential
         amrex::Real scalar_mass{1.0}; // Mass of the scalar field
 
         int coupling_type{
-            1}; // Type of coupling function to use
-                // 1: Shift symmetric Gauss-Bonnet coupling function f(phi) =
-                // lambda * phi 2: Exponential Gauss-Bonnet coupling function
+            0}; // Type of coupling function to use
+                // 0: Shift symmetric Gauss-Bonnet coupling function f(phi) =
+                // lambda * phi
+                // 1: Exponential Gauss-Bonnet coupling function
                 // f(phi) = ( lambda / (2 * beta) ) * ( 1 - exp( - beta * phi^2
                 // ) )
 
         amrex::Real beta{
             100.0}; // Parameter for the exponential Gauss-Bonnet coupling
-                    // function. Only used if coupling_type == 2
+                    // function. Only used if coupling_type == 1
+
+        amrex::Real g2{0.0}; // Coupling to the square of the kinetic term.
 
         static void check_params()
         {
@@ -47,50 +50,51 @@ class CouplingAndPotential
                 scalar_field_pp.error("scalar_mass", "must be >= 0.0");
             }
 
-            GRParmParse gauss_bonnet_pp("gauss_bonnet");
-            int coupling_type{1};
+            GRParmParse four_deriv_scalar_tensor_pp("four_deriv_scalar_tensor");
+            int coupling_type{0};
             amrex::Real lambda{0.};
             amrex::Real cutoff{0.07};
             amrex::Real factor{100.0};
             amrex::Real beta{100.0};
-            gauss_bonnet_pp.queryAdd("coupling_type", coupling_type);
-            gauss_bonnet_pp.queryAdd("lambda", lambda);
-            gauss_bonnet_pp.queryAdd("cutoff", cutoff);
-            gauss_bonnet_pp.queryAdd("factor", factor);
-            gauss_bonnet_pp.queryAdd("beta", beta);
+            amrex::Real g2{0.0};
+            four_deriv_scalar_tensor_pp.queryAdd("coupling_type",
+                                                 coupling_type);
+            four_deriv_scalar_tensor_pp.queryAdd("lambda", lambda);
+            four_deriv_scalar_tensor_pp.queryAdd("cutoff", cutoff);
+            four_deriv_scalar_tensor_pp.queryAdd("factor", factor);
+            four_deriv_scalar_tensor_pp.queryAdd("beta", beta);
+            four_deriv_scalar_tensor_pp.queryAdd("g2", g2);
             if (lambda < 0.0)
             {
-                gauss_bonnet_pp.error("lambda", "must be >= 0.0");
+                four_deriv_scalar_tensor_pp.error("lambda", "must be >= 0.0");
             }
             if (cutoff < 0.0)
             {
-                gauss_bonnet_pp.error("cutoff", "must be >= 0.0");
+                four_deriv_scalar_tensor_pp.error("cutoff", "must be >= 0.0");
             }
-            // TODO: ONCE KERR_SPIN IS ADDED, RE-ADD THIS
             // Impose that cutoff is at most 80% of chi_average at the horizon.
             // <chi>_H ~ 0.2666*sqrt(1 - j^2) - C.1 of
             // https://iopscience.iop.org/article/10.1088/1361-6382/ac6fa9
-            // if (cutoff >= 0.8 * 0.2666 * std::sqrt(1.0 - m_params.kerr_spin *
-            // m_params.kerr_spin))
-            //{
-            //    gauss_bonnet_pp.warning(
-            //        "cutoff",
-            //        "Gauss-Bonnet cutoff may be too large."
-            //    );
-            //}
+            if (cutoff >=
+                0.8 * 0.2666 *
+                    std::sqrt(1.0 - m_params.kerr_spin * m_params.spin))
+            {
+                four_deriv_scalar_tensor_pp.warning(
+                    "cutoff", "Gauss-Bonnet cutoff may be too large.");
+            }
             if (factor < 0.0)
             {
-                gauss_bonnet_pp.error("factor", "must be >= 0.0");
+                four_deriv_scalar_tensor_pp.error("factor", "must be >= 0.0");
             }
-            if (coupling_type != 1 && coupling_type != 2)
+            if (coupling_type != 0 && coupling_type != 1)
             {
-                gauss_bonnet_pp.error("coupling_type",
-                                      "only 1 (shift symmetric) or 2 "
-                                      "(exponential) currently supported");
+                four_deriv_scalar_tensor_pp.error(
+                    "coupling_type", "only 0 (shift symmetric) or 1 "
+                                     "(exponential) currently supported");
             }
             if (beta <= 0.0)
             {
-                gauss_bonnet_pp.error("beta", "must be > 0.0");
+                four_deriv_scalar_tensor_pp.error("beta", "must be > 0.0");
             }
 
             GRParmParse geometry_pp("geometry");
@@ -111,13 +115,13 @@ class CouplingAndPotential
 
         void fill_params()
         {
-            GRParmParse gauss_bonnet_pp("gauss_bonnet");
-            gauss_bonnet_pp.get("coupling_type", coupling_type);
-            gauss_bonnet_pp.get("lambda", lambda);
-            gauss_bonnet_pp.get("cutoff", cutoff);
-            gauss_bonnet_pp.get("factor", factor);
-            gauss_bonnet_pp.get("beta", beta);
-
+            GRParmParse four_deriv_scalar_tensor_pp("four_deriv_scalar_tensor");
+            four_deriv_scalar_tensor_pp.get("coupling_type", coupling_type);
+            four_deriv_scalar_tensor_pp.get("lambda", lambda);
+            four_deriv_scalar_tensor_pp.get("cutoff", cutoff);
+            four_deriv_scalar_tensor_pp.get("factor", factor);
+            four_deriv_scalar_tensor_pp.get("beta", beta);
+            four_deriv_scalar_tensor_pp.get("g2", g2);
             GRParmParse scalar_field_pp("scalar_field");
             scalar_field_pp.get("scalar_mass", scalar_mass);
         }
@@ -142,7 +146,7 @@ class CouplingAndPotential
         const amrex::Real cutoff_factor =
             1. + std::exp(-m_params.factor * (vars.chi() - m_params.cutoff));
 
-        if (m_params.coupling_type == 1)
+        if (m_params.coupling_type == 0)
         {
             // Shift symmetric Gauss-Bonnet coupling function f(phi) = lambda *
             // phi
@@ -152,7 +156,7 @@ class CouplingAndPotential
             d2fdphi2 = 0.0;
         }
 
-        else if (m_params.coupling_type == 2)
+        else if (m_params.coupling_type == 1)
         {
             // Exponential Gauss-Bonnet coupling function f(phi) = ( lambda / (2
             // * beta) ) * ( 1 - exp( - beta * phi^2 ) )
@@ -180,7 +184,7 @@ class CouplingAndPotential
 
         // Compute coupling to the square of the kinetic term and its first
         // derivative.
-        g2 = 0.0;
+        g2 = m_params.g2;
         dg2dphi = 0.0;
     }
     // NOLINTEND(bugprone-easily-swappable-parameters)

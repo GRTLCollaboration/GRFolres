@@ -29,14 +29,14 @@ class ScalarFieldInitialData
             center{};           //!< Centre of perturbation in the initial SF
         amrex::Real width{1.0}; //!< Width of the Gaussian
         amrex::Real r0{
-            0.0}; //!< The radial coordinate of the position of the Gaussian
+            30.0}; //!< The radial coordinate of the position of the Gaussian
 
         static void check_params()
         {
             GRParmParse scalar_field_pp("scalar_field");
             amrex::Real scalar_amplitude{0.0};
             amrex::Real scalar_width{1.0};
-            amrex::Real scalar_r0{0.0};
+            amrex::Real scalar_r0{30.0};
             scalar_field_pp.queryAdd("scalar_amplitude", scalar_amplitude);
             scalar_field_pp.queryAdd("scalar_width", scalar_width);
             scalar_field_pp.queryAdd("scalar_r0", scalar_r0);
