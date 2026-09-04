@@ -27,7 +27,7 @@ class BinaryBH4dSTLevel : public GRAmrLevel
 
     // The 4dST theory, templated over the coupling-and-potential function.
     // (The derivative order is selected at runtime in specific_eval_rhs.)
-    template <class deriv_t>
+    template <class deriv_t = FourthOrderDerivatives>
     using FourDerivScalarTensorWithCouplingAndPotential =
         FourDerivScalarTensor<CouplingAndPotential, deriv_t>;
 

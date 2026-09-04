@@ -9,6 +9,9 @@ USE_PARTICLES = TRUE
 
 AMREX_HOME ?= $(realpath ../../../../amrex)
 
+GRTECLYN_HOME ?= $(realpath ../../../../GRTeclyn)
+GRFOLRES_HOME ?= $(realpath ../../../../GRFolres)
+
 include $(GRTECLYN_HOME)/Tools/GNUMake/Make.defs
 
 include $(AMREX_HOME)/Src/Base/Make.package
@@ -18,6 +21,7 @@ include $(AMREX_HOME)/Src/Amr/Make.package
 include $(AMREX_HOME)/Src/Particle/Make.package
 
 GRTECLYN_SOURCE = $(GRTECLYN_HOME)/Source
+GRFOLRES_SOURCE = $(GRFOLRES_HOME)/GRTeclyn/Source
 
 # Name all directories for relevant source and header files
 # Don't forget the dot! (i.e., example specific files are in current directory)
@@ -32,6 +36,8 @@ src_dirs := $(GRTECLYN_SOURCE)/BlackHoles \
             $(GRTECLYN_SOURCE)/Matter \
             $(GRTECLYN_SOURCE)/ParticleInterpolator \
             $(GRTECLYN_SOURCE)/Tagging \
+	    $(GRFOLRES_SOURCE)/FourDerivScalarTensor \
+	    $(GRFOLRES_SOURCE)/ModifiedCCZ4 \
             $(realpath .)
 
 # Find all source and header files in the src_dirs

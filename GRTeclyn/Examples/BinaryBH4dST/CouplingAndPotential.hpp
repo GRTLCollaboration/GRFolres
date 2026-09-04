@@ -80,7 +80,7 @@ class CouplingAndPotential
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void compute_coupling_and_potential(
         amrex::Real &dfdphi, amrex::Real &d2fdphi2, amrex::Real &g2,
         amrex::Real &dg2dphi, amrex::Real &V_of_phi, amrex::Real &dVdphi,
-        const vars_t &vars, const Coordinates & /*coords*/) const
+        const vars_t &vars) const
     {
         // excision setting the coupling to 0 in the interior of the BH with a
 	// smooth function

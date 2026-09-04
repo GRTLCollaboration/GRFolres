@@ -7,10 +7,12 @@
 #define FOURDERIVSCALARTENSOR_HPP_
 
 #include "CCZ4Geometry.hpp"
-#include "DefaultPotential.hpp"
+#include "DefaultCouplingAndPotential.hpp"
 #include "DimensionDefinitions.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GRParmParse.hpp"
+#include "LinearSolver.hpp"
+#include "ModifiedCCZ4RHS.hpp"
 #include "ScalarFieldVars.hpp"
 #include "StateVariables.hpp" //This files needs NUM_VARS, total num of components
 #include "TensorAlgebra.hpp"
@@ -84,6 +86,30 @@ class FourDerivScalarTensor
 
     using Vars = ScalarFieldVars;
 
+    //! The function which computes:
+    //! M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
+    //! N_i = D^jK_{ij}-D_iK (GR momentum constraint)
+    //! M = \gamma^{ij}M_{ij} (GR Hamiltonian constraint)
+    [[nodiscard]]
+    AMREX_GPU_DEVICE ScalarVectorTensor compute_M_Ni_and_Mij(
+        const int ix, const int iy, const int iz, //!< grid indicies
+        const amrex::Array4<const amrex::Real>
+            &state,             //!< the current value of state variables
+        const deriv_t &a_deriv, //!< the object that calculates the derivative
+        const Tensor::Rank2 &h_UU) //!< the inverse metric (raised indices)
+        const;
+
+    //! The function which computes the decomposition of Omega_{\mu\nu},
+    //! \Omega_{\mu\nu} = \nabla_{\mu}\nabla_{\nu}f(\phi)
+    [[nodiscard]]
+    AMREX_GPU_DEVICE ScalarVectorTensor compute_Omega_munu(
+        const int ix, const int iy, const int iz, //!< grid indicies
+        const amrex::Array4<const amrex::Real>
+            &state,             //!< the current value of state variables
+        const deriv_t &a_deriv, //!< the object that calculates the derivative
+        const Tensor::Rank2 &h_UU) //!< the inverse metric (raised indices)
+        const;
+
     //! The function which calculates the rho and j components of the effective 
     //! EM Tensor, given the vars and derivatives, including the potential
     [[nodiscard]]
@@ -107,7 +133,7 @@ class FourDerivScalarTensor
         const;
 
     //! Calculate the stress-energy sources including the factor 8 pi G.
-    [[nodiscard]] AMREX_GPU_DEVICE AMREX_FORCE_INLINE einstein_sources_t
+    [[nodiscard]] AMREX_GPU_DEVICE AMREX_FORCE_INLINE einstein_sources_TF
     compute_einstein_sources(int ix, int iy, int iz,
                              const amrex::Array4<const amrex::Real> &state,
                              const deriv_t &a_deriv,
@@ -138,7 +164,7 @@ class FourDerivScalarTensor
     //! The function which solves the linear system using the LHS matrix
     //! computed in compute_lhs and the RHS calculated before
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void solve_lhs(
-	const int ix, const int iy, cons int iz, //!< grid indices
+	const int ix, const int iy, const int iz, //!< grid indices
 	const amrex::Array4<amrex::Real> 
 	    &rhs_state, //!< the next value of state variables (rhs update)
 	const amrex::Array4<const amrex::Real> 

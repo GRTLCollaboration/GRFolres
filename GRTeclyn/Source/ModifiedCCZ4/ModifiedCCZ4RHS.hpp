@@ -34,9 +34,9 @@ struct RhoAndJ
     amrex::Real rho;           //!< rho = T_ab n^a n^b
 };
 
-struct STFAndTrS
+struct S_TFAndTrS
 {
-    Tensor::Rank2 STF; //!< S_ij_TF = (T_ab\gamma_i^a\gamma_j^b)^TF
+    Tensor::Rank2 S_TF; //!< S_ij_TF = (T_ab\gamma_i^a\gamma_j^b)^TF
     amrex::Real trS;                 //!< S = \gamma^ijT_ab\gamma_i^a\gamma_j^b
 };
 
@@ -87,12 +87,7 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
         // To be added checker for mod_a and mod_b params
     }
 
-    ModifiedCCZ4RHS(amrex::Real a_dx)
-    {
-        GRParmParse mod_gauge_pp("mod_gauge");
-	mod_gauge_pp.get("mod_a", m_mod_a);
-	mod_gauge_pp.get("mod_b", m_mod_b);
-    };
+    ModifiedCCZ4RHS(amrex::Real a_dx);
 
     //! Add the modified gauge terms to the CCZ4 RHS
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void add_a_and_b_rhs(
@@ -121,6 +116,12 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
                    const amrex::Array4<amrex::Real> &rhs_state,
                    const amrex::Array4<const amrex::Real> &state) const;
 
+    //! Solve the LHS (if any)
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
+    solve_lhs(const int ix, const int iy, const int iz,
+                   const amrex::Array4<amrex::Real> &rhs_state,
+                   const amrex::Array4<const amrex::Real> &state) const;
+
     //! Add dissipation to the CCZ4 and matter variables.
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
     apply_dissipation(int ix, int iy, int iz,
@@ -134,6 +135,6 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
     amrex::Real m_mod_b;
 };
 
-#include "MODIFIEDCCZ4RHS.impl.hpp"
+#include "ModifiedCCZ4RHS.impl.hpp"
 
 #endif /* MODIFIEDCCZ4RHS_HPP_ */

@@ -18,7 +18,7 @@ need not be defined in the code below.*/
 #define LINEARSOLVER_HPP_
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
-void LU_decompose(const int &N, data_t *A)
+void LU_decompose(const int &N, amrex::Real *A)
 {
     for (int i = 0; i < N; i++)
     {
@@ -34,7 +34,7 @@ void LU_decompose(const int &N, data_t *A)
 }
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
-void forward_substitution(const int &N, const data_t *L, data_t *b)
+void forward_substitution(const int &N, const amrex::Real *L, amrex::Real *b)
 {
     for (int i = 0; i < N; i++)
     {
@@ -46,7 +46,7 @@ void forward_substitution(const int &N, const data_t *L, data_t *b)
 }
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
-void back_substitution(const int &N, const data_t *U, data_t *b)
+void back_substitution(const int &N, const amrex::Real *U, amrex::Real *b)
 {
     for (int i = N - 1; i >= 0; i--)
     {
@@ -59,7 +59,7 @@ void back_substitution(const int &N, const data_t *U, data_t *b)
 }
 
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE
-void solve_linear_system(const int &N, data_t *A, data_t *b)
+void solve_linear_system(const int &N, amrex::Real *A, amrex::Real *b)
 {
     LU_decompose(N, A);
     forward_substitution(N, A, b);
