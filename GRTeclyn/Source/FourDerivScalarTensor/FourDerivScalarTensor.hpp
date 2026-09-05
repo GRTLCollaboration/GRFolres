@@ -157,7 +157,6 @@ class FourDerivScalarTensor
 	const amrex::Array4<const amrex::Real> 
 	    &state, //!< the current value of state variables
 	const deriv_t &a_deriv, //!< the object for calculating derivates
-	const int matrix_dim, //!< the dimension of the LHS matrix
 	amrex::Real *LHS)
 	const; //!< the LHS matrix itself
 

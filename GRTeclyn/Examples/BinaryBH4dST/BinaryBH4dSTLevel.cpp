@@ -88,8 +88,6 @@
 #include <string>
 #include <type_traits>
 
-/*namespace
-{
 // The full modified-CCZ4 + 4dST right hand side for one derivative order.
 //
 // GRTeclyn splits the CCZ4 RHS into several device kernels so that not all the
@@ -100,61 +98,7 @@
 //   vacuum CCZ4  ->  base moving-puncture gauge  ->  a(x)/b(x) gauge terms
 //   ->  kappa * T sources  ->  theory (phi, Pi) evolution
 //   ->  principal-part solve  ->  Kreiss-Oliger dissipation
-template <class deriv_t>
-void eval_rhs_impl(amrex::MultiFab &a_soln, amrex::MultiFab &a_rhs,
-                   amrex::Real a_dx)
-{
-    using theory_t = FourDerivScalarTensorWithCouplingAndPotential<deriv_t>;
 
-    const auto &const_soln_arrays = a_soln.const_arrays();
-    const auto &rhs_arrays        = a_rhs.arrays();
-
-    const ModifiedCCZ4RHS<theory_t, deriv_t> modified_ccz4(a_dx);
-    const MovingPunctureGauge<deriv_t> moving_puncture_gauge(a_dx);
-
-    // 1. chi and h_ij
-    amrex::ParallelFor(a_rhs,
-                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-                       {
-                           modified_ccz4.compute_chi_and_h_ij(
-                               ix, iy, iz, rhs_arrays[box_no],
-                               const_soln_arrays[box_no]);
-                       });
-
-    // 2. A_ij, Theta and Gamma
-    amrex::ParallelFor(a_rhs,
-                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-                       {
-                           modified_ccz4.compute_A_ij_and_Theta_and_Gamma(
-                               ix, iy, iz, rhs_arrays[box_no],
-                               const_soln_arrays[box_no]);
-                       });
-
-    // 3. base gauge, modified-gauge a(x)/b(x) terms, matter sources, theory
-    //    field evolution, principal-part solve and dissipation
-    amrex::ParallelFor(
-        a_rhs,
-        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-        {
-            // base moving-puncture lapse/shift/B RHS (sets, does not add)
-            moving_puncture_gauge.calculate_rhs(ix, iy, iz,
-                                                  rhs_arrays[box_no],
-                                                  const_soln_arrays[box_no]);
-            // a(x)/b(x) modified-gauge terms, added just before the EM tensor
-            modified_ccz4.add_a_and_b_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                          const_soln_arrays[box_no]);
-            modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                           const_soln_arrays[box_no]);
-            modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                         const_soln_arrays[box_no]);
-            // solve the linear system for the fields that need it (4dST)
-            modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
-                                    const_soln_arrays[box_no]);
-            modified_ccz4.apply_dissipation(ix, iy, iz, rhs_arrays[box_no],
-                                            const_soln_arrays[box_no]);
-        });
-}
-}*/ // namespace
 
 BinaryBH4dSTAmr *BinaryBH4dSTLevel::get_bh_amr_ptr()
 {
@@ -387,10 +331,54 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
         });
 
     }
-    /*else if (m_evolution_spatial_derivative_order == 6)
+    else if (m_evolution_spatial_derivative_order == 6)
     {
-        eval_rhs_impl<SixthOrderDerivatives>(a_soln, a_rhs, dx);
-    }*/
+        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<SixthOrderDerivatives>, SixthOrderDerivatives> modified_ccz4(Geom().CellSize(0));
+        const MovingPunctureGauge<SixthOrderDerivatives> moving_puncture_gauge(Geom().CellSize(0));
+
+        // 1. chi and h_ij
+        amrex::ParallelFor(a_rhs,
+                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+                       {
+                           modified_ccz4.compute_chi_and_h_ij(
+                               ix, iy, iz, rhs_arrays[box_no],
+                               const_soln_arrays[box_no]);
+                       });
+
+        // 2. A_ij, Theta and Gamma
+        amrex::ParallelFor(a_rhs,
+                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+                       {
+                           modified_ccz4.compute_A_ij_and_Theta_and_Gamma(
+                               ix, iy, iz, rhs_arrays[box_no],
+                               const_soln_arrays[box_no]);
+                       });
+
+        // 3. base gauge, modified-gauge a(x)/b(x) terms, matter sources, theory
+        //    field evolution, principal-part solve and dissipation
+        amrex::ParallelFor(
+        a_rhs,
+        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+        {
+            // base moving-puncture lapse/shift/B RHS (sets, does not add)
+            moving_puncture_gauge.calculate_rhs(ix, iy, iz,
+                                                  rhs_arrays[box_no],
+                                                  const_soln_arrays[box_no]);
+            // a(x)/b(x) modified-gauge terms, added just before the EM tensor
+            modified_ccz4.add_a_and_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                          const_soln_arrays[box_no]);
+            modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                           const_soln_arrays[box_no]);
+            modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                         const_soln_arrays[box_no]);
+            // solve the linear system for the fields that need it (4dST)
+            modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
+                                    const_soln_arrays[box_no]);
+            modified_ccz4.apply_dissipation(ix, iy, iz, rhs_arrays[box_no],
+                                            const_soln_arrays[box_no]);
+        });
+
+    }
     else
     {
         amrex::Abort("evolution.spatial_derivative_order must be 4 or 6");
