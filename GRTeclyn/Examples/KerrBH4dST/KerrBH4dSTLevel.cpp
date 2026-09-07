@@ -10,12 +10,10 @@
 #include "FixedGridsTagger.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GammaCalculator.hpp"
-#include "IntegratedMovingPunctureGauge.hpp"
-#include "KerrBHInitialData.hpp"
+//#include "KerrBHInitialData.hpp"
 #include "LineExtraction.hpp"
-#include "ModifiedCCZ4RHS.hpp"
-#include "ModifiedGravityConstraints.hpp"
-#include "ModifiedGravityWeyl4.hpp"
+//#include "ModifiedGravityConstraints.hpp"
+//#include "ModifiedGravityWeyl4.hpp"
 #include "PositiveChiAndLapse.hpp"
 #include "ScalarFieldInitialData.hpp"
 #include "SixthOrderDerivatives.hpp"
@@ -23,12 +21,13 @@
 
 #include <type_traits>
 
-using theory_t = KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<>;
+// BELOW COMMENTED LINES STILL TO BE IMPLEMENTED
+// using theory_t = KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>;
 
-using KerrBH4dSTEnergyDensity =
-    EMTensor<theory_t, EMTensorOptions::justEnergyDensity>;
-using KerrBH4dSTConstraints = ModifiedGravityConstraints<theory_t>;
-using KerrBH4dSTWeyl4 = ModifiedGravityWeyl4<theory_t>;
+// using KerrBH4dSTEnergyDensity =
+//    EMTensor<theory_t, EMTensorOptions::justEnergyDensity>;
+// using KerrBH4dSTConstraints = ModifiedGravityConstraints<theory_t>;
+// using KerrBH4dSTWeyl4 = ModifiedGravityWeyl4<theory_t>;
 
 KerrBH4dSTAmr *KerrBH4dSTLevel::get_kerrbh4dst_amr_ptr()
 {
@@ -40,9 +39,9 @@ void KerrBH4dSTLevel::variableSetUp()
     BL_PROFILE("KerrBH4dSTLevel::variableSetUp()");
     state_variable_set_up();
 
-    KerrBH4dSTConstraints::set_up(state_index);
-    KerrBH4dSTWeyl4::set_up(state_index);
-    KerrBH4dSTEnergyDensity::set_up(state_index);
+    //KerrBH4dSTConstraints::set_up(state_index);
+    //KerrBH4dSTWeyl4::set_up(state_index);
+    //KerrBH4dSTEnergyDensity::set_up(state_index);
 }
 
 void KerrBH4dSTLevel::specific_advance()
@@ -81,13 +80,13 @@ void KerrBH4dSTLevel::specific_post_timestep()
         phi_extraction.execute_query(
             &get_kerrbh4dst_amr_ptr()->phi_interpolator);
 
-        const LineExtraction<1> rho_extraction("rho_line_extraction", 0, dt,
+        /*const LineExtraction<1> rho_extraction("rho_line_extraction", 0, dt,
                                                time, restart_time, first_step);
         const LineExtraction<1>::derived_vars_t rho_vars{
             KerrBH4dSTEnergyDensity::name, {"rho"}, {BCParity::even}};
 
         rho_extraction.execute_query(
-            &get_kerrbh4dst_amr_ptr()->rho_interpolator, rho_vars);
+            &get_kerrbh4dst_amr_ptr()->rho_interpolator, rho_vars);*/
     }
 }
 
@@ -101,9 +100,10 @@ void KerrBH4dSTLevel::initData()
     }
 
     const amrex::Real dx = Geom().CellSize(0);
-    const KerrBHInitialData kerr_bh_initial_data(dx);
-    static_assert(std::is_trivially_copyable_v<KerrBHInitialData>,
-                  "KerrBHInitialData needs to be device copyable");
+    // I think this is still not ready
+    // const KerrBHInitialData kerr_bh_initial_data(dx);
+    // static_assert(std::is_trivially_copyable_v<KerrBHInitialData>,
+    //              "KerrBHInitialData needs to be device copyable");
 
     const ScalarFieldInitialData scalar_field_initial_data(Geom().CellSize(0));
     static_assert(std::is_trivially_copyable_v<ScalarFieldInitialData>,
@@ -123,21 +123,21 @@ void KerrBH4dSTLevel::initData()
                 cell[component] = 0.0;
             }
             scalar_field_initial_data(ix, iy, iz, state_arrays[box_no]);
-            kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
+            //kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
         });
 
     if (m_evolution_spatial_derivative_order == 4)
     {
         const GammaCalculator<FourthOrderDerivatives> gamma_calculator(
             Geom().CellSize(0));
-        const IntegratedMovingPunctureGauge<FourthOrderDerivatives>
-            integrated_moving_puncture_gauge(Geom().CellSize(0));
+        const ModifiedPunctureGauge<FourthOrderDerivatives>
+            modified_puncture_gauge(Geom().CellSize(0));
         amrex::ParallelFor(
             state_new,
             [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
             {
                 gamma_calculator(ix, iy, iz, state_arrays[box_no]);
-                integrated_moving_puncture_gauge.set_initial_B_to_Gamma(
+                modified_puncture_gauge.set_initial_B_to_Gamma(
                     ix, iy, iz, state_arrays[box_no]);
             });
     }
@@ -145,14 +145,14 @@ void KerrBH4dSTLevel::initData()
     {
         const GammaCalculator<SixthOrderDerivatives> gamma_calculator(
             Geom().CellSize(0));
-        const IntegratedMovingPunctureGauge<SixthOrderDerivatives>
-            integrated_moving_puncture_gauge(Geom().CellSize(0));
+        const ModifiedPunctureGauge<SixthOrderDerivatives>
+            modified_puncture_gauge(Geom().CellSize(0));
         amrex::ParallelFor(
             state_new,
             [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
             {
                 gamma_calculator(ix, iy, iz, state_arrays[box_no]);
-                integrated_moving_puncture_gauge.set_initial_B_to_Gamma(
+                modified_puncture_gauge.set_initial_B_to_Gamma(
                     ix, iy, iz, state_arrays[box_no]);
             });
     }
@@ -195,8 +195,8 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
             KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>,
             FourthOrderDerivatives>
             modified_ccz4_rhs(Geom().CellSize(0));
-        const IntegratedMovingPunctureGauge<FourthOrderDerivatives>
-            integrated_moving_puncture_gauge(Geom().CellSize(0));
+        const ModifiedPunctureGauge<FourthOrderDerivatives>
+            modified_puncture_gauge(Geom().CellSize(0));
 
         amrex::ParallelFor(
             a_rhs,
@@ -220,15 +220,18 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
             a_rhs,
             [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
             {
+                modified_puncture_gauge.calculate_rhs(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+	        modified_ccz4_rhs.add_b_rhs(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_emtensor_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                integrated_moving_puncture_gauge.calculate_rhs(
-                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                                 const_soln_arrays[box_no]);
-                modified_ccz4_rhs.apply_dissipation(
-                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                modified_ccz4_rhs.add_a_and_b_rhs(
+                modified_ccz4_rhs.add_theory_rhs(
+		    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                // solve the linear system for the fields that need it (4dST)
+                modified_ccz4_rhs.solve_lhs(
+		    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+		modified_ccz4_rhs.apply_dissipation(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
             });
     }
@@ -238,8 +241,8 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
             KerrBH4dSTWithCouplingAndPotential<SixthOrderDerivatives>,
             SixthOrderDerivatives>
             modified_ccz4_rhs(Geom().CellSize(0));
-        const IntegratedMovingPunctureGauge<SixthOrderDerivatives>
-            integrated_moving_puncture_gauge(Geom().CellSize(0));
+        const ModifiedPunctureGauge<SixthOrderDerivatives>
+            modified_puncture_gauge(Geom().CellSize(0));
 
         amrex::ParallelFor(
             a_rhs,
@@ -263,15 +266,18 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
             a_rhs,
             [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
             {
+	        modified_puncture_gauge.calculate_rhs(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                modified_ccz4_rhs.add_b_rhs(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_emtensor_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                integrated_moving_puncture_gauge.calculate_rhs(
+                modified_ccz4_rhs.add_theory_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                                 const_soln_arrays[box_no]);
+                // solve the linear system for the fields that need it (4dST)
+                modified_ccz4_rhs.solve_lhs(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
                 modified_ccz4_rhs.apply_dissipation(
-                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                modified_ccz4_rhs.add_a_and_b_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
             });
     }

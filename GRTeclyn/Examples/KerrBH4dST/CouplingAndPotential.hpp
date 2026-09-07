@@ -75,13 +75,15 @@ class CouplingAndPotential
             // Impose that cutoff is at most 80% of chi_average at the horizon.
             // <chi>_H ~ 0.2666*sqrt(1 - j^2) - C.1 of
             // https://iopscience.iop.org/article/10.1088/1361-6382/ac6fa9
-            if (cutoff >=
+            
+	    // have to find the way to use the spin param
+	    /*if (cutoff >=
                 0.8 * 0.2666 *
                     std::sqrt(1.0 - m_params.kerr_spin * m_params.spin))
             {
                 four_deriv_scalar_tensor_pp.warning(
                     "cutoff", "Gauss-Bonnet cutoff may be too large.");
-            }
+            }*/ 
             if (factor < 0.0)
             {
                 four_deriv_scalar_tensor_pp.error("factor", "must be >= 0.0");
