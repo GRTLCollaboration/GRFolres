@@ -13,7 +13,6 @@
 #include "BoostedBHInitialData.hpp"
 #include "CCZ4RHS.hpp"
 #include "ExtractionTagger.hpp"
-#include "MovingPunctureGauge.hpp"
 #include "PunctureTagger.hpp"
 #include "PunctureTracker.hpp"
 #include "SphericalExtractionParameters.hpp"
@@ -25,7 +24,7 @@
 #include "CouplingAndPotential.hpp"
 #include "FourDerivScalarTensor.hpp"
 #include "InitialScalarData.hpp"
-//#include "ModifiedPunctureGauge.hpp"
+#include "ModifiedPunctureGauge.hpp"
 
 class SimulationParameters
 {
@@ -38,7 +37,7 @@ class SimulationParameters
         BaseParameterChecker::check_params();
 
         CCZ4_params_t::check_params();
-        MovingPunctureGauge<FourthOrderDerivatives>::params_t::check_params();
+        ModifiedPunctureGauge<FourthOrderDerivatives>::params_t::check_params();
         ExtractionTagger::check_params();
         PunctureTagger<2>::check_params();
         puncture_tracker_params_t::check_params();

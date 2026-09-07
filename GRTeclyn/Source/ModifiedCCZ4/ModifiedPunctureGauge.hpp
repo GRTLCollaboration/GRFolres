@@ -1,0 +1,115 @@
+/* GRTeclyn
+ * Copyright 2022 The GRTL collaboration.
+ * Please refer to LICENSE in GRTeclyn's root directory.
+ */
+
+#ifndef INTEGRATEDMOVINGPUNCTUREGAUGE_HPP_
+#define INTEGRATEDMOVINGPUNCTUREGAUGE_HPP_
+
+#include "CCZ4Vars.hpp"
+#include "DimensionDefinitions.hpp"
+#include "MovingPunctureGauge.hpp"
+
+/// This is an example of a gauge class that can be used in the CCZ4RHS compute
+/// class
+/**
+ * This class implements a slightly more generic version of the moving puncture
+ * gauge. In particular it uses a Bona-Masso slicing condition of the form
+ * f(lapse) = -c*lapse^(p-2)
+ * and an Integrated version of the Gamma-driver shift condition
+ * (see details in arXiv:gr-qc/0605030)
+ **/
+template <class deriv_t = FourthOrderDerivatives>
+class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
+{
+  protected:
+    amrex::Real m_mod_a;
+
+  public:
+    using base_t   = MovingPunctureGauge<deriv_t>;
+    using params_t = typename base_t::params_t;
+
+    static void check_params()
+    {
+        // add checker for mod_a param
+    }
+
+    ModifiedPunctureGauge(amrex::Real a_dx) : base_t(a_dx) 
+    {
+        GRParmParse mod_gauge_pp("mod_gauge");
+        mod_gauge_pp.get("mod_a", m_mod_a);
+    }
+
+    /// Store the initial integrated Gamma-driver RHS in B.
+    /** This makes the non-advective part of the initial shift RHS vanish. The
+     * B field is subsequently frozen by calculate_rhs(), preserving the
+     * subtraction throughout the evolution.
+     */
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
+    set_initial_B_to_Gamma(int ix, int iy, int iz,
+                           const amrex::Array4<amrex::Real> &state) const
+    {
+        const amrex::CellData<amrex::Real> &state_cell_data =
+            state.cellData(ix, iy, iz);
+        const amrex::CellData<const amrex::Real> &const_state_cell_data =
+            state_cell_data;
+        const CCZ4Vars vars(const_state_cell_data);
+
+        amrex::Real eta_of_x{};
+        this->compute_eta(eta_of_x, ix, iy, iz);
+
+        FOR (i)
+        {
+            state_cell_data[c_B1 + i] =
+                this->m_params.shift_Gamma_coeff * vars.Gamma(i) -
+                eta_of_x * vars.shift(i);
+        }
+    }
+
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
+    calculate_rhs(int ix, int iy, int iz, const amrex::Array4<amrex::Real> &rhs,
+                  const amrex::Array4<const amrex::Real> &state) const
+    {
+        const amrex::CellData<amrex::Real> &rhs_cell_data =
+            rhs.cellData(ix, iy, iz);
+        const amrex::CellData<const amrex::Real> &state_cell_data =
+            state.cellData(ix, iy, iz);
+        const CCZ4Vars vars(state_cell_data);
+
+	const auto h_UU  = CCZ4Geometry::compute_inverse_metric(vars);
+	auto d1_lapse = this->m_deriv.d1_scalar(ix, iy, iz, state, c_lapse);
+
+        const Tensor::Rank1 shift_vector(
+            {vars.shift(0), vars.shift(1), vars.shift(2)});
+
+        const amrex::Real advec_lapse = this->m_deriv.advec_scalar(
+            ix, iy, iz, state, shift_vector, c_lapse);
+        const Tensor::Rank1 advec_shift = this->m_deriv.advec_vector(
+            ix, iy, iz, state, shift_vector, c_shift1);
+
+        amrex::Real eta_of_x{};
+        this->compute_eta(eta_of_x, ix, iy, iz);
+
+        rhs_cell_data[c_lapse] =
+            this->m_params.lapse_advec_coeff * advec_lapse -
+            this->m_params.lapse_coeff *
+                pow(vars.lapse(), this->m_params.lapse_power) *
+                (vars.K() - 2.0 * vars.Theta()) / (1.0 + m_mod_a);
+
+        FOR (i)
+        {
+            rhs_cell_data[c_shift1 + i] =
+                this->m_params.shift_advec_coeff * advec_shift(i) +
+                this->m_params.shift_Gamma_coeff * vars.Gamma(i) / (1.0 + m_mod_a) -
+                eta_of_x * vars.shift(i) - vars.B(i);
+	    FOR (j)
+	    {
+		rhs_cell_data[c_shift1 + i] += -m_mod_a / (1.0 + m_mod_a) * vars.lapse() *
+                    vars.chi() * h_UU(i, j) * d1_lapse(j);
+	    }
+            rhs_cell_data[c_B1 + i] = 0.0;
+        }
+    }
+};
+
+#endif /* MODIFIEDPUNCTUREGAUGE_HPP_ */

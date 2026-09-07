@@ -48,7 +48,7 @@
 //         ModifiedCCZ4RHS::compute(Cell):
 //           compute_chi_and_h_ij              (inherited from CCZ4RHS)
 //           compute_A_ij_and_Theta_and_Gamma  (inherited from CCZ4RHS)
-//           add_a_and_b_rhs      -- a(x)/b(x) modified-gauge terms, called
+//           add_b_rhs            -- b(x) modified-gauge terms, called
 //                                   just before add_emtensor_rhs
 //           add_emtensor_rhs     -- kappa * T sources
 //           add_theory_rhs       -- theory (phi, Pi) field evolution
@@ -80,7 +80,7 @@
 #include "ModifiedCCZ4RHS.hpp"
 #include "ModifiedGravityConstraints.hpp"
 #include "ModifiedGravityWeyl4.hpp"
-//#include "ModifiedPunctureGauge.hpp"
+#include "ModifiedPunctureGauge.hpp"
 #include "RhoDiagnostics.hpp"
 //#include "ScalarExtraction.hpp"
 
@@ -286,7 +286,7 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     if (m_evolution_spatial_derivative_order == 4)
     {
         const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<FourthOrderDerivatives>, FourthOrderDerivatives> modified_ccz4(Geom().CellSize(0));
-        const MovingPunctureGauge<FourthOrderDerivatives> moving_puncture_gauge(Geom().CellSize(0));
+        const ModifiedPunctureGauge<FourthOrderDerivatives> modified_puncture_gauge(Geom().CellSize(0));
 
         // 1. chi and h_ij
         amrex::ParallelFor(a_rhs,
@@ -306,18 +306,18 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                                const_soln_arrays[box_no]);
                        });
 
-        // 3. base gauge, modified-gauge a(x)/b(x) terms, matter sources, theory
+        // 3. modified gauge, modified-gauge b(x) terms, matter sources, theory
         //    field evolution, principal-part solve and dissipation
         amrex::ParallelFor(
         a_rhs,
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
         {
-            // base moving-puncture lapse/shift/B RHS (sets, does not add)
-            moving_puncture_gauge.calculate_rhs(ix, iy, iz,
+            // modified puncture lapse/shift/B RHS (sets, does not add)
+            modified_puncture_gauge.calculate_rhs(ix, iy, iz,
                                                   rhs_arrays[box_no],
                                                   const_soln_arrays[box_no]);
-            // a(x)/b(x) modified-gauge terms, added just before the EM tensor
-            modified_ccz4.add_a_and_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+            // b(x) modified-gauge terms, added just before the EM tensor
+            modified_ccz4.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
                                           const_soln_arrays[box_no]);
             modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
                                            const_soln_arrays[box_no]);
@@ -334,7 +334,7 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     else if (m_evolution_spatial_derivative_order == 6)
     {
         const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<SixthOrderDerivatives>, SixthOrderDerivatives> modified_ccz4(Geom().CellSize(0));
-        const MovingPunctureGauge<SixthOrderDerivatives> moving_puncture_gauge(Geom().CellSize(0));
+        const ModifiedPunctureGauge<SixthOrderDerivatives> modified_puncture_gauge(Geom().CellSize(0));
 
         // 1. chi and h_ij
         amrex::ParallelFor(a_rhs,
@@ -354,18 +354,18 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                                const_soln_arrays[box_no]);
                        });
 
-        // 3. base gauge, modified-gauge a(x)/b(x) terms, matter sources, theory
+        // 3. modified-gauge, modified-gauge b(x) terms, matter sources, theory
         //    field evolution, principal-part solve and dissipation
         amrex::ParallelFor(
         a_rhs,
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
         {
-            // base moving-puncture lapse/shift/B RHS (sets, does not add)
-            moving_puncture_gauge.calculate_rhs(ix, iy, iz,
+            // modified puncture lapse/shift/B RHS (sets, does not add)
+            modified_puncture_gauge.calculate_rhs(ix, iy, iz,
                                                   rhs_arrays[box_no],
                                                   const_soln_arrays[box_no]);
-            // a(x)/b(x) modified-gauge terms, added just before the EM tensor
-            modified_ccz4.add_a_and_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+            // b(x) modified-gauge terms, added just before the EM tensor
+            modified_ccz4.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
                                           const_soln_arrays[box_no]);
             modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
                                            const_soln_arrays[box_no]);

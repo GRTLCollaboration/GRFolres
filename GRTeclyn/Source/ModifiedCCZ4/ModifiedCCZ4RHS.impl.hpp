@@ -16,13 +16,12 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::ModifiedCCZ4RHS(amrex::Real a_dx)
     : CCZ4RHS<deriv_t>(a_dx, 0.0 /*No cosmological constant*/)
 {
     GRParmParse mod_gauge_pp("mod_gauge");
-    mod_gauge_pp.get("mod_a", m_mod_a);
     mod_gauge_pp.get("mod_b", m_mod_b);
 }
 
 template <class theory_t, class deriv_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
-ModifiedCCZ4RHS<theory_t, deriv_t>::add_a_and_b_rhs(
+ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     const int ix, const int iy, const int iz,
     const amrex::Array4<amrex::Real> &rhs_state,
     const amrex::Array4<const amrex::Real> &state) const
@@ -73,7 +72,7 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_a_and_b_rhs(
 
     // Compute Hamiltonian constraint
     amrex::Real Ham = ricci.scalar +
-                  (GR_SPACEDIM - 1.) * vars.K() * vars.K() / GR_SPACEDIM -
+                  (GR_SPACEDIM - 1.0) * vars.K() * vars.K() / GR_SPACEDIM -
                   Aij_squared;
     // Covariant derivative of \bar A_ij
     Tensor::Rank3 covd_A{};
@@ -90,52 +89,37 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_a_and_b_rhs(
     Tensor::Rank1 Mom{};
     FOR (i)
     {
-        Mom(i) = -(GR_SPACEDIM - 1.) * d1_K(i) / GR_SPACEDIM;
+        Mom(i) = -(GR_SPACEDIM - 1.0) * d1_K(i) / GR_SPACEDIM;
     }
 
     // Update evolution equations (pending to include BSSN option as well)
-    amrex::Real factor_mod_b = m_mod_b / (1. + m_mod_b);
-    amrex::Real factor_mod_a = m_mod_a / (1. + m_mod_a);
+    amrex::Real factor_mod_b = m_mod_b / (1.0 + m_mod_b);
+    //amrex::Real factor_mod_a = m_mod_a / (1. + m_mod_a);
     rhs_cell_data[c_K] += GR_SPACEDIM * factor_mod_b * 
 	    (-0.5 / (GR_SPACEDIM - 1.) * vars.lapse() * Ham + 
-	     kappa1_times_lapse * (1. + 0.5 * this->m_params.kappa2));
+	     kappa1_times_lapse * (1.0 + 0.5 * this->m_params.kappa2));
 
     rhs_cell_data[c_Theta] += 0.5 * factor_mod_b * (-vars.lapse() * Ham +
          vars.Theta() * kappa1_times_lapse * 
-	      ((GR_SPACEDIM - 3.) / (2. + m_mod_b) +
-	      (GR_SPACEDIM + 1.) + this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
+	      ((GR_SPACEDIM - 3.0) / (2.0 + m_mod_b) +
+	      (GR_SPACEDIM + 1.0) + this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
 
     FOR (i)
     {
 	amrex::Real mod_gauge_term_Gamma = 2.0 * factor_mod_b * Z_over_chi(i) * 
-		(1.0 / GR_SPACEDIM * vars.lapse() * vars.K()  + 
+		(vars.lapse() * vars.K() / GR_SPACEDIM  + 
 		kappa1_times_lapse);
 	FOR (j)
 	{
 	    mod_gauge_term_Gamma += 
-                -factor_mod_b * 2. * h_UU(i, j) * vars.lapse() * 
+                -factor_mod_b * 2.0 * h_UU(i, j) * vars.lapse() * 
 		        (d1_Theta(j) + Mom(j));
 	    FOR (k)
 	    {
-	       mod_gauge_term_Gamma += factor_mod_b * 2. * vars.lapse() * vars.h(j, k) * Z_over_chi(k);
+	       mod_gauge_term_Gamma += factor_mod_b * 2.0 * vars.lapse() * vars.h(j, k) * Z_over_chi(k);
 	    }        
 	}
         rhs_cell_data[c_Gamma1 + i] += mod_gauge_term_Gamma;
-    }
-
-    rhs_cell_data[c_lapse] += factor_mod_a /* this->m_params.lapse_coeff * 
-	                      pow(vars.lapse(), this->m_params.lapse_power) */ *
-			      (vars.K() - 2.0 * vars.Theta());
-    FOR (i) 
-    {
-	amrex::Real mod_gauge_term_shift = -factor_mod_a /* 
-		this->m_params.shift_Gamma_coeff*/ * vars.Gamma(i);
-	FOR (j)
-	{
-            mod_gauge_term_shift += -factor_mod_a * vars.lapse() * 
-                vars.chi() * h_UU(i, j) * d1_lapse(j);
-	}
-	rhs_cell_data[c_shift1 + i] += mod_gauge_term_shift;
     }
 }
 

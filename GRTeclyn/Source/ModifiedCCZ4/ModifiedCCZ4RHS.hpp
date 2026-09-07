@@ -84,13 +84,13 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
 
     static void check_params()
     {
-        // To be added checker for mod_a and mod_b params
+        // To be added checker for mod_b params
     }
 
     ModifiedCCZ4RHS(amrex::Real a_dx);
 
     //! Add the modified gauge terms to the CCZ4 RHS
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void add_a_and_b_rhs(
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void add_b_rhs(
         const int ix, const int iy, const int iz,
 	const amrex::Array4<amrex::Real>
             &rhs_state,
@@ -131,8 +131,7 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
   protected:
     // Class members
     theory_t m_theory; //!< The matter object, e.g. a scalar field.
-    amrex::Real m_mod_a;
-    amrex::Real m_mod_b;
+    amrex::Real m_mod_b; //!< Modified b(x) term, which we set to a constant.
 };
 
 #include "ModifiedCCZ4RHS.impl.hpp"

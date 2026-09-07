@@ -871,9 +871,21 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_lhs(
 	int col = 0;
 	FOR2_SYM(i2, j2)
         {
-            LHS_mat[row][col] = -4.0 * coupling *
+            LHS_mat[row][col] = -(2 - TensorAlgebra::delta(i1, j1)) * 4.0 * coupling *
 		    (vars.h(i2, j2) / 3.0 * Omega_ij_TF_UU_over_chi(i1, j1) +
 		     16.0 * vars.chi() * dfdphi2 * Mij_TF(i2, j2) * Mij_TF_UU_over_chi(i1, j1));
+	    LHS_mat[row][col] += (1.0 - 2.0 * coupling * Omega / 3.0) *
+	        (TensorAlgebra::delta(i1, i2) * TensorAlgebra::delta(j1, j2) +
+		 (1 - TensorAlgebra::delta(i1, j1)) * TensorAlgebra::delta(i1, j2) * TensorAlgebra::delta(i2, j1));
+	    FOR (k)
+	    {
+                LHS_mat[row][col] += 2.0 * coupling * vars.chi() *
+		    ((TensorAlgebra::delta(i1, i2) * h_UU(j1, k) * Omega_ij_TF(j2, k) + 
+		     TensorAlgebra::delta(j1, j2) * h_UU(i1, k) * Omega_ij_TF(i2, k)) +
+		    (1 - TensorAlgebra::delta(i1, j1)) * 
+		        (TensorAlgebra::delta(i1, j2) * h_UU(j1, k) * Omega_ij_TF(i2, k) +
+                     TensorAlgebra::delta(j1, i2) * h_UU(i1, k) * Omega_ij_TF(j2, k)));
+	    }
 	    ++col;
 	}
 	++row;
@@ -884,7 +896,8 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_lhs(
     {
         LHS_mat[matrix_dim - 2][idx] = 2.0 * coupling * vars.chi() / 3.0 *
 		(-Omega_ij_TF(i, j) + 16.0 * dfdphi2 * M * Mij_TF(i, j));
-	LHS_mat[idx][matrix_dim - 2] = coupling * (Omega_ij_TF_UU_over_chi(i, j) -
+	LHS_mat[idx][matrix_dim - 2] = (2 - TensorAlgebra::delta(i, j)) * 
+		coupling * (Omega_ij_TF_UU_over_chi(i, j) -
 			16.0 * dfdphi2 * M * Mij_TF_UU_over_chi(i, j));
 	++idx;
     }
@@ -895,7 +908,8 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_lhs(
     FOR2_SYM(i, j)
     {
         LHS_mat[matrix_dim - 1][idx] = 0.0;
-	LHS_mat[idx][matrix_dim - 1] = -8.0 * dfdphi * Mij_TF_UU_over_chi(i, j);
+	LHS_mat[idx][matrix_dim - 1] = -(2 - TensorAlgebra::delta(i, j)) *
+		8.0 * dfdphi * Mij_TF_UU_over_chi(i, j);
 	++idx;
     }
     LHS_mat[matrix_dim - 1][matrix_dim - 2] = 0.0;
