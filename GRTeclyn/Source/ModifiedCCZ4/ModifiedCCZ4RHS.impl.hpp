@@ -104,6 +104,7 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
 	      ((GR_SPACEDIM - 3.0) / (2.0 + m_mod_b) +
 	      (GR_SPACEDIM + 1.0) + this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
 
+    Tensor::Rank2 A_UU = CCZ4Geometry::compute_A_UU(vars, h_UU);
     FOR (i)
     {
 	amrex::Real mod_gauge_term_Gamma = 2.0 * factor_mod_b * Z_over_chi(i) * 
@@ -116,7 +117,8 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
 		        (d1_Theta(j) + Mom(j));
 	    FOR (k)
 	    {
-	       mod_gauge_term_Gamma += factor_mod_b * 2.0 * vars.lapse() * vars.h(j, k) * Z_over_chi(k);
+	       mod_gauge_term_Gamma += factor_mod_b * 2.0 * vars.lapse() * 
+		       A_UU(i, j) * vars.h(j, k) * Z_over_chi(k);
 	    }        
 	}
         rhs_cell_data[c_Gamma1 + i] += mod_gauge_term_Gamma;

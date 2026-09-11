@@ -44,7 +44,7 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
     FOR(i, j)
     {
 	out.tensor(i, j) = ricci.LL(i, j) + vars.K() / (3.0 * vars.chi()) *
-	                 (vars.A(i, j) + 2. / 3. * vars.K() * vars.h(i, j));
+	                 (vars.A(i, j) + 2.0 / 3.0 * vars.K() * vars.h(i, j));
 	FOR(k, l)
 	{
             out.tensor(i, j) += -vars.A(i, k) * vars.A(j, l) * h_UU(k, l) / vars.chi();
@@ -112,14 +112,14 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
     // relevant quantities
     amrex::Real dphi_dot_dchi = 
 	    TensorAlgebra::compute_dot_product(d1_phi, d1_chi, h_UU);
-    Tensor::Rank2 covd2phi_times_chi{};
+    Tensor::Rank2 covd2phi{};
     FOR(i, j)
     {
-        covd2phi_times_chi(i, j) = d2_phi(i, j);
-	FOR (k) covd2phi_times_chi(i, j) += -chris.ULL(k, i, j) * d1_phi(k);
+        covd2phi(i, j) = d2_phi(i, j);
+	FOR (k) covd2phi(i, j) += -chris.ULL(k, i, j) * d1_phi(k);
 	FOR(l, m)
 	{
-            covd2phi_times_chi(i, j) += 0.5 * (d1_phi(i) * d1_chi(j) +
+            covd2phi(i, j) += 0.5 * (d1_phi(i) * d1_chi(j) +
 	        d1_phi(j) * d1_chi(i) - vars.h(i, j) * dphi_dot_dchi) / vars.chi();
 	}
     }
@@ -128,7 +128,7 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
     FOR(i, j)
     {
         out.tensor(i, j) = 4.0 * dfdphi * 
-	                   (covd2phi_times_chi(i, j) + vars.Pi() / vars.chi() *
+	                   (covd2phi(i, j) + vars.Pi() / vars.chi() *
 			       (vars.A(i, j) + vars.h(i, j) * vars.K() / GR_SPACEDIM)) +
                            4.0 * d2fdphi2 * d1_phi(i) * d1_phi(j);
     }
@@ -554,7 +554,8 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_einstein_sourc
 {
     const RhoAndJ rho_and_j =
         compute_rho_and_j(ix, iy, iz, state, a_deriv, h_UU);
-    const S_TFAndTrS S_TF_and_trS;
+    const S_TFAndTrS S_TF_and_trS =
+	compute_S_TF_and_trS(ix, iy, iz, state, a_deriv, h_UU);
     const amrex::Real coupling = 8.0 * M_PI * m_G_Newton;
 
     einstein_sources_TF out;
