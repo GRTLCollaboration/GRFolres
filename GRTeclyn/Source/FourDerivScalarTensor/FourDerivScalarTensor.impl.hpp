@@ -3,8 +3,6 @@
  * Please refer to LICENSE in GRTeclyn's root directory.
  */
 
-// THIS IS IN PROGRESS (A LOT OF BITS MISSING)
-
 #if !defined(FOURDERIVSCALARTENSOR_HPP_)
 #error "This file should only be included through FourDerivScalarTensor.hpp"
 #endif
@@ -70,7 +68,7 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
         out.vector(i) = -(GR_SPACEDIM - 1.) * d1_K(i) / GR_SPACEDIM;
 	FOR (j, k)
 	{
-	    out.vector(i) += h_UU(j, k) * (covd_A(i, j, k) - 
+	    out.vector(i) += h_UU(j, k) * (covd_A(j, k, i) - 
 			    0.5 * GR_SPACEDIM * vars.A(i, j) * d1_chi(k) / vars.chi());
 	}
     }
@@ -117,11 +115,8 @@ AMREX_GPU_DEVICE ScalarVectorTensor FourDerivScalarTensor<coupling_and_potential
     {
         covd2phi(i, j) = d2_phi(i, j);
 	FOR (k) covd2phi(i, j) += -chris.ULL(k, i, j) * d1_phi(k);
-	FOR(l, m)
-	{
-            covd2phi(i, j) += 0.5 * (d1_phi(i) * d1_chi(j) +
-	        d1_phi(j) * d1_chi(i) - vars.h(i, j) * dphi_dot_dchi) / vars.chi();
-	}
+        covd2phi(i, j) += 0.5 * (d1_phi(i) * d1_chi(j) +
+	    d1_phi(j) * d1_chi(i) - vars.h(i, j) * dphi_dot_dchi) / vars.chi();
     }
 
     // Omega_{ij}=\gamma^{\mu}_{~i}\gamma^{\nu}_{~j}\Omega_{\mu\nu}
@@ -222,7 +217,7 @@ AMREX_GPU_DEVICE RhoAndJ FourDerivScalarTensor<coupling_and_potential_t, deriv_t
 
     // Covariant derivative of A_ij
     Tensor::Rank3 covd_Aphys_times_chi{};
-    FOR (i, j, k)
+    FOR(i, j, k)
     {
         covd_Aphys_times_chi(j, k, i) = d1_A(j, k, i);
         FOR (l)
@@ -261,7 +256,6 @@ AMREX_GPU_DEVICE RhoAndJ FourDerivScalarTensor<coupling_and_potential_t, deriv_t
     out.rho += rhoGB;
     FOR(i) out.j(i) += JGB(i);
 
-
     return out;
 }
 
@@ -298,12 +292,8 @@ AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deri
     Tensor::Rank2 d1_shift = a_deriv.d1_vector(ix, iy, iz, state, c_shift1);
     amrex::Real divshift   = CCZ4Geometry::compute_divshift(d1_shift);
 
-    //auto advec_phi =
-    //    a_deriv.advec_scalar(ix, iy, iz, state, shift_vector, c_phi);
-    //auto advec_Pi = a_deriv.advec_scalar(ix, iy, iz, state, shift_vector, c_Pi);
     auto advec_K = a_deriv.advec_scalar(ix, iy, iz, state, shift_vector, c_K);
     auto advec_A = a_deriv.advec_sym_tensor(ix, iy, iz, state, shift_vector, c_A11);
-
 
     // Useful quantity Vt
     amrex::Real Vt = -vars.Pi() * vars.Pi();
@@ -379,11 +369,8 @@ AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deri
     {
         covd2lapse_times_chi(i, j) = vars.chi() * d2_lapse(i, j);
         FOR (k) covd2lapse_times_chi(i, j) += -vars.chi() * chris.ULL(k, i, j) * d1_lapse(k);
-        FOR(l, m)
-        {
-            covd2lapse_times_chi(i, j) += 0.5 * (d1_lapse(i) * d1_chi(j) +
-                d1_lapse(j) * d1_chi(i) - vars.h(i, j) * dlapse_dot_dchi);
-        }
+        covd2lapse_times_chi(i, j) += 0.5 * (d1_lapse(i) * d1_chi(j) +
+            d1_lapse(j) * d1_chi(i) - vars.h(i, j) * dlapse_dot_dchi);
     }
 
     amrex::Real tr_covd2lapse = -0.5 * GR_SPACEDIM * dlapse_dot_dchi;
@@ -507,6 +494,7 @@ AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deri
 		(vars.chi() * Mij_TF(i, j) + Fij(i, j)) -
 		 4.0 * h_UU(i, j) * vars.chi() * Ni(i) * Omega_i(j);
     }
+
     // add quadratic terms
     SGB += 4.0 * dfdphi * dfdphi * M * RGB /
 	   (1.0 + g2 * (-Vt + 2.0 * vars.Pi() * vars.Pi()));
@@ -534,6 +522,7 @@ AMREX_GPU_DEVICE S_TFAndTrS FourDerivScalarTensor<coupling_and_potential_t, deri
 		     (Omega_ij_TF_UU_over_chi2(k, l) * Fij(k, l) +
 		      h_UU(k, l) * Omega_i(k) * (2.0 * Ni(l) + d1_K(l)));
 	}
+	
 	// add quadratic terms
 	SijGB(i, j) += -8.0 * dfdphi * dfdphi * Mij_TF(i, j) * RGB /
 		       (1.0 + g2 * (-Vt + 2.0 * vars.Pi() * vars.Pi()));
@@ -663,13 +652,10 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
     Tensor::Rank2 covd2lapse_times_chi{};
     FOR(i, j)
     {
-        covd2lapse_times_chi(i, j) = d2_lapse(i, j);
-        FOR (k) covd2lapse_times_chi(i, j) += -chris.ULL(k, i, j) * d1_lapse(k);
-        FOR(l, m)
-        {
-            covd2lapse_times_chi(i, j) += 0.5 * (d1_lapse(i) * d1_chi(j) +
-                d1_lapse(j) * d1_chi(i) - vars.h(i, j) * dlapse_dot_dchi / vars.chi());
-        }
+        covd2lapse_times_chi(i, j) = vars.chi() * d2_lapse(i, j);
+        FOR (k) covd2lapse_times_chi(i, j) += -vars.chi() * chris.ULL(k, i, j) * d1_lapse(k);
+        covd2lapse_times_chi(i, j) += 0.5 * (d1_lapse(i) * d1_chi(j) +
+            d1_lapse(j) * d1_chi(i) - vars.h(i, j) * dlapse_dot_dchi);
     }
 
     amrex::Real tr_covd2lapse = -0.5 * GR_SPACEDIM * dlapse_dot_dchi;
@@ -689,13 +675,10 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
     Tensor::Rank2 covd2phi_times_chi{};
     FOR(i, j)
     {
-        covd2phi_times_chi(i, j) = d2_phi(i, j);
-        FOR (k) covd2phi_times_chi(i, j) += -chris.ULL(k, i, j) * d1_phi(k);
-        FOR(l, m)
-        {
-            covd2phi_times_chi(i, j) += 0.5 * (d1_phi(i) * d1_chi(j) +
-                d1_phi(j) * d1_chi(i) - vars.h(i, j) * dphi_dot_dchi / vars.chi());
-        }
+        covd2phi_times_chi(i, j) = vars.chi() * d2_phi(i, j);
+        FOR (k) covd2phi_times_chi(i, j) += -vars.chi() * chris.ULL(k, i, j) * d1_phi(k);
+        covd2phi_times_chi(i, j) += 0.5 * (d1_phi(i) * d1_chi(j) +
+            d1_phi(j) * d1_chi(i) - vars.h(i, j) * dphi_dot_dchi);
     }
 
     // Covariant derivative of A_ij
@@ -718,7 +701,7 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
         }
     }
 
-    // F_{ij} = \chi{\mathcal L}_nAphys_{ij} + \chi D_iD_j\alpha
+    // \alpha F_{ij} = \chi{\mathcal L}_nAphys_{ij} + \chi D_iD_j\alpha
     //+ \alphaA_{ik}A^k_{~j}) - \partial_tA_{ij}
     Tensor::Rank2 Fij_times_lapse;
     FOR(i, j)
@@ -735,7 +718,7 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
 	}
     }
 
-    // F_times_lapse = {\mathcal L}_nK + D^i_D_i\alpha - \alphaK_{ij}K^{ij} -
+    // \alpha F = {\mathcal L}_nK + D^i_D_i\alpha - \alphaK_{ij}K^{ij} -
     // \partial_tK
 
     // This is A_ij A^ij
@@ -798,7 +781,6 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::add_theory_rhs(
     }
 
     rhs_cell_data[c_Pi] += rhs_g2;
-
 }
 
 // Computes the LHS matrix

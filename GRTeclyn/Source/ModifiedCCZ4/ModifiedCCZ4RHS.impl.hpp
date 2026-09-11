@@ -91,13 +91,19 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     {
         Mom(i) = -(GR_SPACEDIM - 1.0) * d1_K(i) / GR_SPACEDIM;
     }
+    FOR(i, j, k)
+    {
+        Mom(i) += h_UU(j, k) * (covd_A(j, k ,i) - 
+			0.5 * GR_SPACEDIM * vars.A(i, j) * d1_chi(k) / vars.chi());
+    }
 
     // Update evolution equations (pending to include BSSN option as well)
     amrex::Real factor_mod_b = m_mod_b / (1.0 + m_mod_b);
-    //amrex::Real factor_mod_a = m_mod_a / (1. + m_mod_a);
+
     rhs_cell_data[c_K] += GR_SPACEDIM * factor_mod_b * 
 	    (-0.5 / (GR_SPACEDIM - 1.) * vars.lapse() * Ham + 
-	     kappa1_times_lapse * (1.0 + 0.5 * this->m_params.kappa2));
+	     vars.Theta() * kappa1_times_lapse * 
+	     (1.0 + 0.5 * this->m_params.kappa2));
 
     rhs_cell_data[c_Theta] += 0.5 * factor_mod_b * (-vars.lapse() * Ham +
          vars.Theta() * kappa1_times_lapse * 
