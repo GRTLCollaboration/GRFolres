@@ -217,12 +217,10 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::apply_dissipation(
 
 template <class theory_t, class deriv_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
-ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_Sij_TF(
+ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_times_Sij_TF(
     int ix, int iy, int iz, 
     const amrex::Array4<const amrex::Real> &state) const
 {
-    Tensor::Rank2 out{};
-	
     amrex::Array4<amrex::Real> rhs_state{};
 
     this->compute_A_ij_and_Theta_and_Gamma(ix, iy, iz, rhs_state, state);
@@ -241,10 +239,13 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_Sij_TF(
         state.cellData(ix, iy, iz);
     const typename theory_t::Vars vars(state_cell_data);
 
+    Tensor::Rank2 out{};
     FOR2_SYM(i, j)
     {
-        out(i, j) = (rhs_cell_data_GR[sym_var_idx(c_A11, i, j)] - 
+        amrex::Real component = (rhs_cell_data_GR[sym_var_idx(c_A11, i, j)] - 
 		rhs_cell_data_full[sym_var_idx(c_A11, i, j)]) / (vars.chi() * vars.lapse());
+        out(i, j) = component;
+	out(j, i) = component;
     }
 
     return out;

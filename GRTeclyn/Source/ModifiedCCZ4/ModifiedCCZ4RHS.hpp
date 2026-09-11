@@ -147,7 +147,7 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
     //! to be called in ModifiedGravityWeyl4 class
     [[nodiscard]]
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
-    get_full_kappa_Sij_TF(int ix, int iy, int iz,
+    get_full_kappa_times_Sij_TF(int ix, int iy, int iz,
                       const amrex::Array4<const amrex::Real> &state) const;
 
   protected:

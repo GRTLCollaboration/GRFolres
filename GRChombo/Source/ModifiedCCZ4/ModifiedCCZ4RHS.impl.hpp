@@ -225,6 +225,7 @@ ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::get_full_kappa_times_Sij_TF(
     const Coordinates<data_t> &coords) const
 {
     const data_t chi_regularised = simd_max(theory_vars.chi, 1e-6);
+    const data_t lapse_regularised = simd_max(theory_vars.lapse, 1e-6);
     // Call CCZ4 RHS - work out GR RHS, no dissipation
     Vars<data_t> rhs;
     this->rhs_equation(rhs, theory_vars, d1, d2, advec);
@@ -242,9 +243,9 @@ ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::get_full_kappa_times_Sij_TF(
     // solve linear system for the theory fields that require it (e.g. 4dST)
     my_theory.solve_lhs(theory_rhs, theory_vars, d1, d2, advec, coords);
 
-    Tensor<2, data_t> out = -theory_rhs.A;
-    FOR(i, j) out[i][j] += rhs.A[i][j];
-    FOR(i, j) out[i][j] /= chi_regularised;
+    Tensor<2, data_t> out = rhs.A;
+    FOR(i, j) out[i][j] += -theory_rhs.A[i][j];
+    FOR(i, j) out[i][j] /= (chi_regularised * lapse_regularised);
 
     return out;
 }

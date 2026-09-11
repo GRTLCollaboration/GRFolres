@@ -828,7 +828,6 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_lhs(
     // decomposition of Omega_{\mu\nu}
     SVT = compute_Omega_munu(ix, iy, iz, state, a_deriv, h_UU);
     amrex::Real Omega = SVT.scalar;
-    Tensor::Rank1 Omega_i = SVT.vector;
     Tensor::Rank2 Omega_ij = SVT.tensor;
 
     Tensor::Rank2 Mij_TF = Mij;

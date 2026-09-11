@@ -111,8 +111,8 @@ void BinaryBH4dSTLevel::variableSetUp()
     // (These diagnostic classes always use 4th-order derivatives, like the
     // vacuum Constraints / Weyl4, so they are not templated on deriv_t.)
     ModifiedGravityConstraints<theory_t>::set_up(state_index);
-    //ModifiedGravityWeyl4<theory_t>::set_up(state_index);
-    Weyl4::set_up(state_index);
+    ModifiedGravityWeyl4<theory_t>::set_up(state_index);
+    //Weyl4::set_up(state_index);
     RhoDiagnostics<theory_t>::set_up(state_index);
 }
 
