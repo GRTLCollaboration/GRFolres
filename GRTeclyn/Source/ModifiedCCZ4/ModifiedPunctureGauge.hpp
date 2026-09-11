@@ -31,7 +31,16 @@ class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
 
     static void check_params()
     {
-        // add checker for mod_a param
+        // a(x) != b(x)
+	GRParmParse mod_gauge_pp("mod_gauge");
+        amrex::Real mod_a{};
+	amrex::Real mod_b{};
+	mod_gauge_pp.queryAdd("mod_a", mod_a);
+	mod_gauge_pp.queryAdd("mod_b", mod_b);
+	if (mod_a != mod_b)
+	{
+            mod_gauge_pp.warning("mod_a", "should be different than mod_b");
+	} 
     }
 
     ModifiedPunctureGauge(amrex::Real a_dx) : base_t(a_dx) 

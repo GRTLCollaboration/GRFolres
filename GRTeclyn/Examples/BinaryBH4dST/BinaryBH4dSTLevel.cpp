@@ -27,9 +27,7 @@
 #include "InitialScalarData.hpp"
 
 // 4dST / modified-gravity source classes.
-// NOTE: the include files below do not exist yet and Llibert will port them in
-// Source and presumably they will be in
-// GRTeclyn/Source/{FourDerivScalarTensor,ModifiedCCZ4}/
+// NOTE: ModifiedWeyl, ModifiedConstraints, RhoDiagnostics and ScalarExtraction yet to be tested
 // For this example I assume the following: the same class names as the GRFolres
 // ones, but expressed in GRTeclyn's split-kernel / derived-variable style, and
 // with NO gauge template parameter (GRTeclyn's CCZ4RHS is not templated on the
@@ -63,8 +61,8 @@
 //       - ctor(amrex::Real dx); standalone gauge object (like GRTeclyn's
 //         MovingPunctureGauge / IntegratedMovingPunctureGauge)
 //       - calculate_rhs(int,int,int, Array4<Real>&, Array4<const Real>&) const
-//         sets the base moving-puncture lapse/shift/B RHS
-//       - params_t with a0, b0 (+ standard gauge params) + check/fill_params
+//         sets the base integrated moving-puncture lapse/shift/B RHS and 
+//         adds the a(x) modified-gauge terms
 //
 //   ModifiedGravityConstraints<theory_t>  -> derived record "constraints"
 //   ModifiedGravityWeyl4<theory_t>        -> derived record "Weyl4"
@@ -88,18 +86,6 @@
 #include <string>
 #include <type_traits>
 
-// The full modified-CCZ4 + 4dST right hand side for one derivative order.
-//
-// GRTeclyn splits the CCZ4 RHS into several device kernels so that not all the
-// first/second derivatives have to live in GPU registers at once (see
-// ScalarFieldLevel and BinaryBHLevel). We follow the same pattern and add the
-// modified-gravity pieces explicitly, in the order of GRChombo's
-// ModifiedCCZ4RHS::compute(Cell):
-//   vacuum CCZ4  ->  base moving-puncture gauge  ->  a(x)/b(x) gauge terms
-//   ->  kappa * T sources  ->  theory (phi, Pi) evolution
-//   ->  principal-part solve  ->  Kreiss-Oliger dissipation
-
-
 BinaryBH4dSTAmr *BinaryBH4dSTLevel::get_bh_amr_ptr()
 {
     return dynamic_cast<BinaryBH4dSTAmr *>(get_gr_amr_ptr());
@@ -118,20 +104,16 @@ void BinaryBH4dSTLevel::variableSetUp()
     // Set up the state variables
     state_variable_set_up();
 
-    //using theory_t =
-    //    FourDerivScalarTensorWithCouplingAndPotential<FourthOrderDerivatives>;
+    using theory_t =
+        FourDerivScalarTensorWithCouplingAndPotential<FourthOrderDerivatives>;
 
     // Register the modified-gravity diagnostics as AMReX derived records.
     // (These diagnostic classes always use 4th-order derivatives, like the
     // vacuum Constraints / Weyl4, so they are not templated on deriv_t.)
-    //ModifiedGravityConstraints<theory_t>::set_up(state_index);
+    ModifiedGravityConstraints<theory_t>::set_up(state_index);
     //ModifiedGravityWeyl4<theory_t>::set_up(state_index);
-    //RhoDiagnostics<theory_t>::set_up(state_index);
-
-    // use the following instead just for compiling now:
-    Constraints::set_up(state_index);
-
     Weyl4::set_up(state_index);
+    RhoDiagnostics<theory_t>::set_up(state_index);
 }
 
 // Things to do during the advance step after RK4 steps
@@ -283,6 +265,17 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                            positive_chi_lapse(ix, iy, iz, soln_arrays[box_no]);
                        });
 
+// The full modified-CCZ4 + 4dST right hand side for one derivative order.
+//
+// GRTeclyn splits the CCZ4 RHS into several device kernels so that not all the
+// first/second derivatives have to live in GPU registers at once (see
+// ScalarFieldLevel and BinaryBHLevel). We follow the same pattern and add the
+// modified-gravity pieces explicitly, in the order of GRChombo's
+// ModifiedCCZ4RHS::compute(Cell):
+//   vacuum CCZ4  ->  base moving-puncture gauge  ->  a(x)/b(x) gauge terms
+//   ->  kappa * T sources  ->  theory (phi, Pi) evolution
+//   ->  principal-part solve  ->  Kreiss-Oliger dissipation
+
     if (m_evolution_spatial_derivative_order == 4)
     {
         const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<FourthOrderDerivatives>, FourthOrderDerivatives> modified_ccz4(Geom().CellSize(0));
@@ -388,7 +381,6 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
 }
 
 // enforce algebraic constraints during RK4 substeps
-// I think GRFolres doesn't do this?
 void BinaryBH4dSTLevel::specific_update_ode(amrex::MultiFab &a_soln)
 {
     BL_PROFILE("BinaryBH4dSTLevel::specific_update_ode()");
@@ -410,7 +402,8 @@ void BinaryBH4dSTLevel::pre_tag_cells()
     amrex::MultiFab &state_new = get_new_data(state_index);
     const auto current_time    = get_state_data(state_index).curTime();
 
-    // Only chi is used in the tagging criterion; 4th-order d2 needs 2 ghosts
+    // Only chi is used in the tagging criterion
+    // 4th-order d2 needs 2 ghosts
     const int num_ghosts = 2;
     const int num_comps  = 1;
     FillPatch(*this, state_new, num_ghosts, current_time, state_index, c_chi,

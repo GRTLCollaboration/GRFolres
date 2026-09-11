@@ -28,7 +28,7 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
 {
     const amrex::CellData<amrex::Real> &rhs_cell_data =
         rhs_state.cellData(ix, iy, iz);
-     const amrex::CellData<const amrex::Real> &state_cell_data =
+    const amrex::CellData<const amrex::Real> &state_cell_data =
         state.cellData(ix, iy, iz);
     const typename theory_t::Vars vars(state_cell_data);
     
@@ -205,6 +205,41 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::apply_dissipation(
         rhs_state.cellData(ix, iy, iz);
     this->m_deriv.add_dissipation(ix, iy, iz, rhs_cell_data, state,
                                   this->m_sigma, NUM_VARS);
+}
+
+template <class theory_t, class deriv_t>
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
+ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_Sij_TF(
+    int ix, int iy, int iz, 
+    const amrex::Array4<const amrex::Real> &state) const
+{
+    Tensor::Rank2 out{};
+	
+    amrex::Array4<amrex::Real> rhs_state{};
+
+    this->compute_A_ij_and_Theta_and_Gamma(ix, iy, iz, rhs_state, state);
+    add_b_rhs(ix, iy, iz, rhs_state, state);
+
+    const amrex::CellData<amrex::Real> &rhs_cell_data_GR =
+        rhs_state.cellData(ix, iy, iz);
+
+    add_emtensor_rhs(ix, iy, iz, rhs_state, state);
+    add_theory_rhs(ix, iy, iz, rhs_state, state);
+    solve_lhs(ix, iy, iz, rhs_state, state);
+
+    const amrex::CellData<amrex::Real> &rhs_cell_data_full =
+        rhs_state.cellData(ix, iy, iz);
+    const amrex::CellData<const amrex::Real> &state_cell_data =
+        state.cellData(ix, iy, iz);
+    const typename theory_t::Vars vars(state_cell_data);
+
+    FOR2_SYM(i, j)
+    {
+        out(i, j) = (rhs_cell_data_GR[sym_var_idx(c_A11, i, j)] - 
+		rhs_cell_data_full[sym_var_idx(c_A11, i, j)]) / (vars.chi() * vars.lapse());
+    }
+
+    return out;
 }
 
 #endif /* MODIFIEDCCZ4RHS_IMPL_HPP_ */

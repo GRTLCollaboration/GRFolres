@@ -201,7 +201,6 @@ AMREX_GPU_DEVICE RhoAndJ FourDerivScalarTensor<coupling_and_potential_t, deriv_t
     }
 
     // Compute useful quantities for the Gauss-Bonnet sector
-
     ScalarVectorTensor SVT = compute_M_Ni_and_Mij(ix, iy, iz, state, a_deriv, h_UU);
     amrex::Real M = SVT.scalar;
     Tensor::Rank2 Mij = SVT.tensor;
@@ -961,6 +960,64 @@ FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::solve_lhs(
     rhs_cell_data[c_K] = RHS[matrix_dim - 2];
     rhs_cell_data[c_Pi] = RHS[matrix_dim - 1];
 
+}
+
+template <class coupling_and_potential_t, class deriv_t>
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE AllRhos
+FourDerivScalarTensor<coupling_and_potential_t, deriv_t>::compute_all_rhos(
+    int ix, int iy, int iz, const amrex::Array4<const amrex::Real> &state,
+    const deriv_t &a_deriv, const Tensor::Rank2 &h_UU) const
+{
+    AllRhos out;
+
+    const amrex::CellData<const amrex::Real> &state_cell_data =
+        state.cellData(ix, iy, iz);
+    const Vars vars(state_cell_data);
+
+    // set the coupling and potential values
+    amrex::Real dfdphi   = 0.0;
+    amrex::Real d2fdphi2 = 0.0;
+    amrex::Real V_of_phi = 0.0;
+    amrex::Real dVdphi   = 0.0;
+    amrex::Real g2       = 0.0;
+    amrex::Real dg2dphi  = 0.0;
+    m_coupling_and_potential.compute_coupling_and_potential(dfdphi, d2fdphi2, V_of_phi, dVdphi, g2, dg2dphi, vars);
+
+    // Compute derivatives
+    auto d1_phi = a_deriv.d1_scalar(ix, iy, iz, state, c_phi);
+
+    // Useful quantity Vt
+    amrex::Real Vt = -vars.Pi() * vars.Pi();
+    FOR (i, j)
+    {
+        Vt += vars.chi() * h_UU(i, j) * d1_phi(i) * d1_phi(j);
+    }
+
+    // rho = n^a n^b T_ab
+    out.phi = vars.Pi() * vars.Pi() + 0.5 * Vt + V_of_phi;
+    out.g2 = -g2 * Vt * (Vt / 4. + vars.Pi() * vars.Pi());
+
+    // Compute useful quantities for the Gauss-Bonnet sector
+    ScalarVectorTensor SVT = compute_M_Ni_and_Mij(ix, iy, iz, state, a_deriv, h_UU);
+    amrex::Real M = SVT.scalar;
+    Tensor::Rank2 Mij = SVT.tensor;
+
+    // decomposition of Omega_{\mu\nu}
+    SVT = compute_Omega_munu(ix, iy, iz, state, a_deriv, h_UU);
+    amrex::Real Omega = SVT.scalar;
+    Tensor::Rank2 Omega_ij = SVT.tensor;
+
+    Tensor::Rank2 Omega_ij_UU =
+            TensorAlgebra::raise_all(Omega_ij, h_UU); // raise all indexs
+    FOR(i, j) Omega_ij_UU(i, j) *= vars.chi() * vars.chi();
+
+    // Gauss-Bonnet contribution to rho
+    out.GB = Omega * M;
+    FOR(i, j) out.GB += -2.0 * Mij(i, j) * Omega_ij_UU(i, j);
+
+    out.g3 = 0.0;
+
+    return out;
 }
 
 #endif /* FOURDERIVSCALARTENSOR_IMPL_HPP_ */

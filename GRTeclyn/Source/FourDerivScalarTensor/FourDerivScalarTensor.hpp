@@ -92,7 +92,7 @@ class FourDerivScalarTensor
     //! M = \gamma^{ij}M_{ij} (GR Hamiltonian constraint)
     [[nodiscard]]
     AMREX_GPU_DEVICE ScalarVectorTensor compute_M_Ni_and_Mij(
-        const int ix, const int iy, const int iz, //!< grid indicies
+        const int ix, const int iy, const int iz, //!< grid indices
         const amrex::Array4<const amrex::Real>
             &state,             //!< the current value of state variables
         const deriv_t &a_deriv, //!< the object that calculates the derivative
@@ -103,7 +103,7 @@ class FourDerivScalarTensor
     //! \Omega_{\mu\nu} = \nabla_{\mu}\nabla_{\nu}f(\phi)
     [[nodiscard]]
     AMREX_GPU_DEVICE ScalarVectorTensor compute_Omega_munu(
-        const int ix, const int iy, const int iz, //!< grid indicies
+        const int ix, const int iy, const int iz, //!< grid indices
         const amrex::Array4<const amrex::Real>
             &state,             //!< the current value of state variables
         const deriv_t &a_deriv, //!< the object that calculates the derivative
@@ -129,8 +129,8 @@ class FourDerivScalarTensor
         const amrex::Array4<const amrex::Real>
             &state,             //!< the current value of state variables
         const deriv_t &a_deriv, //!< the object that calculates the derivative
-        const Tensor::Rank2 &h_UU) //!< the inverse metric (raised indices)
-        const;
+        const Tensor::Rank2 &h_UU)
+        const; //!< the inverse metric (raised indices)
 
     //! Calculate the stress-energy sources including the factor 8 pi G.
     [[nodiscard]] AMREX_GPU_DEVICE AMREX_FORCE_INLINE einstein_sources_TF
@@ -156,7 +156,7 @@ class FourDerivScalarTensor
         const int ix, const int iy, const int iz, //!< grid indices
 	const amrex::Array4<const amrex::Real> 
 	    &state, //!< the current value of state variables
-	const deriv_t &a_deriv, //!< the object for calculating derivates
+	const deriv_t &a_deriv, //!< the object for calculating derivatives
 	amrex::Real *LHS)
 	const; //!< the LHS matrix itself
 
@@ -171,6 +171,16 @@ class FourDerivScalarTensor
 	const deriv_t &a_deriv)
         const; //!< the object for calculating derivatives
 
+    //! The function which computes all the different components of rho,
+    //! which are stored as diagnostics
+    [[nodiscard]] 
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE AllRhos compute_all_rhos(
+        int ix, int iy, int iz, //!< grid indices
+        const amrex::Array4<const amrex::Real>
+            &state, //!< the current value of state variables
+        const deriv_t &a_deriv, //!< the object for calculating derivatives
+	const Tensor::Rank2 &h_UU)
+        const; //!< the inverse matrix (raised indices)
 };
 
 #include "FourDerivScalarTensor.impl.hpp"

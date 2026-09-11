@@ -84,7 +84,22 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
 
     static void check_params()
     {
-        // To be added checker for mod_b params
+        // b(x) > 0
+	GRParmParse mod_gauge_pp("mod_gauge");
+        amrex::Real mod_b{};
+	mod_gauge_pp.queryAdd("mod_b", mod_b);
+	if (mod_b < 0)
+	{
+            mod_gauge_pp.error("mod_b", "must be >=0");
+	}
+	// b(x) > 0
+	GRParmParse fdst_pp("four_deriv_scalar_tensor");
+	amrex::Real lambda{};
+	fdst_pp.queryAdd("lambda", lambda);
+	if (mod_b == 0 && lambda != 0)
+	{
+	    mod_gauge_pp.warning("mod_b", "should be >0");
+	}
     }
 
     ModifiedCCZ4RHS(amrex::Real a_dx);
@@ -126,6 +141,13 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
     apply_dissipation(int ix, int iy, int iz,
                       const amrex::Array4<amrex::Real> &rhs_state,
+                      const amrex::Array4<const amrex::Real> &state) const;
+
+    //! Function to get full \kappa S_{ij}^{TF} (including LHS if needed) so as
+    //! to be called in ModifiedGravityWeyl4 class
+    [[nodiscard]]
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
+    get_full_kappa_Sij_TF(int ix, int iy, int iz,
                       const amrex::Array4<const amrex::Real> &state) const;
 
   protected:

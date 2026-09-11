@@ -25,15 +25,15 @@ class InitialScalarData
   public:
     struct params_t
     {
-        amrex::Real amplitude{0.0}; //!< amplitude of the Gaussian
-        amrex::Real width{1.0};     //!< width of the Gaussian
-        amrex::Real r0{0.0};        //!< radius of the shell of the Gaussian
+        amrex::Real amplitude{}; //!< amplitude of the Gaussian
+        amrex::Real width{1.0};  //!< width of the Gaussian
+        amrex::Real r0{30.0};    //!< radius of the shell of the Gaussian
         std::array<amrex::Real, AMREX_SPACEDIM> center{};
 
         static void check_params()
         {
             GRParmParse pp("initial_scalar_data");
-            amrex::Real amplitude{0.0};
+            amrex::Real amplitude{};
             pp.queryAdd("amplitude", amplitude);
             amrex::Real width{1.0};
             pp.queryAdd("width", width);
@@ -41,7 +41,7 @@ class InitialScalarData
             {
                 pp.error("width", "must be > 0.0");
             }
-            amrex::Real r0{0.0};
+            amrex::Real r0{30.0};
             pp.queryAdd("r0", r0);
 
             GRParmParse geom_pp("geometry");

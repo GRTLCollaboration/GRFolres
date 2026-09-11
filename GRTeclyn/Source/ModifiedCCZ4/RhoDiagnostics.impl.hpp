@@ -28,7 +28,7 @@ AMREX_GPU_DEVICE AMREX_FORCE_INLINE void RhoDiagnostics<theory_t>::operator()(
     const auto h_UU = CCZ4Geometry::compute_inverse_metric(vars);
 
     // Compute all the rho contributions for this theory
-    const AllRhos all_rhos =
+    const auto all_rhos =
         m_theory.compute_all_rhos(ix, iy, iz, state, m_deriv, h_UU);
 
     rho_diagnostics(ix, iy, iz, m_dcomp + 0) = all_rhos.phi;

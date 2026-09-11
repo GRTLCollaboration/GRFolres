@@ -7,96 +7,68 @@
 #define COUPLINGANDPOTENTIAL_HPP_
 
 #include "GRParmParse.hpp"
-#include "ScalarFieldVars.hpp"
 
 #include <AMReX_GpuQualifiers.H>
 #include <AMReX_REAL.H>
 
 #include <cmath>
 
+// Shift-symmetric or exponential quadratic Einstein-scalar-Gauss-Bonnet 
+// coupling plus an optional quadratic potential:
+// f(phi) = lambda*phi or f(phi) = lambda/(2 * beta)*(1-exp(-beta*phi^2)),
+// with a smooth interior excision based on chi.
+// g2(phi) = g2 (constant coupling to the square of the kinetic term X).
+// V(phi)  = 1/2 (scalar_mass * phi)^2.
 class CouplingAndPotential
 {
   public:
     struct params_t
     {
-        amrex::Real lambda{0.0};   // Gauss-Bonnet coupling constant
-        amrex::Real cutoff{0.07};  // Cut-off for switching off the Gauss-Bonnet
-                                   // terms inside the BH
-        amrex::Real factor{100.0}; // Factor inside the smoothing function for
-                                   // the Gauss-Bonnet cut-off
-        amrex::Real scalar_mass{1.0}; // Mass of the scalar field
-
-        int coupling_type{
-            0}; // Type of coupling function to use
+        amrex::Real lambda{};      // Gauss-Bonnet coupling constant
+        amrex::Real cutoff{0.07};     // chi cutoff for the interior excision
+        amrex::Real factor{100.0};    // sharpness of the excision transition
+        amrex::Real scalar_mass{}; // mass of the scalar field
+	int coupling_type{}; // Type of coupling function to use
                 // 0: Shift symmetric Gauss-Bonnet coupling function f(phi) =
                 // lambda * phi
-                // 1: Exponential Gauss-Bonnet coupling function
-                // f(phi) = ( lambda / (2 * beta) ) * ( 1 - exp( - beta * phi^2
-                // ) )
-
+                // 1: Exponential quadratic Gauss-Bonnet coupling function
+                // f(phi) = lambda / (2 * beta) * (1 - exp(-beta * phi^2))
         amrex::Real beta{
-            100.0}; // Parameter for the exponential Gauss-Bonnet coupling
-                    // function. Only used if coupling_type == 1
-
-        amrex::Real g2{0.0}; // Coupling to the square of the kinetic term.
+            100.0}; // parameter for the exponential quadratic Gauss-Bonnet 
+		    // coupling function. Only used if coupling_type == 1
+        amrex::Real g2{}; // coupling to the square of the kinetic term
 
         static void check_params()
         {
-            GRParmParse scalar_field_pp("scalar_field");
-            amrex::Real scalar_mass{1.0};
-            scalar_field_pp.queryAdd("scalar_mass", scalar_mass);
-            if (scalar_mass < 0.0)
-            {
-                scalar_field_pp.error("scalar_mass", "must be >= 0.0");
-            }
+            GRParmParse fdst_pp("four_deriv_scalar_tensor");
+            amrex::Real lambda{};
+	    amrex::Real cutoff{0.07};
+	    amrex::Real factor{100.0};
+	    amrex::Real scalar_mass{};
+	    int coupling_type{};
+	    amrex::Real beta{100.0};
+	    amrex::Real g2{};
 
-            GRParmParse four_deriv_scalar_tensor_pp("four_deriv_scalar_tensor");
-            int coupling_type{0};
-            amrex::Real lambda{0.};
-            amrex::Real cutoff{0.07};
-            amrex::Real factor{100.0};
-            amrex::Real beta{100.0};
-            amrex::Real g2{0.0};
-            four_deriv_scalar_tensor_pp.queryAdd("coupling_type",
-                                                 coupling_type);
-            four_deriv_scalar_tensor_pp.queryAdd("lambda", lambda);
-            four_deriv_scalar_tensor_pp.queryAdd("cutoff", cutoff);
-            four_deriv_scalar_tensor_pp.queryAdd("factor", factor);
-            four_deriv_scalar_tensor_pp.queryAdd("beta", beta);
-            four_deriv_scalar_tensor_pp.queryAdd("g2", g2);
-            if (lambda < 0.0)
-            {
-                four_deriv_scalar_tensor_pp.error("lambda", "must be >= 0.0");
-            }
-            if (cutoff < 0.0)
-            {
-                four_deriv_scalar_tensor_pp.error("cutoff", "must be >= 0.0");
-            }
-            // Impose that cutoff is at most 80% of chi_average at the horizon.
-            // <chi>_H ~ 0.2666*sqrt(1 - j^2) - C.1 of
-            // https://iopscience.iop.org/article/10.1088/1361-6382/ac6fa9
-            
-	    // have to find the way to use the spin param
+            fdst_pp.queryAdd("lambda", lambda);
+            fdst_pp.queryAdd("cutoff", cutoff);
+            fdst_pp.queryAdd("factor", factor);
+            fdst_pp.queryAdd("scalar_mass", scalar_mass);
+	    fdst_pp.queryAdd("coupling_type", coupling_type);
+	    fdst_pp.queryAdd("beta", beta);
+	    fdst_pp.queryAdd("g2", g2);
+
+            // there's not yet a GRParmParse for kerr_spin
 	    /*if (cutoff >=
                 0.8 * 0.2666 *
                     std::sqrt(1.0 - m_params.kerr_spin * m_params.spin))
             {
-                four_deriv_scalar_tensor_pp.warning(
+                fdst.warning(
                     "cutoff", "Gauss-Bonnet cutoff may be too large.");
             }*/ 
-            if (factor < 0.0)
+	    
+	    if (scalar_mass < 0.0)
             {
-                four_deriv_scalar_tensor_pp.error("factor", "must be >= 0.0");
-            }
-            if (coupling_type != 0 && coupling_type != 1)
-            {
-                four_deriv_scalar_tensor_pp.error(
-                    "coupling_type", "only 0 (shift symmetric) or 1 "
-                                     "(exponential) currently supported");
-            }
-            if (beta <= 0.0)
-            {
-                four_deriv_scalar_tensor_pp.error("beta", "must be > 0.0");
+                fdst_pp.error("scalar_mass", "must be >= 0.0");
             }
 
             GRParmParse geometry_pp("geometry");
@@ -108,24 +80,30 @@ class CouplingAndPotential
             evolution_pp.get("dt_multiplier", dt_multiplier);
             if (scalar_mass >= 0.2 / coarsest_dx / dt_multiplier)
             {
-                scalar_field_pp.warning(
+                fdst_pp.warning(
                     "scalar_mass",
                     "oscillations of the scalar field may not be resolved on "
                     "the coarsest level");
+            }
+
+	    if (coupling_type != 0 && coupling_type != 1)
+            {
+                fdst_pp.error(
+                    "coupling_type", "only 0 (shift symmetric) or 1 "
+                                     "(exponential) currently supported");
             }
         }
 
         void fill_params()
         {
-            GRParmParse four_deriv_scalar_tensor_pp("four_deriv_scalar_tensor");
-            four_deriv_scalar_tensor_pp.get("coupling_type", coupling_type);
-            four_deriv_scalar_tensor_pp.get("lambda", lambda);
-            four_deriv_scalar_tensor_pp.get("cutoff", cutoff);
-            four_deriv_scalar_tensor_pp.get("factor", factor);
-            four_deriv_scalar_tensor_pp.get("beta", beta);
-            four_deriv_scalar_tensor_pp.get("g2", g2);
-            GRParmParse scalar_field_pp("scalar_field");
-            scalar_field_pp.get("scalar_mass", scalar_mass);
+            GRParmParse fdst_pp("four_deriv_scalar_tensor");
+            fdst_pp.get("lambda", lambda);
+            fdst_pp.get("cutoff", cutoff);
+            fdst_pp.get("factor", factor);
+            fdst_pp.get("scalar_mass", scalar_mass);
+	    fdst_pp.get("coupling_type", coupling_type);
+	    fdst_pp.get("beta", beta);
+	    fdst_pp.get("g2", g2);
         }
     };
 
@@ -137,57 +115,42 @@ class CouplingAndPotential
     {
     }
 
+    // Set the EsGB coupling function and the scalar potential.
+    // vars must provide vars.chi() and vars.phi().
     // NOLINTBEGIN(bugprone-easily-swappable-parameters)
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
-    compute_coupling_and_potential(amrex::Real &dfdphi, amrex::Real &d2fdphi2,
-                                   amrex::Real &V_of_phi, amrex::Real &dVdphi,
-                                   amrex::Real &g2, amrex::Real &dg2dphi,
-                                   const ScalarFieldVars &vars) const
+    template <class vars_t>
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void compute_coupling_and_potential(
+        amrex::Real &dfdphi, amrex::Real &d2fdphi2, amrex::Real &g2,
+        amrex::Real &dg2dphi, amrex::Real &V_of_phi, amrex::Real &dVdphi,
+        const vars_t &vars) const
     {
-
+        // excision setting the coupling to 0 in the interior of the BH with a
+	// smooth function
         const amrex::Real cutoff_factor =
-            1. + std::exp(-m_params.factor * (vars.chi() - m_params.cutoff));
+            1.0 +
+            std::exp(-m_params.factor * (vars.chi() - m_params.cutoff));
 
-        if (m_params.coupling_type == 0)
-        {
-            // Shift symmetric Gauss-Bonnet coupling function f(phi) = lambda *
-            // phi
+        // Shift-symmetric or exponential quadratic coupling
+	// The first derivative of the GB coupling function
+	const amrex::phi_squared = vars.phi() * vars.phi();
+        dfdphi   = m_params.lambda / cutoff_factor * 
+		(1 - coupling_type + coupling_type * vars.phi() *
+	         std::exp(-m_params.beta * phi_squared));
+	// The second derivative of the GB coupling function
+        d2fdphi2 = coupling_type * m_params.lambda / cutoff_factor *
+		(1.0 - 2.0 * m_params.beta * phi_squared) *
+		std::exp(-m_params.beta * phi_squared);
 
-            // Compute first and second derivative of coupling function.
-            dfdphi = m_params.lambda / cutoff_factor;
-            d2fdphi2 = 0.0;
-        }
+        // coupling to the square of the kinetic term
+        g2 = m_params.g2;
+	// The first derivative of the g2 coupling
+        dg2dphi = 0.0;
 
-        else if (m_params.coupling_type == 1)
-        {
-            // Exponential Gauss-Bonnet coupling function f(phi) = ( lambda / (2
-            // * beta) ) * ( 1 - exp( - beta * phi^2 ) )
-
-            // Compute first and second derivative of coupling function.
-            const amrex::Real phi_squared = vars.phi() * vars.phi();
-            dfdphi = m_params.lambda * vars.phi() *
-                     std::exp(-m_params.beta * phi_squared) / cutoff_factor;
-            d2fdphi2 =
-                m_params.lambda * std::exp(-m_params.beta * phi_squared) *
-                (1.0 - 2.0 * m_params.beta * phi_squared) / cutoff_factor;
-        }
-        else
-        {
-            // We should never reach this block, but set to minimal coupling
-            // values just in case.
-            dfdphi = 0.0;
-            d2fdphi2 = 0.0;
-        }
-
-        // Compute potential and its derivative.
+        // quadratic potential
         const amrex::Real mass_times_phi = m_params.scalar_mass * vars.phi();
         V_of_phi = 0.5 * mass_times_phi * mass_times_phi;
-        dVdphi = m_params.scalar_mass * m_params.scalar_mass * vars.phi();
-
-        // Compute coupling to the square of the kinetic term and its first
-        // derivative.
-        g2 = m_params.g2;
-        dg2dphi = 0.0;
+	// The first derivative of the potential
+        dVdphi   = m_params.scalar_mass * m_params.scalar_mass * vars.phi();
     }
     // NOLINTEND(bugprone-easily-swappable-parameters)
 

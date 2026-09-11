@@ -84,7 +84,7 @@ ModifiedGravityWeyl4<theory_t>::add_theory_EB(
     }
 }
 
-template <class theory_t>
+/*template <class theory_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
 ModifiedGravityWeyl4<theory_t>::get_full_kappa_times_Sij_TF(
     int ix, int iy, int iz, const amrex::Array4<const amrex::Real> &state,
@@ -98,7 +98,7 @@ ModifiedGravityWeyl4<theory_t>::get_full_kappa_times_Sij_TF(
     const auto source =
         m_theory.compute_einstein_sources(ix, iy, iz, state, m_deriv, h_UU);
 
-    Tensor::Rank2 S_TF = source.S;
+    Tensor::Rank2 S_TF = source.S_TF;
     CCZ4Geometry::make_trace_free(S_TF, vars, h_UU);
 
     // Contribution of add_emtensor_rhs to the (conformal) bar-A_ij RHS is
@@ -117,7 +117,7 @@ ModifiedGravityWeyl4<theory_t>::get_full_kappa_times_Sij_TF(
     // contribution here once solve_lhs is ported; .
 
     return out;
-}
+}*/
 
 template <class theory_t>
 void ModifiedGravityWeyl4<theory_t>::set_up(int a_state_index)

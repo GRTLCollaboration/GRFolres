@@ -8,7 +8,6 @@
 
 #include "CCZ4Geometry.hpp"
 #include "FourthOrderDerivatives.hpp"
-#include "ModifiedCCZ4RHS.hpp" // for the AllRhos struct
 #include "Tensor.hpp"
 
 // AMReX includes
