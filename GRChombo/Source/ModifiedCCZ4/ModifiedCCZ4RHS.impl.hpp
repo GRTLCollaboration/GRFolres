@@ -84,8 +84,8 @@ void ModifiedCCZ4RHS<theory_t, gauge_t, deriv_t>::add_a_and_b_rhs(
     Tensor<1, data_t> Z_over_chi;
     FOR(i)
     Z_over_chi[i] = 0.5 * (theory_vars.Gamma[i] - chris.contracted[i]);
-    auto ricci0 = CCZ4Geometry::compute_ricci_Z(theory_vars, d1, d2, h_UU,
-                                                chris, {0., 0., 0.});
+    auto ricci0 = CCZ4Geometry::compute_ricci(theory_vars, d1, d2, h_UU,
+                                              chris);
 
     Tensor<2, data_t> A_UU = raise_all(theory_vars.A, h_UU);
     // A^{ij} A_{ij}. - Note the abuse of the compute trace function.

@@ -25,7 +25,7 @@ TestField4dST<coupling_and_potential_t>::compute_M_Ni_and_Mij(
     const auto h_UU = compute_inverse_sym(vars.h);
     const auto chris = compute_christoffel(d1.h, h_UU);
     const auto ricci0 =
-        CCZ4Geometry::compute_ricci_Z(vars, d1, d2, h_UU, chris, {0., 0., 0.});
+        CCZ4Geometry::compute_ricci(vars, d1, d2, h_UU, chris);
     const data_t chi_regularised = simd_max(1e-6, vars.chi);
 
     // M_{ij} = R_{ij} + KK_{ij} - K_{ik}K_j^{~k}
