@@ -37,7 +37,7 @@ class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
 	amrex::Real mod_b{};
 	mod_gauge_pp.queryAdd("mod_a", mod_a);
 	mod_gauge_pp.queryAdd("mod_b", mod_b);
-	if (mod_a != mod_b)
+	if (mod_a == mod_b)
 	{
             mod_gauge_pp.warning("mod_a", "should be different than mod_b");
 	} 

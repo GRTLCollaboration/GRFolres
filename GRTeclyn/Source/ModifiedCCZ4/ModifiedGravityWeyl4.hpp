@@ -7,6 +7,7 @@
 #define MODIFIEDGRAVITYWEYL4_HPP_
 
 #include "CCZ4Geometry.hpp"
+#include "ModifiedCCZ4RHS.hpp"
 #include "Weyl4.hpp"
 
 //!  Calculates the Weyl4 scalar for spacetimes in a modified-gravity theory
@@ -30,7 +31,7 @@ template <class theory_t> class ModifiedGravityWeyl4 : public Weyl4
     //! Constructor
     // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
     ModifiedGravityWeyl4(amrex::Real a_dx, int a_dcomp)
-        : Weyl4(a_dx, a_dcomp)
+        : Weyl4(a_dx, a_dcomp), m_modified_ccz4_rhs(a_dx)
     {
     }
 
@@ -53,7 +54,7 @@ template <class theory_t> class ModifiedGravityWeyl4 : public Weyl4
                            int /*level*/);
 
   protected:
-    theory_t m_theory; //!< The theory object, e.g. 4dST
+    ModifiedCCZ4RHS<theory_t> m_modified_ccz4_rhs;
 
     //! Add the theory terms to the electric and magnetic parts
     // NOLINTBEGIN(bugprone-easily-swappable-parameters)

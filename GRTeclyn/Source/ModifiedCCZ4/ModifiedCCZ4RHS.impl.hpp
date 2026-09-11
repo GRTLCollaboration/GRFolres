@@ -47,8 +47,9 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     auto d2_h = this->m_deriv.d2_sym_tensor(ix, iy, iz, state, c_h11);
 
     // Compute ricci
-    auto ricci = CCZ4Geometry::compute_ricci(vars, d1_chi, d1_Gamma, d1_h,
-                                                 d2_chi, d2_h, h_UU, chris);
+    Tensor::Rank1 zero_Z{};
+    auto ricci = CCZ4Geometry::compute_ricci_Z(
+        vars, d1_chi, d1_Gamma, d1_h, d2_h, d2_chi, h_UU, chris, zero_Z);
 
     // Compute Z4
     const amrex::Real non_covariant_z4 = 1.0 - this->m_params.covariant_z4_coeff;
@@ -91,13 +92,20 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     {
         Mom(i) = -(GR_SPACEDIM - 1.0) * d1_K(i) / GR_SPACEDIM;
     }
+    FOR (i, j, k)
+    {
+        Mom(i) += h_UU(j, k) *
+                  (covd_A(k, j, i) - GR_SPACEDIM * vars.A(i, j) *
+                       d1_chi(k) / (2.0 * vars.chi()));
+    }
 
     // Update evolution equations (pending to include BSSN option as well)
     amrex::Real factor_mod_b = m_mod_b / (1.0 + m_mod_b);
     //amrex::Real factor_mod_a = m_mod_a / (1. + m_mod_a);
     rhs_cell_data[c_K] += GR_SPACEDIM * factor_mod_b * 
 	    (-0.5 / (GR_SPACEDIM - 1.) * vars.lapse() * Ham + 
-	     kappa1_times_lapse * (1.0 + 0.5 * this->m_params.kappa2));
+	     kappa1_times_lapse * vars.Theta() *
+                 (1.0 + 0.5 * this->m_params.kappa2));
 
     rhs_cell_data[c_Theta] += 0.5 * factor_mod_b * (-vars.lapse() * Ham +
          vars.Theta() * kappa1_times_lapse * 
@@ -215,30 +223,39 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_Sij_TF(
     int ix, int iy, int iz, 
     const amrex::Array4<const amrex::Real> &state) const
 {
-    Tensor::Rank2 out{};
-	
-    amrex::Array4<amrex::Real> rhs_state{};
+    amrex::Real rhs_data[NUM_VARS]{};
+    const amrex::Dim3 cell_begin{ix, iy, iz};
+    const amrex::Dim3 cell_end{ix + 1, iy + 1, iz + 1};
+    const amrex::Array4<amrex::Real> rhs_state(
+        rhs_data, cell_begin, cell_end, NUM_VARS);
 
     this->compute_A_ij_and_Theta_and_Gamma(ix, iy, iz, rhs_state, state);
     add_b_rhs(ix, iy, iz, rhs_state, state);
 
-    const amrex::CellData<amrex::Real> &rhs_cell_data_GR =
+    const amrex::CellData<amrex::Real> &rhs_cell_data =
         rhs_state.cellData(ix, iy, iz);
+    Tensor::Rank2 A_rhs_GR{};
+    FOR2_SYM(i, j)
+    {
+        A_rhs_GR(i, j) = rhs_cell_data[sym_var_idx(c_A11, i, j)];
+    }
 
     add_emtensor_rhs(ix, iy, iz, rhs_state, state);
     add_theory_rhs(ix, iy, iz, rhs_state, state);
     solve_lhs(ix, iy, iz, rhs_state, state);
 
-    const amrex::CellData<amrex::Real> &rhs_cell_data_full =
-        rhs_state.cellData(ix, iy, iz);
     const amrex::CellData<const amrex::Real> &state_cell_data =
         state.cellData(ix, iy, iz);
     const typename theory_t::Vars vars(state_cell_data);
 
+    Tensor::Rank2 out{};
     FOR2_SYM(i, j)
     {
-        out(i, j) = (rhs_cell_data_GR[sym_var_idx(c_A11, i, j)] - 
-		rhs_cell_data_full[sym_var_idx(c_A11, i, j)]) / (vars.chi() * vars.lapse());
+        const amrex::Real component =
+            (A_rhs_GR(i, j) - rhs_cell_data[sym_var_idx(c_A11, i, j)]) /
+            vars.chi();
+        out(i, j) = component;
+        out(j, i) = component;
     }
 
     return out;

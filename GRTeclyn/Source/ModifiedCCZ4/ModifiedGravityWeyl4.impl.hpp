@@ -84,40 +84,14 @@ ModifiedGravityWeyl4<theory_t>::add_theory_EB(
     }
 }
 
-/*template <class theory_t>
+template <class theory_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
 ModifiedGravityWeyl4<theory_t>::get_full_kappa_times_Sij_TF(
     int ix, int iy, int iz, const amrex::Array4<const amrex::Real> &state,
-    const Tensor::Rank2 &h_UU) const
+    const Tensor::Rank2 & /*h_UU*/) const
 {
-    const amrex::CellData<const amrex::Real> &state_cell_data =
-        state.cellData(ix, iy, iz);
-    const typename theory_t::Vars vars(state_cell_data);
-
-    // Stress-energy sources, factor 8 pi G already applied
-    const auto source =
-        m_theory.compute_einstein_sources(ix, iy, iz, state, m_deriv, h_UU);
-
-    Tensor::Rank2 S_TF = source.S_TF;
-    CCZ4Geometry::make_trace_free(S_TF, vars, h_UU);
-
-    // Contribution of add_emtensor_rhs to the (conformal) bar-A_ij RHS is
-    //   rhs.A_ij -= chi * lapse * S_TF_ij
-    // and get_full_kappa_times_Sij_TF = (A_rhs_vacuum - A_rhs_full) / chi, so
-    // the EM-tensor piece is lapse * S_TF_ij.
-    Tensor::Rank2 out{};
-    FOR (i, j)
-    {
-        out(i, j) = vars.lapse() * S_TF(i, j);
-    }
-
-    // TODO(4dST principal part): GRChombo's get_full_kappa_times_Sij_TF also
-    // folds in the change to the bar-A_ij RHS made by
-    // FourDerivScalarTensor::solve_lhs (the modified principal part). Add that
-    // contribution here once solve_lhs is ported; .
-
-    return out;
-}*/
+    return m_modified_ccz4_rhs.get_full_kappa_Sij_TF(ix, iy, iz, state);
+}
 
 template <class theory_t>
 void ModifiedGravityWeyl4<theory_t>::set_up(int a_state_index)
