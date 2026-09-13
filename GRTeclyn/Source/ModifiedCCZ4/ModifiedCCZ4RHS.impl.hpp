@@ -96,20 +96,28 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
                                                 d1_chi(k) / vars.chi());
     }
 
-    // Update evolution equations (pending to include BSSN option as well)
+    // Update evolution equations
     amrex::Real factor_mod_b = m_mod_b / (1.0 + m_mod_b);
 
-    rhs_cell_data[c_K] += GR_SPACEDIM * factor_mod_b *
-                          (-0.5 / (GR_SPACEDIM - 1.) * vars.lapse() * Ham +
-                           vars.Theta() * kappa1_times_lapse *
-                               (1.0 + 0.5 * this->m_params.kappa2));
+    const amrex::Real ccz4_K_mod_gauge_rhs =
+        GR_SPACEDIM * factor_mod_b *
+        (-0.5 / (GR_SPACEDIM - 1.0) * vars.lapse() * Ham +
+         vars.Theta() * kappa1_times_lapse *
+             (1.0 + 0.5 * this->m_params.kappa2));
+    const amrex::Real bssn_K_mod_gauge_rhs = 0.5 * factor_mod_b * vars.lapse() *
+                                             (GR_SPACEDIM - 2.0) /
+                                             (GR_SPACEDIM - 1.0) * Ham;
+    rhs_cell_data[c_K] += ccz4_coeff * ccz4_K_mod_gauge_rhs +
+                          this->m_params.bssn_coeff * bssn_K_mod_gauge_rhs;
 
-    rhs_cell_data[c_Theta] +=
+    const amrex::Real ccz4_Theta_mod_gauge_rhs =
         0.5 * factor_mod_b *
         (-vars.lapse() * Ham +
          vars.Theta() * kappa1_times_lapse *
              ((GR_SPACEDIM - 3.0) / (2.0 + m_mod_b) + (GR_SPACEDIM + 1.0) +
               this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
+    rhs_cell_data[c_Theta] =
+        ccz4_coeff * (rhs_cell_data[c_Theta] + ccz4_Theta_mod_gauge_rhs);
 
     Tensor::Rank2 A_UU = CCZ4Geometry::compute_A_UU(vars, h_UU);
     FOR(i)
@@ -132,7 +140,7 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     }
 }
 
-// Function to add in EM Tensor matter terms to CCZ4 RHS
+// Function to add in EM Tensor theory terms to CCZ4 RHS
 template <class theory_t, class deriv_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
 ModifiedCCZ4RHS<theory_t, deriv_t>::add_emtensor_rhs(
@@ -152,20 +160,20 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_emtensor_rhs(
     const auto source = m_theory.compute_einstein_sources(ix, iy, iz, state,
                                                           this->m_deriv, h_UU);
 
-    // Select the matter source terms without branching in the GPU kernel.
+    // Select the theory source terms without branching in the GPU kernel.
     const amrex::Real ccz4_coeff = 1.0 - this->m_params.bssn_coeff;
 
-    const amrex::Real ccz4_K_matter_rhs =
+    const amrex::Real ccz4_K_theory_rhs =
         0.5 * vars.lapse() * (source.trS - 3.0 * source.rho / (1.0 + m_mod_b));
-    const amrex::Real bssn_K_matter_rhs =
+    const amrex::Real bssn_K_theory_rhs =
         0.5 * vars.lapse() * (source.trS + source.rho / (1.0 + m_mod_b));
-    rhs_cell_data[c_K] += ccz4_coeff * ccz4_K_matter_rhs +
-                          this->m_params.bssn_coeff * bssn_K_matter_rhs;
+    rhs_cell_data[c_K] += ccz4_coeff * ccz4_K_theory_rhs +
+                          this->m_params.bssn_coeff * bssn_K_theory_rhs;
 
-    const amrex::Real ccz4_Theta_matter_rhs =
+    const amrex::Real ccz4_Theta_theory_rhs =
         -vars.lapse() * source.rho / (1.0 + m_mod_b);
     rhs_cell_data[c_Theta] =
-        ccz4_coeff * (rhs_cell_data[c_Theta] + ccz4_Theta_matter_rhs);
+        ccz4_coeff * (rhs_cell_data[c_Theta] + ccz4_Theta_theory_rhs);
 
     // Update RHS for other variables
 
@@ -178,13 +186,13 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_emtensor_rhs(
 
     FOR(i)
     {
-        amrex::Real matter_term_Gamma = 0.0;
+        amrex::Real theory_term_Gamma = 0.0;
         FOR(j)
         {
-            matter_term_Gamma -=
+            theory_term_Gamma -=
                 2.0 * vars.lapse() * h_UU(i, j) * source.j(j) / (1.0 + m_mod_b);
         }
-        rhs_cell_data[c_Gamma1 + i] += matter_term_Gamma;
+        rhs_cell_data[c_Gamma1 + i] += theory_term_Gamma;
     }
 }
 

@@ -30,9 +30,9 @@ class CouplingAndPotential
         amrex::Real scalar_mass{}; // mass of the scalar field
         int coupling_type{};       // Type of coupling function to use
                                    // 0: Shift symmetric Gauss-Bonnet coupling
-                             // function f(phi) = lambda * phi 1: Exponential
-                             // quadratic Gauss-Bonnet coupling function f(phi)
-                             // = lambda / (2 * beta) * (1 - exp(-beta * phi^2))
+        // function f(phi) = lambda * phi 1: Exponential
+        // quadratic Gauss-Bonnet coupling function f(phi)
+        // = lambda / (2 * beta) * (1 - exp(-beta * phi^2))
         amrex::Real beta{
             100.0}; // parameter for the exponential quadratic Gauss-Bonnet
                     // coupling function. Only used if coupling_type == 1
