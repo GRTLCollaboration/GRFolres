@@ -16,10 +16,10 @@
 #include <AMReX_AmrLevel.H>
 
 template <class theory_t>
-AMREX_GPU_DEVICE AMREX_FORCE_INLINE void ModifiedGravityWeyl4<theory_t>::
-operator()(int ix, int iy, int iz,
-           const amrex::Array4<amrex::Real> &weyl_scalars,
-           const amrex::Array4<amrex::Real const> &state) const
+AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
+ModifiedGravityWeyl4<theory_t>::operator()(
+    int ix, int iy, int iz, const amrex::Array4<amrex::Real> &weyl_scalars,
+    const amrex::Array4<amrex::Real const> &state) const
 {
     const amrex::CellData<const amrex::Real> &state_cell_data =
         state.cellData(ix, iy, iz);
@@ -29,7 +29,7 @@ operator()(int ix, int iy, int iz,
     const Tensor::Sym12Rank3 d1_h =
         m_deriv.d1_sym_tensor(ix, iy, iz, state, c_h11);
     const Tensor::Rank2 h_UU = CCZ4Geometry::compute_inverse_metric(vars);
-    const auto chris         = CCZ4Geometry::compute_christoffel(d1_h, h_UU);
+    const auto chris = CCZ4Geometry::compute_christoffel(d1_h, h_UU);
 
     const Tensor::Sym12Rank2 d2_chi =
         m_deriv.d2_scalar(ix, iy, iz, state, c_chi);
@@ -62,7 +62,7 @@ operator()(int ix, int iy, int iz,
     weyl_scalar_t out = compute_Weyl4(ebfields, vars, h_UU, coords);
 
     // store the result
-    weyl_scalars(ix, iy, iz, m_dcomp)     = out.Real;
+    weyl_scalars(ix, iy, iz, m_dcomp) = out.Real;
     weyl_scalars(ix, iy, iz, m_dcomp + 1) = out.Im;
 }
 
@@ -78,10 +78,7 @@ ModifiedGravityWeyl4<theory_t>::add_theory_EB(
 
     // As we made the vacuum expression of Bij explicitly symmetric and Eij
     // explicitly trace-free, only Eij has theory terms
-    FOR (i, j)
-    {
-        ebfields.E(i, j) += -0.5 * kappa_times_Sij_TF(i, j);
-    }
+    FOR(i, j) { ebfields.E(i, j) += -0.5 * kappa_times_Sij_TF(i, j); }
 }
 
 template <class theory_t>
@@ -89,7 +86,7 @@ void ModifiedGravityWeyl4<theory_t>::set_up(int a_state_index)
 {
     const int num_ghosts = 2;
 
-    auto &derive_lst     = amrex::AmrLevel::get_derive_lst();
+    auto &derive_lst = amrex::AmrLevel::get_derive_lst();
     const auto &desc_lst = amrex::AmrLevel::get_desc_lst();
 
     // Register under the same name/vars as vacuum Weyl4 so the stock

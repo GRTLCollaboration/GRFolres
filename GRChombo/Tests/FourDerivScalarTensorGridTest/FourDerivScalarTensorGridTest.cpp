@@ -48,12 +48,12 @@ typedef ModifiedCCZ4RHS<FourDerivScalarTensor<CouplingAndPotential>,
 int main()
 {
     // ---- must match the GRTeclyn test -------------------------------------
-    const int N_GRID       = 16;
-    const int NUM_GHOSTS    = 3;
-    const double dx         = 0.5 / N_GRID;
+    const int N_GRID = 16;
+    const int NUM_GHOSTS = 3;
+    const double dx = 0.5 / N_GRID;
     const IntVect probe(N_GRID / 2, N_GRID / 2, N_GRID / 2);
 
-    const double sigma    = 1.0;
+    const double sigma = 1.0;
     const double G_Newton = 1.0;
     // ---------------------------------------------------------------------
 
@@ -108,12 +108,11 @@ int main()
                     g[2][0] = g[0][2];
                     g[2][1] = g[1][2];
 
-                    const double detg =
-                        g[0][0] * g[1][1] * g[2][2] +
-                        2 * g[0][1] * g[0][2] * g[1][2] -
-                        g[0][0] * g[1][2] * g[1][2] -
-                        g[1][1] * g[0][2] * g[0][2] -
-                        g[2][2] * g[0][1] * g[0][1];
+                    const double detg = g[0][0] * g[1][1] * g[2][2] +
+                                        2 * g[0][1] * g[0][2] * g[1][2] -
+                                        g[0][0] * g[1][2] * g[1][2] -
+                                        g[1][1] * g[0][2] * g[0][2] -
+                                        g[2][2] * g[0][1] * g[0][1];
                     g_UU[0][0] = (g[1][1] * g[2][2] - g[1][2] * g[1][2]) / detg;
                     g_UU[0][1] = (g[0][2] * g[1][2] - g[0][1] * g[2][2]) / detg;
                     g_UU[0][2] = (g[0][1] * g[1][2] - g[0][2] * g[1][1]) / detg;
@@ -197,18 +196,18 @@ int main()
                                       9.33487 * x * y * y * y +
                                       0.99469 * y * z + 0.20515 * z * z +
                                       8.88385 * z * z * z * z;
-                in_fab(iv, c_shift1) =
-                    0.00000 + 0.18795 * x - 0.52389 * x * x -
-                    4.14079 * x * y * y * y + 0.73135 * y * z -
-                    0.27057 * z * z + 3.24187 * z * z * z * z;
-                in_fab(iv, c_shift2) =
-                    0.00000 - 0.30316 * x - 0.15184 * x * x -
-                    0.48815 * x * y * y * y + 2.45991 * y * z -
-                    0.79248 * z * z + 7.14007 * z * z * z * z;
-                in_fab(iv, c_shift3) =
-                    0.00000 + 0.68835 * x - 0.52219 * x * x -
-                    7.50449 * x * y * y * y - 2.35372 * y * z -
-                    0.21476 * z * z + 4.36363 * z * z * z * z;
+                in_fab(iv, c_shift1) = 0.00000 + 0.18795 * x - 0.52389 * x * x -
+                                       4.14079 * x * y * y * y +
+                                       0.73135 * y * z - 0.27057 * z * z +
+                                       3.24187 * z * z * z * z;
+                in_fab(iv, c_shift2) = 0.00000 - 0.30316 * x - 0.15184 * x * x -
+                                       0.48815 * x * y * y * y +
+                                       2.45991 * y * z - 0.79248 * z * z +
+                                       7.14007 * z * z * z * z;
+                in_fab(iv, c_shift3) = 0.00000 + 0.68835 * x - 0.52219 * x * x -
+                                       7.50449 * x * y * y * y -
+                                       2.35372 * y * z - 0.21476 * z * z +
+                                       4.36363 * z * z * z * z;
 
                 // B = 0 (see InitialData.hpp on the GRTeclyn side)
                 in_fab(iv, c_B1) = 0.0;
@@ -218,35 +217,35 @@ int main()
                 in_fab(iv, c_phi) = 0.34578 + 0.26898 * x + 0.54348 * x * x +
                                     0.33487 * x * y * y * y + 0.79469 * y * z +
                                     0.30515 * z * z + 1.88385 * z * z * z * z;
-                in_fab(iv, c_Pi)  = 0.65668 + 0.20188 * x + 0.34348 * x * x +
-                                    0.31787 * x * y * y * y + 0.88469 * y * z +
-                                    0.10515 * z * z + 1.88385 * z * z * z * z;
+                in_fab(iv, c_Pi) = 0.65668 + 0.20188 * x + 0.34348 * x * x +
+                                   0.31787 * x * y * y * y + 0.88469 * y * z +
+                                   0.10515 * z * z + 1.88385 * z * z * z * z;
             }
         }
     }
 
     // Parameters - must match set_test_parameters() in the GRTeclyn test
     MyModifiedGravityClass::modified_params_t params;
-    params.kappa1            = 0.1;
-    params.kappa2            = 0.0;
-    params.kappa3            = 1.0;
-    params.covariantZ4       = 0;
+    params.kappa1 = 0.1;
+    params.kappa2 = 0.0;
+    params.kappa3 = 1.0;
+    params.covariantZ4 = 0;
     params.lapse_advec_coeff = 1.0;
-    params.lapse_power       = 1.0;
-    params.lapse_coeff       = 2.0;
+    params.lapse_power = 1.0;
+    params.lapse_coeff = 2.0;
     params.shift_advec_coeff = 1.0;
     params.shift_Gamma_coeff = 0.75;
-    params.eta               = 1.0;
-    params.a0                = 0.35;
-    params.b0                = 0.55;
+    params.eta = 1.0;
+    params.a0 = 0.35;
+    params.b0 = 0.55;
 
     ModifiedPunctureGauge modified_puncture_gauge(params);
     CouplingAndPotential coupling_and_potential;
     FourDerivScalarTensor<CouplingAndPotential> fdst(coupling_and_potential,
-                                                    G_Newton);
+                                                     G_Newton);
     MyModifiedGravityClass my_modified_ccz4(fdst, params,
-                                           modified_puncture_gauge, dx, sigma,
-                                           {0., 0., 0.}, G_Newton);
+                                            modified_puncture_gauge, dx, sigma,
+                                            {0., 0., 0.}, G_Newton);
 
     BoxLoops::loop(my_modified_ccz4, in_fab, out_fab);
 

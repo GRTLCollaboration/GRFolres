@@ -17,8 +17,7 @@
 
 template <class theory_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE void RhoDiagnostics<theory_t>::operator()(
-    int ix, int iy, int iz,
-    const amrex::Array4<amrex::Real> &rho_diagnostics,
+    int ix, int iy, int iz, const amrex::Array4<amrex::Real> &rho_diagnostics,
     const amrex::Array4<amrex::Real const> &state) const
 {
     const amrex::CellData<const amrex::Real> &state_cell_data =
@@ -42,7 +41,7 @@ void RhoDiagnostics<theory_t>::set_up(int a_state_index)
 {
     const int num_ghosts = 2; // 2nd derivatives need 2 ghost cells
 
-    auto &derive_lst     = amrex::AmrLevel::get_derive_lst();
+    auto &derive_lst = amrex::AmrLevel::get_derive_lst();
     const auto &desc_lst = amrex::AmrLevel::get_desc_lst();
 
     derive_lst.add(
@@ -72,8 +71,7 @@ void RhoDiagnostics<theory_t>::compute_mf(amrex::MultiFab &out_mf, int dcomp,
         out_mf,
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz) noexcept
         {
-            rho_diagnostics(ix, iy, iz, out_arrays[box_no],
-                            src_arrays[box_no]);
+            rho_diagnostics(ix, iy, iz, out_arrays[box_no], src_arrays[box_no]);
         });
 }
 

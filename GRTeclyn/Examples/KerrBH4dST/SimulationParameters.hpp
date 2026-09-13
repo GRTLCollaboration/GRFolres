@@ -11,11 +11,11 @@
 #include "FixedGridsTagger.hpp"
 #include "LineExtractionParameters.hpp"
 
-//GRFolres specific
+// GRFolres specific
 #include "CouplingAndPotential.hpp"
 #include "FourDerivScalarTensor.hpp"
-#include "ScalarFieldInitialData.hpp"
 #include "ModifiedPunctureGauge.hpp"
+#include "ScalarFieldInitialData.hpp"
 
 class SimulationParameters
 {
@@ -26,8 +26,7 @@ class SimulationParameters
     {
         BaseParameterChecker::check_params();
         CCZ4_params_t::check_params();
-        ModifiedPunctureGauge<
-            FourthOrderDerivatives>::params_t::check_params();
+        ModifiedPunctureGauge<FourthOrderDerivatives>::params_t::check_params();
         FixedGridsTagger::check_params();
 
         FourDerivScalarTensor<CouplingAndPotential,

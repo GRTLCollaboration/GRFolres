@@ -10,10 +10,10 @@
 #include "FixedGridsTagger.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GammaCalculator.hpp"
-//#include "KerrBHInitialData.hpp"
+// #include "KerrBHInitialData.hpp"
 #include "LineExtraction.hpp"
-//#include "ModifiedGravityConstraints.hpp"
-//#include "ModifiedGravityWeyl4.hpp"
+// #include "ModifiedGravityConstraints.hpp"
+// #include "ModifiedGravityWeyl4.hpp"
 #include "PositiveChiAndLapse.hpp"
 #include "ScalarFieldInitialData.hpp"
 #include "SixthOrderDerivatives.hpp"
@@ -22,7 +22,8 @@
 #include <type_traits>
 
 // BELOW COMMENTED LINES STILL TO BE IMPLEMENTED
-// using theory_t = KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>;
+// using theory_t =
+// KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>;
 
 // using KerrBH4dSTEnergyDensity =
 //    EMTensor<theory_t, EMTensorOptions::justEnergyDensity>;
@@ -39,9 +40,9 @@ void KerrBH4dSTLevel::variableSetUp()
     BL_PROFILE("KerrBH4dSTLevel::variableSetUp()");
     state_variable_set_up();
 
-    //KerrBH4dSTConstraints::set_up(state_index);
-    //KerrBH4dSTWeyl4::set_up(state_index);
-    //KerrBH4dSTEnergyDensity::set_up(state_index);
+    // KerrBH4dSTConstraints::set_up(state_index);
+    // KerrBH4dSTWeyl4::set_up(state_index);
+    // KerrBH4dSTEnergyDensity::set_up(state_index);
 }
 
 void KerrBH4dSTLevel::specific_advance()
@@ -123,7 +124,7 @@ void KerrBH4dSTLevel::initData()
                 cell[component] = 0.0;
             }
             scalar_field_initial_data(ix, iy, iz, state_arrays[box_no]);
-            //kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
+            // kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
         });
 
     if (m_evolution_spatial_derivative_order == 4)
@@ -222,16 +223,16 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
             {
                 modified_puncture_gauge.calculate_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-	        modified_ccz4_rhs.add_b_rhs(
-                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                modified_ccz4_rhs.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                            const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_emtensor_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                modified_ccz4_rhs.add_theory_rhs(
-		    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                                 const_soln_arrays[box_no]);
                 // solve the linear system for the fields that need it (4dST)
-                modified_ccz4_rhs.solve_lhs(
-		    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-		modified_ccz4_rhs.apply_dissipation(
+                modified_ccz4_rhs.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
+                                            const_soln_arrays[box_no]);
+                modified_ccz4_rhs.apply_dissipation(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
             });
     }
@@ -266,17 +267,17 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
             a_rhs,
             [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
             {
-	        modified_puncture_gauge.calculate_rhs(
+                modified_puncture_gauge.calculate_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                modified_ccz4_rhs.add_b_rhs(
-                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                modified_ccz4_rhs.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                            const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_emtensor_rhs(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
-                modified_ccz4_rhs.add_theory_rhs(
-                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                                 const_soln_arrays[box_no]);
                 // solve the linear system for the fields that need it (4dST)
-                modified_ccz4_rhs.solve_lhs(
-                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                modified_ccz4_rhs.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
+                                            const_soln_arrays[box_no]);
                 modified_ccz4_rhs.apply_dissipation(
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
             });

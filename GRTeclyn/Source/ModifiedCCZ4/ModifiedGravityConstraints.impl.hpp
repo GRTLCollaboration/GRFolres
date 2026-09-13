@@ -37,17 +37,17 @@ ModifiedGravityConstraints<theory_t>::operator()(
     typename theory_t::Vars vars(state_cell_data);
 
     // we need d1 chi, K, h, A and d2 chi, h
-    const auto d1_chi   = m_deriv.d1_scalar(ix, iy, iz, state, c_chi);
+    const auto d1_chi = m_deriv.d1_scalar(ix, iy, iz, state, c_chi);
     const auto d1_Gamma = m_deriv.d1_vector(ix, iy, iz, state, c_Gamma1);
-    const auto d1_K     = m_deriv.d1_scalar(ix, iy, iz, state, c_K);
-    const auto d1_A     = m_deriv.d1_sym_tensor(ix, iy, iz, state, c_A11);
-    const auto d1_h     = m_deriv.d1_sym_tensor(ix, iy, iz, state, c_h11);
+    const auto d1_K = m_deriv.d1_scalar(ix, iy, iz, state, c_K);
+    const auto d1_A = m_deriv.d1_sym_tensor(ix, iy, iz, state, c_A11);
+    const auto d1_h = m_deriv.d1_sym_tensor(ix, iy, iz, state, c_h11);
 
     const auto d2_chi = m_deriv.d2_scalar(ix, iy, iz, state, c_chi);
-    const auto d2_h   = m_deriv.d2_sym_tensor(ix, iy, iz, state, c_h11);
+    const auto d2_h = m_deriv.d2_sym_tensor(ix, iy, iz, state, c_h11);
 
     // Inverse metric and Christoffel symbol
-    const auto h_UU  = CCZ4Geometry::compute_inverse_metric(vars);
+    const auto h_UU = CCZ4Geometry::compute_inverse_metric(vars);
     const auto chris = CCZ4Geometry::compute_christoffel(d1_h, h_UU);
 
     // Get the vacuum (geometric) terms for the constraints
@@ -63,16 +63,16 @@ ModifiedGravityConstraints<theory_t>::operator()(
     // Hamiltonian constraint
     if (m_c_Ham >= 0 || m_c_Ham_abs_terms >= 0)
     {
-        out.Ham           += -2.0 * source.rho;
+        out.Ham += -2.0 * source.rho;
         out.Ham_abs_terms += 2.0 * std::abs(source.rho);
     }
 
     // Momentum constraints
     if (m_c_Moms.size() > 0 || m_c_Moms_abs_terms.size() > 0)
     {
-        FOR (i)
+        FOR(i)
         {
-            out.Mom(i)           += -source.j(i);
+            out.Mom(i) += -source.j(i);
             out.Mom_abs_terms(i) += std::abs(source.j(i));
         }
     }
@@ -87,7 +87,7 @@ void ModifiedGravityConstraints<theory_t>::set_up(int a_state_index,
 {
     const int num_ghosts = 2; // no advection terms so only need 2 ghost cells
 
-    auto &derive_lst     = amrex::AmrLevel::get_derive_lst();
+    auto &derive_lst = amrex::AmrLevel::get_derive_lst();
     const auto &desc_lst = amrex::AmrLevel::get_desc_lst();
 
     const auto &comp_names = (a_calc_mom_norm) ? Constraints::var_names_norm
@@ -116,7 +116,7 @@ void ModifiedGravityConstraints<theory_t>::compute_mf(
     const auto &src_arrays = src_mf.const_arrays();
 
     const amrex::Real dx = geomdata.CellSize(0);
-    const int iham       = dcomp; // Ham
+    const int iham = dcomp; // Ham
     const Interval imom =
         Interval(dcomp + 1, dcomp + AMREX_SPACEDIM); // Mom1, Mom2, Mom3
 

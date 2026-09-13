@@ -52,7 +52,7 @@ namespace
 using TheoryType =
     FourDerivScalarTensor<TestCouplingAndPotential, FourthOrderDerivatives>;
 using ModifiedRHSType = ModifiedCCZ4RHS<TheoryType, FourthOrderDerivatives>;
-using GaugeType       = ModifiedPunctureGauge<FourthOrderDerivatives>;
+using GaugeType = ModifiedPunctureGauge<FourthOrderDerivatives>;
 
 void set_test_parameters()
 {
@@ -85,22 +85,21 @@ void set_test_parameters()
 
 void run_four_deriv_scalar_tensor_test()
 {
-    int amrex_argc    = doctest::cli_args.argc();
+    int amrex_argc = doctest::cli_args.argc();
     char **amrex_argv = doctest::cli_args.argv();
     // NOLINTNEXTLINE(bugprone-casting-through-void) // Open MPI triggers this
     amrex::Initialize(amrex_argc, amrex_argv);
     {
-        constexpr int num_cells  = 16;
+        constexpr int num_cells = 16;
         constexpr int num_ghosts = 3;
         constexpr amrex::Real dx = 0.5 / num_cells;
 
         // The single interior cell we compare against the reference
-        const amrex::IntVect probe(num_cells / 2, num_cells / 2,
-                                   num_cells / 2);
+        const amrex::IntVect probe(num_cells / 2, num_cells / 2, num_cells / 2);
 
-        amrex::Box box(amrex::IntVect(0, 0, 0),
-                       amrex::IntVect(num_cells - 1, num_cells - 1,
-                                      num_cells - 1));
+        amrex::Box box(
+            amrex::IntVect(0, 0, 0),
+            amrex::IntVect(num_cells - 1, num_cells - 1, num_cells - 1));
         amrex::Box ghosted_box = box;
         ghosted_box.grow(num_ghosts);
 
@@ -109,20 +108,20 @@ void run_four_deriv_scalar_tensor_test()
         amrex::FArrayBox out_fab{box, NUM_VARS, amrex::The_Managed_Arena()};
         out_fab.setVal(0.0);
 
-        const auto &in_array   = in_fab.array();
+        const auto &in_array = in_fab.array();
         const auto &in_c_array = in_fab.const_array();
-        const auto &out_array  = out_fab.array();
+        const auto &out_array = out_fab.array();
 
         // Polynomial initial data (identical on the GRChombo side)
-        amrex::ParallelFor(
-            ghosted_box,
-            [=] AMREX_GPU_DEVICE(int ix, int iy, int iz)
-            {
-                const amrex::IntVect iv{ix, iy, iz};
-                const amrex::RealVect coords = amrex::RealVect{iv} * dx;
-                random_ccz4_initial_data(iv, in_array, coords);
-                fdst_scalar_initial_data(iv, in_array, coords);
-            });
+        amrex::ParallelFor(ghosted_box,
+                           [=] AMREX_GPU_DEVICE(int ix, int iy, int iz)
+                           {
+                               const amrex::IntVect iv{ix, iy, iz};
+                               const amrex::RealVect coords =
+                                   amrex::RealVect{iv} * dx;
+                               random_ccz4_initial_data(iv, in_array, coords);
+                               fdst_scalar_initial_data(iv, in_array, coords);
+                           });
         amrex::Gpu::streamSynchronize();
 
         set_test_parameters();
@@ -171,7 +170,7 @@ void run_four_deriv_scalar_tensor_test()
         bool have_reference = true;
 #include "values1.hpp"
 
-        constexpr amrex::Real tol    = 1.0e-9;
+        constexpr amrex::Real tol = 1.0e-9;
         constexpr int cout_precision = 17;
 
         if (!have_reference)
@@ -185,7 +184,7 @@ void run_four_deriv_scalar_tensor_test()
         {
             const amrex::Real computed = out_fab.array()(probe, comp);
             const amrex::Real reference = known[comp];
-            const amrex::Real diff      = std::abs(computed - reference);
+            const amrex::Real diff = std::abs(computed - reference);
 
             INFO("component " << StateVariables::names[comp] << " (" << comp
                               << "): computed "

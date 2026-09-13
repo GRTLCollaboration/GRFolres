@@ -20,8 +20,8 @@
 
 // Polynomial "random" CCZ4 initial data. This is the exact same polynomial data
 // used by the GRTeclyn CCZ4RHSTest / BSSNMatterTest and by the GRChombo
-// BSSNMatterTest, so that a grid-based finite-difference RHS is well defined and
-// the two codes can be compared cell by cell.
+// BSSNMatterTest, so that a grid-based finite-difference RHS is well defined
+// and the two codes can be compared cell by cell.
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
 random_ccz4_initial_data(const amrex::IntVect &a_iv,
                          const amrex::Array4<amrex::Real> &a_array,
@@ -110,12 +110,9 @@ random_ccz4_initial_data(const amrex::IntVect &a_iv,
         K[2][1] = K[1][2];
 
         amrex::Real trK = 0;
-        FOR (i, j)
-        {
-            trK += g_UU[i][j] * K[i][j];
-        }
+        FOR(i, j) { trK += g_UU[i][j] * K[i][j]; }
 
-        a_array(a_iv, c_K)   = trK;
+        a_array(a_iv, c_K) = trK;
         a_array(a_iv, c_A11) = chi * (K[0][0] - trK * g[0][0] / GR_SPACEDIM);
         a_array(a_iv, c_A12) = chi * (K[0][1] - trK * g[0][1] / GR_SPACEDIM);
         a_array(a_iv, c_A13) = chi * (K[0][2] - trK * g[0][2] / GR_SPACEDIM);
@@ -124,9 +121,9 @@ random_ccz4_initial_data(const amrex::IntVect &a_iv,
         a_array(a_iv, c_A33) = chi * (K[2][2] - trK * g[2][2] / GR_SPACEDIM);
     }
 
-    a_array(a_iv, c_Theta)  = 0.27579 + 0.25791 * x + 1.40488 * x * x +
-                              5.68276 * x * y * y * y + 3.04325 * y * z +
-                              1.81250 * z * z + 1.01832 * z * z * z * z;
+    a_array(a_iv, c_Theta) = 0.27579 + 0.25791 * x + 1.40488 * x * x +
+                             5.68276 * x * y * y * y + 3.04325 * y * z +
+                             1.81250 * z * z + 1.01832 * z * z * z * z;
     a_array(a_iv, c_Gamma1) = -0.49482 + 0.89227 * x + 0.05571 * x * x -
                               5.38570 * x * y * y * y + 0.13979 * y * z -
                               0.68588 * z * z - 4.39964 * z * z * z * z;
@@ -137,9 +134,9 @@ random_ccz4_initial_data(const amrex::IntVect &a_iv,
                               6.67657 * x * y * y * y - 3.44662 * y * z -
                               0.19655 * z * z + 2.97524 * z * z * z * z;
 
-    a_array(a_iv, c_lapse)  = 0.73578 + 0.36898 * x + 0.64348 * x * x +
-                              9.33487 * x * y * y * y + 0.99469 * y * z +
-                              0.20515 * z * z + 8.88385 * z * z * z * z;
+    a_array(a_iv, c_lapse) = 0.73578 + 0.36898 * x + 0.64348 * x * x +
+                             9.33487 * x * y * y * y + 0.99469 * y * z +
+                             0.20515 * z * z + 8.88385 * z * z * z * z;
     a_array(a_iv, c_shift1) = 0.00000 + 0.18795 * x - 0.52389 * x * x -
                               4.14079 * x * y * y * y + 0.73135 * y * z -
                               0.27057 * z * z + 3.24187 * z * z * z * z;
@@ -172,9 +169,9 @@ fdst_scalar_initial_data(const amrex::IntVect &a_iv,
     a_array(a_iv, c_phi) = 0.34578 + 0.26898 * x + 0.54348 * x * x +
                            0.33487 * x * y * y * y + 0.79469 * y * z +
                            0.30515 * z * z + 1.88385 * z * z * z * z;
-    a_array(a_iv, c_Pi)  = 0.65668 + 0.20188 * x + 0.34348 * x * x +
-                           0.31787 * x * y * y * y + 0.88469 * y * z +
-                           0.10515 * z * z + 1.88385 * z * z * z * z;
+    a_array(a_iv, c_Pi) = 0.65668 + 0.20188 * x + 0.34348 * x * x +
+                          0.31787 * x * y * y * y + 0.88469 * y * z +
+                          0.10515 * z * z + 1.88385 * z * z * z * z;
 }
 
 #endif /* INITIALDATA_HPP_ */

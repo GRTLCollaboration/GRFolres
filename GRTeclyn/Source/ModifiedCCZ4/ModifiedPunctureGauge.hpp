@@ -26,24 +26,24 @@ class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
     amrex::Real m_mod_a;
 
   public:
-    using base_t   = MovingPunctureGauge<deriv_t>;
+    using base_t = MovingPunctureGauge<deriv_t>;
     using params_t = typename base_t::params_t;
 
     static void check_params()
     {
         // a(x) != b(x)
-	GRParmParse mod_gauge_pp("mod_gauge");
+        GRParmParse mod_gauge_pp("mod_gauge");
         amrex::Real mod_a{};
-	amrex::Real mod_b{};
-	mod_gauge_pp.queryAdd("mod_a", mod_a);
-	mod_gauge_pp.queryAdd("mod_b", mod_b);
-	if (mod_a == mod_b)
-	{
+        amrex::Real mod_b{};
+        mod_gauge_pp.queryAdd("mod_a", mod_a);
+        mod_gauge_pp.queryAdd("mod_b", mod_b);
+        if (mod_a == mod_b)
+        {
             mod_gauge_pp.warning("mod_a", "should be different than mod_b");
-	} 
+        }
     }
 
-    ModifiedPunctureGauge(amrex::Real a_dx) : base_t(a_dx) 
+    ModifiedPunctureGauge(amrex::Real a_dx) : base_t(a_dx)
     {
         GRParmParse mod_gauge_pp("mod_gauge");
         mod_gauge_pp.get("mod_a", m_mod_a);
@@ -67,7 +67,7 @@ class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
         amrex::Real eta_of_x{};
         this->compute_eta(eta_of_x, ix, iy, iz);
 
-        FOR (i)
+        FOR(i)
         {
             state_cell_data[c_B1 + i] =
                 this->m_params.shift_Gamma_coeff * vars.Gamma(i) -
@@ -85,8 +85,8 @@ class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
             state.cellData(ix, iy, iz);
         const CCZ4Vars vars(state_cell_data);
 
-	const auto h_UU  = CCZ4Geometry::compute_inverse_metric(vars);
-	auto d1_lapse = this->m_deriv.d1_scalar(ix, iy, iz, state, c_lapse);
+        const auto h_UU = CCZ4Geometry::compute_inverse_metric(vars);
+        auto d1_lapse = this->m_deriv.d1_scalar(ix, iy, iz, state, c_lapse);
 
         const Tensor::Rank1 shift_vector(
             {vars.shift(0), vars.shift(1), vars.shift(2)});
@@ -105,17 +105,19 @@ class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
                 pow(vars.lapse(), this->m_params.lapse_power) *
                 (vars.K() - 2.0 * vars.Theta()) / (1.0 + m_mod_a);
 
-        FOR (i)
+        FOR(i)
         {
             rhs_cell_data[c_shift1 + i] =
                 this->m_params.shift_advec_coeff * advec_shift(i) +
-                this->m_params.shift_Gamma_coeff * vars.Gamma(i) / (1.0 + m_mod_a) -
+                this->m_params.shift_Gamma_coeff * vars.Gamma(i) /
+                    (1.0 + m_mod_a) -
                 eta_of_x * vars.shift(i) - vars.B(i);
-	    FOR (j)
-	    {
-		rhs_cell_data[c_shift1 + i] += -m_mod_a / (1.0 + m_mod_a) * vars.lapse() *
-                    vars.chi() * h_UU(i, j) * d1_lapse(j);
-	    }
+            FOR(j)
+            {
+                rhs_cell_data[c_shift1 + i] += -m_mod_a / (1.0 + m_mod_a) *
+                                               vars.lapse() * vars.chi() *
+                                               h_UU(i, j) * d1_lapse(j);
+            }
             rhs_cell_data[c_B1 + i] = 0.0;
         }
     }

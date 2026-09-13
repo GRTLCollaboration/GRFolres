@@ -73,8 +73,7 @@ class InitialScalarData
     operator()(int ix, int iy, int iz,
                const amrex::Array4<amrex::Real> &state) const
     {
-        const amrex::CellData<amrex::Real> &cell =
-            state.cellData(ix, iy, iz);
+        const amrex::CellData<amrex::Real> &cell = state.cellData(ix, iy, iz);
 
         const Coordinates coords(amrex::IntVect(ix, iy, iz), m_dx,
                                  m_params.center);
@@ -82,7 +81,7 @@ class InitialScalarData
 
         const amrex::Real arg = (rr - m_params.r0) / m_params.width;
         cell[c_phi] = m_params.amplitude * std::exp(-arg * arg);
-        cell[c_Pi]  = 0.0;
+        cell[c_Pi] = 0.0;
     }
 
   private:

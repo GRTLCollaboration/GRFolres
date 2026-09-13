@@ -25,18 +25,18 @@
      of the constraints. This includes the source terms of the, and
      the theory evolution terms. In this case, a scalar field,
      the theory elements are phi and (minus) its conjugate momentum, Pi.
-     It is templated over a coupling and potential function coupling_and_potential_t 
-     which the user must specify in a class, although a default is provided which
-     sets dfdphi, d2fdphi2, dVdphi, V_of_phi, g2 and dg2dphi to zero.
-     It assumes minimal coupling of the field to gravity.
-     Matter classes used by the diagnostic callbacks must be default
-     constructible. Their default constructors should therefore read all
-     runtime parameters needed to construct a fully configured matter object,
-     as FourDerivScalarTensor and its coupling_and_potential do here.
+     It is templated over a coupling and potential function
+   coupling_and_potential_t which the user must specify in a class, although a
+   default is provided which sets dfdphi, d2fdphi2, dVdphi, V_of_phi, g2 and
+   dg2dphi to zero. It assumes minimal coupling of the field to gravity. Matter
+   classes used by the diagnostic callbacks must be default constructible. Their
+   default constructors should therefore read all runtime parameters needed to
+   construct a fully configured matter object, as FourDerivScalarTensor and its
+   coupling_and_potential do here.
      \sa ModifiedCCZ4(), ConstraintsMatter()
 */
 template <class coupling_and_potential_t = DefaultCouplingAndPotential,
-          class deriv_t     = FourthOrderDerivatives>
+          class deriv_t = FourthOrderDerivatives>
 class FourDerivScalarTensor
 {
   protected:
@@ -45,7 +45,6 @@ class FourDerivScalarTensor
     amrex::Real m_G_Newton{1.0};
 
   public:
-
     struct params_t
     {
         amrex::Real G_Newton{1.0};
@@ -68,7 +67,8 @@ class FourDerivScalarTensor
         }
     };
 
-    //!  Constructor of class FourDerivScalarTensor, inputs are the theory parameters.
+    //!  Constructor of class FourDerivScalarTensor, inputs are the theory
+    //!  parameters.
     FourDerivScalarTensor()
     {
         params_t params;
@@ -76,7 +76,8 @@ class FourDerivScalarTensor
         m_G_Newton = params.G_Newton;
     }
 
-    AMREX_FORCE_INLINE explicit FourDerivScalarTensor(coupling_and_potential_t a_coupling_and_potential)
+    AMREX_FORCE_INLINE explicit FourDerivScalarTensor(
+        coupling_and_potential_t a_coupling_and_potential)
         : m_coupling_and_potential(a_coupling_and_potential)
     {
         params_t params;
@@ -110,7 +111,7 @@ class FourDerivScalarTensor
         const Tensor::Rank2 &h_UU) //!< the inverse metric (raised indices)
         const;
 
-    //! The function which calculates the rho and j components of the effective 
+    //! The function which calculates the rho and j components of the effective
     //! EM Tensor, given the vars and derivatives, including the potential
     [[nodiscard]]
     AMREX_GPU_DEVICE RhoAndJ compute_rho_and_j(
@@ -121,8 +122,9 @@ class FourDerivScalarTensor
         const Tensor::Rank2 &h_UU) //!< the inverse metric (raised indices)
         const;
 
-    //! The function which calculates the S_TF and trS components of the effective
-    //! EM Tensor, given the vars and derivatives, including the potential
+    //! The function which calculates the S_TF and trS components of the
+    //! effective EM Tensor, given the vars and derivatives, including the
+    //! potential
     [[nodiscard]]
     AMREX_GPU_DEVICE S_TFAndTrS compute_S_TF_and_trS(
         const int ix, const int iy, const int iz, //!< grid indicies
@@ -154,32 +156,31 @@ class FourDerivScalarTensor
     //! are A, K and Pi for this 4dST example
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void compute_lhs(
         const int ix, const int iy, const int iz, //!< grid indices
-	const amrex::Array4<const amrex::Real> 
-	    &state, //!< the current value of state variables
-	const deriv_t &a_deriv, //!< the object for calculating derivatives
-	amrex::Real *LHS)
-	const; //!< the LHS matrix itself
+        const amrex::Array4<const amrex::Real>
+            &state,              //!< the current value of state variables
+        const deriv_t &a_deriv,  //!< the object for calculating derivatives
+        amrex::Real *LHS) const; //!< the LHS matrix itself
 
     //! The function which solves the linear system using the LHS matrix
     //! computed in compute_lhs and the RHS calculated before
-    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void solve_lhs(
-	const int ix, const int iy, const int iz, //!< grid indices
-	const amrex::Array4<amrex::Real> 
-	    &rhs_state, //!< the next value of state variables (rhs update)
-	const amrex::Array4<const amrex::Real> 
-	    &state, //!< the current value of state variables
-	const deriv_t &a_deriv)
+    AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
+    solve_lhs(const int ix, const int iy, const int iz, //!< grid indices
+              const amrex::Array4<amrex::Real> &
+                  rhs_state, //!< the next value of state variables (rhs update)
+              const amrex::Array4<const amrex::Real>
+                  &state, //!< the current value of state variables
+              const deriv_t &a_deriv)
         const; //!< the object for calculating derivatives
 
     //! The function which computes all the different components of rho,
     //! which are stored as diagnostics
-    [[nodiscard]] 
+    [[nodiscard]]
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE AllRhos compute_all_rhos(
         int ix, int iy, int iz, //!< grid indices
         const amrex::Array4<const amrex::Real>
-            &state, //!< the current value of state variables
+            &state,             //!< the current value of state variables
         const deriv_t &a_deriv, //!< the object for calculating derivatives
-	const Tensor::Rank2 &h_UU)
+        const Tensor::Rank2 &h_UU)
         const; //!< the inverse matrix (raised indices)
 };
 

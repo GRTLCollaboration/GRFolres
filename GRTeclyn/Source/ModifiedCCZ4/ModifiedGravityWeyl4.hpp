@@ -53,7 +53,7 @@ template <class theory_t> class ModifiedGravityWeyl4 : public Weyl4
                            int /*level*/);
 
   protected:
-    //theory_t m_theory; //!< The theory object, e.g. 4dST
+    // theory_t m_theory; //!< The theory object, e.g. 4dST
     ModifiedCCZ4RHS<theory_t> m_modified_ccz4_rhs;
 
     //! Add the theory terms to the electric and magnetic parts

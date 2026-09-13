@@ -27,11 +27,12 @@
 #include "InitialScalarData.hpp"
 
 // 4dST / modified-gravity source classes.
-// NOTE: ModifiedWeyl, ModifiedConstraints, RhoDiagnostics and ScalarExtraction yet to be tested
-// For this example I assume the following: the same class names as the GRFolres
-// ones, but expressed in GRTeclyn's split-kernel / derived-variable style, and
-// with NO gauge template parameter (GRTeclyn's CCZ4RHS is not templated on the
-// gauge -- the gauge is a separate object the Level constructs and calls):
+// NOTE: ModifiedWeyl, ModifiedConstraints, RhoDiagnostics and ScalarExtraction
+// yet to be tested For this example I assume the following: the same class
+// names as the GRFolres ones, but expressed in GRTeclyn's split-kernel /
+// derived-variable style, and with NO gauge template parameter (GRTeclyn's
+// CCZ4RHS is not templated on the gauge -- the gauge is a separate object the
+// Level constructs and calls):
 //
 //   FourDerivScalarTensor<coupling_and_potential_t, deriv_t>
 //       - default ctor + explicit ctor(coupling_and_potential_t)
@@ -61,7 +62,7 @@
 //       - ctor(amrex::Real dx); standalone gauge object (like GRTeclyn's
 //         MovingPunctureGauge / IntegratedMovingPunctureGauge)
 //       - calculate_rhs(int,int,int, Array4<Real>&, Array4<const Real>&) const
-//         sets the base integrated moving-puncture lapse/shift/B RHS and 
+//         sets the base integrated moving-puncture lapse/shift/B RHS and
 //         adds the a(x) modified-gauge terms
 //
 //   ModifiedGravityConstraints<theory_t>  -> derived record "constraints"
@@ -80,7 +81,7 @@
 #include "ModifiedGravityWeyl4.hpp"
 #include "ModifiedPunctureGauge.hpp"
 #include "RhoDiagnostics.hpp"
-//#include "ScalarExtraction.hpp"
+// #include "ScalarExtraction.hpp"
 
 #include <array>
 #include <string>
@@ -112,7 +113,7 @@ void BinaryBH4dSTLevel::variableSetUp()
     // vacuum Constraints / Weyl4, so they are not templated on deriv_t.)
     ModifiedGravityConstraints<theory_t>::set_up(state_index);
     ModifiedGravityWeyl4<theory_t>::set_up(state_index);
-    //Weyl4::set_up(state_index);
+    // Weyl4::set_up(state_index);
     RhoDiagnostics<theory_t>::set_up(state_index);
 }
 
@@ -122,7 +123,7 @@ void BinaryBH4dSTLevel::specific_advance()
     BL_PROFILE("BinaryBH4dSTLevel::specific_advance()");
 
     amrex::MultiFab &state_new = get_new_data(state_index);
-    const auto &state_arrays   = state_new.arrays();
+    const auto &state_arrays = state_new.arrays();
 
     const AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
     const PositiveChiAndLapse positive_chi_lapse;
@@ -131,10 +132,9 @@ void BinaryBH4dSTLevel::specific_advance()
     amrex::ParallelFor(state_new,
                        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
                        {
-                           algebraic_constraints_enforcer(
-                               ix, iy, iz, state_arrays[box_no]);
-                           positive_chi_lapse(ix, iy, iz,
-                                              state_arrays[box_no]);
+                           algebraic_constraints_enforcer(ix, iy, iz,
+                                                          state_arrays[box_no]);
+                           positive_chi_lapse(ix, iy, iz, state_arrays[box_no]);
                        });
     amrex::Gpu::streamSynchronize();
 }
@@ -149,7 +149,7 @@ void BinaryBH4dSTLevel::initData()
         amrex::Print() << "BinaryBH4dSTLevel::initData " << Level() << "\n";
     }
 
-    const amrex::Real dx       = Geom().CellSize(0);
+    const amrex::Real dx = Geom().CellSize(0);
     amrex::MultiFab &state_new = get_new_data(state_index);
 
     const InitialScalarData initial_scalar_data(dx);
@@ -177,13 +177,11 @@ void BinaryBH4dSTLevel::initData()
          ++mfi)
     {
         const amrex::Box &grown_tile_box = mfi.growntilebox();
-        const auto &state_array          = host_state.array(mfi);
+        const auto &state_array = host_state.array(mfi);
 
-        amrex::LoopOnCpu(grown_tile_box,
-                         [=](int ix, int iy, int iz) {
-                             two_punctures_initial_data(ix, iy, iz,
-                                                        state_array);
-                         });
+        amrex::LoopOnCpu(
+            grown_tile_box, [=](int ix, int iy, int iz)
+            { two_punctures_initial_data(ix, iy, iz, state_array); });
 #ifdef AMREX_USE_GPU
         amrex::Gpu::htod_memcpy_async(
             state_new[mfi].dataPtr(), host_state[mfi].dataPtr(),
@@ -250,7 +248,7 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
 
     const auto &soln_arrays = a_soln.arrays();
     const auto &const_soln_arrays = a_soln.const_arrays();
-    const auto &rhs_arrays  = a_rhs.arrays();
+    const auto &rhs_arrays = a_rhs.arrays();
 
     // The classes to be used
     const AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
@@ -260,117 +258,121 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     amrex::ParallelFor(a_soln, a_soln.nGrowVect(),
                        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
                        {
-                           algebraic_constraints_enforcer(
-                               ix, iy, iz, soln_arrays[box_no]);
+                           algebraic_constraints_enforcer(ix, iy, iz,
+                                                          soln_arrays[box_no]);
                            positive_chi_lapse(ix, iy, iz, soln_arrays[box_no]);
                        });
 
-// The full modified-CCZ4 + 4dST right hand side for one derivative order.
-//
-// GRTeclyn splits the CCZ4 RHS into several device kernels so that not all the
-// first/second derivatives have to live in GPU registers at once (see
-// ScalarFieldLevel and BinaryBHLevel). We follow the same pattern and add the
-// modified-gravity pieces explicitly, in the order of GRChombo's
-// ModifiedCCZ4RHS::compute(Cell):
-//   vacuum CCZ4  ->  base moving-puncture gauge  ->  a(x)/b(x) gauge terms
-//   ->  kappa * T sources  ->  theory (phi, Pi) evolution
-//   ->  principal-part solve  ->  Kreiss-Oliger dissipation
+    // The full modified-CCZ4 + 4dST right hand side for one derivative order.
+    //
+    // GRTeclyn splits the CCZ4 RHS into several device kernels so that not all
+    // the first/second derivatives have to live in GPU registers at once (see
+    // ScalarFieldLevel and BinaryBHLevel). We follow the same pattern and add
+    // the modified-gravity pieces explicitly, in the order of GRChombo's
+    // ModifiedCCZ4RHS::compute(Cell):
+    //   vacuum CCZ4  ->  base moving-puncture gauge  ->  a(x)/b(x) gauge terms
+    //   ->  kappa * T sources  ->  theory (phi, Pi) evolution
+    //   ->  principal-part solve  ->  Kreiss-Oliger dissipation
 
     if (m_evolution_spatial_derivative_order == 4)
     {
-        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<FourthOrderDerivatives>, FourthOrderDerivatives> modified_ccz4(Geom().CellSize(0));
-        const ModifiedPunctureGauge<FourthOrderDerivatives> modified_puncture_gauge(Geom().CellSize(0));
+        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                                  FourthOrderDerivatives>,
+                              FourthOrderDerivatives>
+            modified_ccz4(Geom().CellSize(0));
+        const ModifiedPunctureGauge<FourthOrderDerivatives>
+            modified_puncture_gauge(Geom().CellSize(0));
 
         // 1. chi and h_ij
-        amrex::ParallelFor(a_rhs,
-                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-                       {
-                           modified_ccz4.compute_chi_and_h_ij(
-                               ix, iy, iz, rhs_arrays[box_no],
-                               const_soln_arrays[box_no]);
-                       });
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
+                modified_ccz4.compute_chi_and_h_ij(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+            });
 
         // 2. A_ij, Theta and Gamma
-        amrex::ParallelFor(a_rhs,
-                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-                       {
-                           modified_ccz4.compute_A_ij_and_Theta_and_Gamma(
-                               ix, iy, iz, rhs_arrays[box_no],
-                               const_soln_arrays[box_no]);
-                       });
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
+                modified_ccz4.compute_A_ij_and_Theta_and_Gamma(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+            });
 
         // 3. modified gauge, modified-gauge b(x) terms, matter sources, theory
         //    field evolution, principal-part solve and dissipation
         amrex::ParallelFor(
-        a_rhs,
-        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-        {
-            // modified puncture lapse/shift/B RHS (sets, does not add)
-            modified_puncture_gauge.calculate_rhs(ix, iy, iz,
-                                                  rhs_arrays[box_no],
-                                                  const_soln_arrays[box_no]);
-            // b(x) modified-gauge terms, added just before the EM tensor
-            modified_ccz4.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                          const_soln_arrays[box_no]);
-            modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                           const_soln_arrays[box_no]);
-            modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                         const_soln_arrays[box_no]);
-            // solve the linear system for the fields that need it (4dST)
-            modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
-                                    const_soln_arrays[box_no]);
-            modified_ccz4.apply_dissipation(ix, iy, iz, rhs_arrays[box_no],
-                                            const_soln_arrays[box_no]);
-        });
-
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
+                // modified puncture lapse/shift/B RHS (sets, does not add)
+                modified_puncture_gauge.calculate_rhs(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                // b(x) modified-gauge terms, added just before the EM tensor
+                modified_ccz4.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                        const_soln_arrays[box_no]);
+                modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                               const_soln_arrays[box_no]);
+                modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                             const_soln_arrays[box_no]);
+                // solve the linear system for the fields that need it (4dST)
+                modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
+                                        const_soln_arrays[box_no]);
+                modified_ccz4.apply_dissipation(ix, iy, iz, rhs_arrays[box_no],
+                                                const_soln_arrays[box_no]);
+            });
     }
     else if (m_evolution_spatial_derivative_order == 6)
     {
-        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<SixthOrderDerivatives>, SixthOrderDerivatives> modified_ccz4(Geom().CellSize(0));
-        const ModifiedPunctureGauge<SixthOrderDerivatives> modified_puncture_gauge(Geom().CellSize(0));
+        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                                  SixthOrderDerivatives>,
+                              SixthOrderDerivatives>
+            modified_ccz4(Geom().CellSize(0));
+        const ModifiedPunctureGauge<SixthOrderDerivatives>
+            modified_puncture_gauge(Geom().CellSize(0));
 
         // 1. chi and h_ij
-        amrex::ParallelFor(a_rhs,
-                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-                       {
-                           modified_ccz4.compute_chi_and_h_ij(
-                               ix, iy, iz, rhs_arrays[box_no],
-                               const_soln_arrays[box_no]);
-                       });
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
+                modified_ccz4.compute_chi_and_h_ij(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+            });
 
         // 2. A_ij, Theta and Gamma
-        amrex::ParallelFor(a_rhs,
-                       [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-                       {
-                           modified_ccz4.compute_A_ij_and_Theta_and_Gamma(
-                               ix, iy, iz, rhs_arrays[box_no],
-                               const_soln_arrays[box_no]);
-                       });
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
+                modified_ccz4.compute_A_ij_and_Theta_and_Gamma(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+            });
 
         // 3. modified-gauge, modified-gauge b(x) terms, matter sources, theory
         //    field evolution, principal-part solve and dissipation
         amrex::ParallelFor(
-        a_rhs,
-        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-        {
-            // modified puncture lapse/shift/B RHS (sets, does not add)
-            modified_puncture_gauge.calculate_rhs(ix, iy, iz,
-                                                  rhs_arrays[box_no],
-                                                  const_soln_arrays[box_no]);
-            // b(x) modified-gauge terms, added just before the EM tensor
-            modified_ccz4.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                          const_soln_arrays[box_no]);
-            modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                           const_soln_arrays[box_no]);
-            modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
-                                         const_soln_arrays[box_no]);
-            // solve the linear system for the fields that need it (4dST)
-            modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
-                                    const_soln_arrays[box_no]);
-            modified_ccz4.apply_dissipation(ix, iy, iz, rhs_arrays[box_no],
-                                            const_soln_arrays[box_no]);
-        });
-
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
+                // modified puncture lapse/shift/B RHS (sets, does not add)
+                modified_puncture_gauge.calculate_rhs(
+                    ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
+                // b(x) modified-gauge terms, added just before the EM tensor
+                modified_ccz4.add_b_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                        const_soln_arrays[box_no]);
+                modified_ccz4.add_emtensor_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                               const_soln_arrays[box_no]);
+                modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
+                                             const_soln_arrays[box_no]);
+                // solve the linear system for the fields that need it (4dST)
+                modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
+                                        const_soln_arrays[box_no]);
+                modified_ccz4.apply_dissipation(ix, iy, iz, rhs_arrays[box_no],
+                                                const_soln_arrays[box_no]);
+            });
     }
     else
     {
@@ -400,12 +402,12 @@ void BinaryBH4dSTLevel::pre_tag_cells()
     BL_PROFILE("BinaryBH4dSTLevel::pre_tag_cells()");
 
     amrex::MultiFab &state_new = get_new_data(state_index);
-    const auto current_time    = get_state_data(state_index).curTime();
+    const auto current_time = get_state_data(state_index).curTime();
 
     // Only chi is used in the tagging criterion
     // 4th-order d2 needs 2 ghosts
     const int num_ghosts = 2;
-    const int num_comps  = 1;
+    const int num_comps = 1;
     FillPatch(*this, state_new, num_ghosts, current_time, state_index, c_chi,
               num_comps);
 }
@@ -417,7 +419,7 @@ void BinaryBH4dSTLevel::tag_cells(amrex::TagBoxArray &a_tag_box_array,
 
     amrex::MultiFab &state_new = get_new_data(state_index);
 
-    const auto &tag_arrays         = a_tag_box_array.arrays();
+    const auto &tag_arrays = a_tag_box_array.arrays();
     const auto &state_const_arrays = state_new.const_arrays();
 
     const ChiTagger chi_tagger(Geom().CellSize(0), a_regrid_threshold);
@@ -455,8 +457,7 @@ void BinaryBH4dSTLevel::tag_cells(amrex::TagBoxArray &a_tag_box_array,
                            extraction_tagger(ix, iy, iz, tag_arrays[box_no]);
                            if (puncture_tracking_enabled)
                            {
-                               puncture_tagger(ix, iy, iz,
-                                               tag_arrays[box_no]);
+                               puncture_tagger(ix, iy, iz, tag_arrays[box_no]);
                            }
                        });
     amrex::Gpu::streamSynchronize();
@@ -507,7 +508,7 @@ void BinaryBH4dSTLevel::specific_post_timestep()
 {
     BL_PROFILE("BinaryBH4dSTLevel::specific_post_timestep");
 
-    // puncture tracking 
+    // puncture tracking
     if (get_bh_amr_ptr()->puncture_tracking_enabled())
     {
         GRParmParse puncture_tracking_pp("puncture_tracking");
@@ -538,39 +539,38 @@ void BinaryBH4dSTLevel::specific_post_timestep()
         if (at_level_timestep_multiple(min_level) && Level() == min_level)
         {
             const amrex::Real m_time = get_state_data(state_index).curTime();
-            const amrex::Real m_dt   = get_gr_amr_ptr()->dtLevel(Level());
+            const amrex::Real m_dt = get_gr_amr_ptr()->dtLevel(Level());
             const amrex::Real restart_time =
                 get_gr_amr_ptr()->get_restart_time();
             const bool first_step = (m_time <= m_dt);
 
             WeylExtraction my_extraction(weyl_params, m_dt, m_time, first_step,
-                                        restart_time);
-            my_extraction.execute_query(
-                &get_bh_amr_ptr()->m_weyl_interpolator);
+                                         restart_time);
+            my_extraction.execute_query(&get_bh_amr_ptr()->m_weyl_interpolator);
         }
     }
-/*
-    // scalar-field extraction 
-    spherical_extraction_params_t scalar_params("scalar_extraction");
-    scalar_params.fill_params();
-    if (scalar_params.enabled)
-    {
-        const int min_level = scalar_params.min_extraction_level();
-        if (at_level_timestep_multiple(min_level) && Level() == min_level)
+    /*
+        // scalar-field extraction
+        spherical_extraction_params_t scalar_params("scalar_extraction");
+        scalar_params.fill_params();
+        if (scalar_params.enabled)
         {
-            const amrex::Real m_time = get_state_data(state_index).curTime();
-            const amrex::Real m_dt   = get_gr_amr_ptr()->dtLevel(Level());
-            const amrex::Real restart_time =
-                get_gr_amr_ptr()->get_restart_time();
-            const bool first_step = (m_time <= m_dt);
+            const int min_level = scalar_params.min_extraction_level();
+            if (at_level_timestep_multiple(min_level) && Level() == min_level)
+            {
+                const amrex::Real m_time =
+       get_state_data(state_index).curTime(); const amrex::Real m_dt   =
+       get_gr_amr_ptr()->dtLevel(Level()); const amrex::Real restart_time =
+                    get_gr_amr_ptr()->get_restart_time();
+                const bool first_step = (m_time <= m_dt);
 
-            ScalarExtraction phi_extraction(scalar_params, m_dt, m_time,
-                                            first_step, restart_time);
-            phi_extraction.execute_query(
-                &get_bh_amr_ptr()->m_scalar_interpolator);
+                ScalarExtraction phi_extraction(scalar_params, m_dt, m_time,
+                                                first_step, restart_time);
+                phi_extraction.execute_query(
+                    &get_bh_amr_ptr()->m_scalar_interpolator);
+            }
         }
-    }
-*/
+    */
     // NOTE: GRChombo's calculate_constraint_norms (needs AMRReductions) and the
     // apparent-horizon finder are not yet available in GRTeclyn, so I omit them
     // for now. The "constraints" derived record is still registered for

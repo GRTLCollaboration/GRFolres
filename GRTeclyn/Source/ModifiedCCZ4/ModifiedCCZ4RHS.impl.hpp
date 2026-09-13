@@ -31,27 +31,28 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     const amrex::CellData<const amrex::Real> &state_cell_data =
         state.cellData(ix, iy, iz);
     const typename theory_t::Vars vars(state_cell_data);
-    
+
     // Construct derivatives
-    const auto h_UU  = CCZ4Geometry::compute_inverse_metric(vars);
+    const auto h_UU = CCZ4Geometry::compute_inverse_metric(vars);
     auto d1_h = this->m_deriv.d1_sym_tensor(ix, iy, iz, state, c_h11);
     const auto chris = CCZ4Geometry::compute_christoffel(d1_h, h_UU);
-    
+
     auto d1_A = this->m_deriv.d1_sym_tensor(ix, iy, iz, state, c_A11);
-    auto d1_K     = this->m_deriv.d1_scalar(ix, iy, iz, state, c_K);
-    auto d1_chi   = this->m_deriv.d1_scalar(ix, iy, iz, state, c_chi);
+    auto d1_K = this->m_deriv.d1_scalar(ix, iy, iz, state, c_K);
+    auto d1_chi = this->m_deriv.d1_scalar(ix, iy, iz, state, c_chi);
     auto d1_lapse = this->m_deriv.d1_scalar(ix, iy, iz, state, c_lapse);
     auto d1_Theta = this->m_deriv.d1_scalar(ix, iy, iz, state, c_Theta);
     auto d1_Gamma = this->m_deriv.d1_vector(ix, iy, iz, state, c_Gamma1);
-    auto d2_chi   = this->m_deriv.d2_scalar(ix, iy, iz, state, c_chi);
+    auto d2_chi = this->m_deriv.d2_scalar(ix, iy, iz, state, c_chi);
     auto d2_h = this->m_deriv.d2_sym_tensor(ix, iy, iz, state, c_h11);
 
     // Compute ricci
     auto ricci = CCZ4Geometry::compute_ricci(vars, d1_chi, d1_Gamma, d1_h,
-                                                 d2_chi, d2_h, h_UU, chris);
+                                             d2_chi, d2_h, h_UU, chris);
 
     // Compute Z4
-    const amrex::Real non_covariant_z4 = 1.0 - this->m_params.covariant_z4_coeff;
+    const amrex::Real non_covariant_z4 =
+        1.0 - this->m_params.covariant_z4_coeff;
     const amrex::Real kappa1_times_lapse =
         this->m_params.covariant_z4_coeff * this->m_params.kappa1 +
         non_covariant_z4 * this->m_params.kappa1 * vars.lapse();
@@ -61,7 +62,7 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     // Select CCZ4 without introducing a branch into the GPU kernel.
     const amrex::Real ccz4_coeff = 1.0 - this->m_params.bssn_coeff;
 
-    FOR (i)
+    FOR(i)
     {
         Z_over_chi(i) =
             ccz4_coeff * 0.5 * (vars.Gamma(i) - chris.contracted(i));
@@ -72,14 +73,14 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
 
     // Compute Hamiltonian constraint
     amrex::Real Ham = ricci.scalar +
-                  (GR_SPACEDIM - 1.0) * vars.K() * vars.K() / GR_SPACEDIM -
-                  Aij_squared;
+                      (GR_SPACEDIM - 1.0) * vars.K() * vars.K() / GR_SPACEDIM -
+                      Aij_squared;
     // Covariant derivative of \bar A_ij
     Tensor::Rank3 covd_A{};
-    FOR (i, j, k)
+    FOR(i, j, k)
     {
         covd_A(i, j, k) = d1_A(j, k, i);
-        FOR (l)
+        FOR(l)
         {
             covd_A(i, j, k) += -chris.ULL(l, i, j) * vars.A(l, k) -
                                chris.ULL(l, i, k) * vars.A(l, j);
@@ -87,46 +88,46 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_b_rhs(
     }
     // Compute momentum constraint
     Tensor::Rank1 Mom{};
-    FOR (i)
-    {
-        Mom(i) = -(GR_SPACEDIM - 1.0) * d1_K(i) / GR_SPACEDIM;
-    }
+    FOR(i) { Mom(i) = -(GR_SPACEDIM - 1.0) * d1_K(i) / GR_SPACEDIM; }
     FOR(i, j, k)
     {
-        Mom(i) += h_UU(j, k) * (covd_A(j, k ,i) - 
-			0.5 * GR_SPACEDIM * vars.A(i, j) * d1_chi(k) / vars.chi());
+        Mom(i) +=
+            h_UU(j, k) * (covd_A(j, k, i) - 0.5 * GR_SPACEDIM * vars.A(i, j) *
+                                                d1_chi(k) / vars.chi());
     }
 
     // Update evolution equations (pending to include BSSN option as well)
     amrex::Real factor_mod_b = m_mod_b / (1.0 + m_mod_b);
 
-    rhs_cell_data[c_K] += GR_SPACEDIM * factor_mod_b * 
-	    (-0.5 / (GR_SPACEDIM - 1.) * vars.lapse() * Ham + 
-	     vars.Theta() * kappa1_times_lapse * 
-	     (1.0 + 0.5 * this->m_params.kappa2));
+    rhs_cell_data[c_K] += GR_SPACEDIM * factor_mod_b *
+                          (-0.5 / (GR_SPACEDIM - 1.) * vars.lapse() * Ham +
+                           vars.Theta() * kappa1_times_lapse *
+                               (1.0 + 0.5 * this->m_params.kappa2));
 
-    rhs_cell_data[c_Theta] += 0.5 * factor_mod_b * (-vars.lapse() * Ham +
-         vars.Theta() * kappa1_times_lapse * 
-	      ((GR_SPACEDIM - 3.0) / (2.0 + m_mod_b) +
-	      (GR_SPACEDIM + 1.0) + this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
+    rhs_cell_data[c_Theta] +=
+        0.5 * factor_mod_b *
+        (-vars.lapse() * Ham +
+         vars.Theta() * kappa1_times_lapse *
+             ((GR_SPACEDIM - 3.0) / (2.0 + m_mod_b) + (GR_SPACEDIM + 1.0) +
+              this->m_params.kappa2 * (GR_SPACEDIM - 1.)));
 
     Tensor::Rank2 A_UU = CCZ4Geometry::compute_A_UU(vars, h_UU);
-    FOR (i)
+    FOR(i)
     {
-	amrex::Real mod_gauge_term_Gamma = 2.0 * factor_mod_b * Z_over_chi(i) * 
-		(vars.lapse() * vars.K() / GR_SPACEDIM  + 
-		kappa1_times_lapse);
-	FOR (j)
-	{
-	    mod_gauge_term_Gamma += 
-                -factor_mod_b * 2.0 * h_UU(i, j) * vars.lapse() * 
-		        (d1_Theta(j) + Mom(j));
-	    FOR (k)
-	    {
-	       mod_gauge_term_Gamma += factor_mod_b * 2.0 * vars.lapse() * 
-		       A_UU(i, j) * vars.h(j, k) * Z_over_chi(k);
-	    }        
-	}
+        amrex::Real mod_gauge_term_Gamma =
+            2.0 * factor_mod_b * Z_over_chi(i) *
+            (vars.lapse() * vars.K() / GR_SPACEDIM + kappa1_times_lapse);
+        FOR(j)
+        {
+            mod_gauge_term_Gamma += -factor_mod_b * 2.0 * h_UU(i, j) *
+                                    vars.lapse() * (d1_Theta(j) + Mom(j));
+            FOR(k)
+            {
+                mod_gauge_term_Gamma += factor_mod_b * 2.0 * vars.lapse() *
+                                        A_UU(i, j) * vars.h(j, k) *
+                                        Z_over_chi(k);
+            }
+        }
         rhs_cell_data[c_Gamma1 + i] += mod_gauge_term_Gamma;
     }
 }
@@ -161,7 +162,8 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_emtensor_rhs(
     rhs_cell_data[c_K] += ccz4_coeff * ccz4_K_matter_rhs +
                           this->m_params.bssn_coeff * bssn_K_matter_rhs;
 
-    const amrex::Real ccz4_Theta_matter_rhs = -vars.lapse() * source.rho / (1.0 + m_mod_b);
+    const amrex::Real ccz4_Theta_matter_rhs =
+        -vars.lapse() * source.rho / (1.0 + m_mod_b);
     rhs_cell_data[c_Theta] =
         ccz4_coeff * (rhs_cell_data[c_Theta] + ccz4_Theta_matter_rhs);
 
@@ -174,12 +176,13 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::add_emtensor_rhs(
             vars.chi() * vars.lapse() * source.S_TF(i, j);
     }
 
-    FOR (i)
+    FOR(i)
     {
         amrex::Real matter_term_Gamma = 0.0;
-        FOR (j)
+        FOR(j)
         {
-            matter_term_Gamma -= 2.0 * vars.lapse() * h_UU(i, j) * source.j(j) / (1.0 + m_mod_b);
+            matter_term_Gamma -=
+                2.0 * vars.lapse() * h_UU(i, j) * source.j(j) / (1.0 + m_mod_b);
         }
         rhs_cell_data[c_Gamma1 + i] += matter_term_Gamma;
     }
@@ -218,8 +221,7 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::apply_dissipation(
 template <class theory_t, class deriv_t>
 AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
 ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_times_Sij_TF(
-    int ix, int iy, int iz, 
-    const amrex::Array4<const amrex::Real> &state) const
+    int ix, int iy, int iz, const amrex::Array4<const amrex::Real> &state) const
 {
     amrex::Array4<amrex::Real> rhs_state{};
 
@@ -242,10 +244,11 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_times_Sij_TF(
     Tensor::Rank2 out{};
     FOR2_SYM(i, j)
     {
-        amrex::Real component = (rhs_cell_data_GR[sym_var_idx(c_A11, i, j)] - 
-		rhs_cell_data_full[sym_var_idx(c_A11, i, j)]) / (vars.chi() * vars.lapse());
+        amrex::Real component = (rhs_cell_data_GR[sym_var_idx(c_A11, i, j)] -
+                                 rhs_cell_data_full[sym_var_idx(c_A11, i, j)]) /
+                                (vars.chi() * vars.lapse());
         out(i, j) = component;
-	out(j, i) = component;
+        out(j, i) = component;
     }
 
     return out;

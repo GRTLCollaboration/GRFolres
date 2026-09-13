@@ -28,8 +28,7 @@
    so the only difference from vacuum is the stress-energy source, which for a
    modified-gravity theory carries the extra (e.g. Gauss-Bonnet) contributions.
 */
-template <class theory_t>
-class ModifiedGravityConstraints : public Constraints
+template <class theory_t> class ModifiedGravityConstraints : public Constraints
 {
   public:
     //! Constructor of class ModifiedGravityConstraints
@@ -37,10 +36,10 @@ class ModifiedGravityConstraints : public Constraints
         Can specify the vars of the constraint vars instead of using the
         hardcoded ones.
     */
-    ModifiedGravityConstraints(
-        amrex::Real dx, int a_c_Ham, const Interval &a_c_Moms,
-        int a_c_Ham_abs_terms              = -1,
-        const Interval &a_c_Moms_abs_terms = Interval());
+    ModifiedGravityConstraints(amrex::Real dx, int a_c_Ham,
+                               const Interval &a_c_Moms,
+                               int a_c_Ham_abs_terms = -1,
+                               const Interval &a_c_Moms_abs_terms = Interval());
 
     //! The compute member which calculates the constraints at each point in the
     //! box

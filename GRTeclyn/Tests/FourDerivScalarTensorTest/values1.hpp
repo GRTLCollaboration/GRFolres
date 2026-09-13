@@ -54,4 +54,3 @@ known[c_B3] = 0;
 known[c_phi] = 0.82616085843342346;
 known[c_Pi] = 1.5482218213690579;
 have_reference = true;
-
