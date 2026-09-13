@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       CHOMBO_HOME: ${{ github.workspace }}/Chombo/lib
       OMP_NUM_THREADS: 1
@@ -53,10 +53,10 @@ jobs:
       run: |
         source /opt/intel/oneapi/setvars.sh
         make test -j 4
-      working-directory: ${{ github.workspace }}/ModifiedGravity
+      working-directory: ${{ github.workspace }}/ModifiedGravity/GRChombo
 
     - name: Run GRFolres Tests
       run: |
         source /opt/intel/oneapi/setvars.sh
         make run -j 2
-      working-directory: ${{ github.workspace }}/ModifiedGravity
+      working-directory: ${{ github.workspace }}/ModifiedGravity/GRChombo
