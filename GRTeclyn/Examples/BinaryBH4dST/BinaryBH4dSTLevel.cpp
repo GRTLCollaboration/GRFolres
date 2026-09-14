@@ -25,6 +25,7 @@
 // Scalar field
 #include "CouplingAndPotential.hpp"
 #include "InitialScalarData.hpp"
+#include "ScalarExtraction.hpp"
 
 // 4dST / modified-gravity source classes.
 // NOTE: ModifiedWeyl, ModifiedConstraints, RhoDiagnostics and ScalarExtraction
@@ -113,7 +114,6 @@ void BinaryBH4dSTLevel::variableSetUp()
     // vacuum Constraints / Weyl4, so they are not templated on deriv_t.)
     ModifiedGravityConstraints<theory_t>::set_up(state_index);
     ModifiedGravityWeyl4<theory_t>::set_up(state_index);
-    // Weyl4::set_up(state_index);
     RhoDiagnostics<theory_t>::set_up(state_index);
 }
 
@@ -549,28 +549,29 @@ void BinaryBH4dSTLevel::specific_post_timestep()
             my_extraction.execute_query(&get_bh_amr_ptr()->m_weyl_interpolator);
         }
     }
-    /*
-        // scalar-field extraction
-        spherical_extraction_params_t scalar_params("scalar_extraction");
-        scalar_params.fill_params();
-        if (scalar_params.enabled)
-        {
-            const int min_level = scalar_params.min_extraction_level();
-            if (at_level_timestep_multiple(min_level) && Level() == min_level)
-            {
-                const amrex::Real m_time =
-       get_state_data(state_index).curTime(); const amrex::Real m_dt   =
-       get_gr_amr_ptr()->dtLevel(Level()); const amrex::Real restart_time =
-                    get_gr_amr_ptr()->get_restart_time();
-                const bool first_step = (m_time <= m_dt);
 
-                ScalarExtraction phi_extraction(scalar_params, m_dt, m_time,
-                                                first_step, restart_time);
-                phi_extraction.execute_query(
-                    &get_bh_amr_ptr()->m_scalar_interpolator);
-            }
+    // scalar-field extraction
+    spherical_extraction_params_t scalar_params("scalar_extraction");
+    scalar_params.fill_params();
+    if (scalar_params.enabled)
+    {
+        const int min_level = scalar_params.min_extraction_level();
+        if (at_level_timestep_multiple(min_level) && Level() == min_level)
+        {
+            const amrex::Real m_time = get_state_data(state_index).curTime();
+            const amrex::Real m_dt = get_gr_amr_ptr()->dtLevel(Level());
+            const amrex::Real restart_time =
+                get_gr_amr_ptr()->get_restart_time();
+
+            const bool first_step = (m_time <= m_dt);
+
+            ScalarExtraction phi_extraction(scalar_params, m_dt, m_time,
+                                            first_step, restart_time);
+            phi_extraction.execute_query(
+                &get_bh_amr_ptr()->m_scalar_interpolator);
         }
-    */
+    }
+
     // NOTE: GRChombo's calculate_constraint_norms (needs AMRReductions) and the
     // apparent-horizon finder are not yet available in GRTeclyn, so I omit them
     // for now. The "constraints" derived record is still registered for
