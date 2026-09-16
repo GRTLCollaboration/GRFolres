@@ -16,7 +16,7 @@ USE_PARTICLES = TRUE
 EBASE = Tests
 
 AMREX_HOME    ?= $(realpath ../../../amrex)
-GRFOLRES_HOME ?= $(realpath ../..)
+GRFOLRES_HOME  = $(realpath ..)
 
 include $(GRTECLYN_HOME)/Tools/GNUMake/Make.defs
 
@@ -27,7 +27,7 @@ include $(AMREX_HOME)/Src/Boundary/Make.package
 include $(AMREX_HOME)/Src/Particle/Make.package
 
 GRTECLYN_SOURCE     = $(GRTECLYN_HOME)/Source
-GRFOLRES_SOURCE     = $(GRFOLRES_HOME)/GRTeclyn/Source
+GRFOLRES_SOURCE     = $(GRFOLRES_HOME)/Source
 GRTECLYN_TESTS_HOME = $(realpath .)
 
 src_dirs := $(GRTECLYN_SOURCE)/ParticleInterpolator \

@@ -10,7 +10,7 @@ USE_PARTICLES = TRUE
 AMREX_HOME ?= $(realpath ../../../../amrex)
 
 GRTECLYN_HOME ?= $(realpath ../../../../GRTeclyn)
-GRFOLRES_HOME ?= $(realpath ../../../../GRFolres)
+GRFOLRES_HOME = $(realpath ../..)
 
 include $(GRTECLYN_HOME)/Tools/GNUMake/Make.defs
 
@@ -21,7 +21,7 @@ include $(AMREX_HOME)/Src/Amr/Make.package
 include $(AMREX_HOME)/Src/Particle/Make.package
 
 GRTECLYN_SOURCE = $(GRTECLYN_HOME)/Source
-GRFOLRES_SOURCE = $(GRFOLRES_HOME)/GRTeclyn/Source
+GRFOLRES_SOURCE = $(GRFOLRES_HOME)/Source
 
 # Name all directories for relevant source and header files
 # Don't forget the dot! (i.e., example specific files are in current directory)
