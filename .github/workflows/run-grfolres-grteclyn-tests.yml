@@ -21,7 +21,7 @@ jobs:
       GRTECLYN_HOME: ${{ github.workspace }}/GRTeclyn
       GRTECLYN_SOURCE: ${{ github.workspace }}/GRTeclyn/Source 
       OMP_NUM_THREADS: 1
-      TESTS_DIR: ${{ github.workspace }}/GRFolres/GRTeclyn/Tests
+      TESTS_DIR: ${{ github.workspace }}/ModifiedGravity/GRTeclyn/Tests
       BUILD_CONFIG: >
         COMP=${{ matrix.comp }}
         DEBUG=${{ matrix.debug}}
