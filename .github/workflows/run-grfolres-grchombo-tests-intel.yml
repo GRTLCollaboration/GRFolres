@@ -1,4 +1,4 @@
-name: Run GRFolres Tests (Intel)
+name: Run GRFolres/GRChombo Tests (Intel)
 
 on: [push]
 

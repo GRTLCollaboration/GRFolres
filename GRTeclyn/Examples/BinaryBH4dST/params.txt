@@ -46,8 +46,8 @@ initial_scalar_data.r0        = 30.0
 bh1.mass = 0.4501303545011215
 bh2.mass = 0.5498696454988786
 
-bh1.offset = -5.5 0.0 0.0
-bh2.offset =  5.5 0.0 0.0
+bh1.offset =  6.488461816886767 0.0 0.0
+bh2.offset = -5.311538183113234 0.0 0.0
 
 bh1.momentum = -0.000560110173859659 0.0851972057743384 0.0
 bh2.momentum = 0.000560110173859659 -0.0851972057743384 0.0
@@ -65,8 +65,8 @@ two_punctures.adm_tol = 1.0e-12
 # two_punctures.mass_plus  = 0.4501303545011215
 # two_punctures.mass_minus = 0.5498696454988786
 
-two_punctures.offset_plus  =  5.5
-two_punctures.offset_minus = -5.5
+two_punctures.offset_plus  =  6.488461816886767
+two_punctures.offset_minus = -5.311538183113234
 
 two_punctures.momentum_plus  = -0.000560110173859659 0.0851972057743384 0.0 
                              # -0.0010453356156597151 0.08511436829147685 0.0
@@ -112,8 +112,8 @@ amr.max_level = 10 # there are max_level + 1 levels
 amr.regrid_int = -1   -1   -1   -1   1   2   4   8   16   32
 tagging.threshold = 0.014
 
-extraction_tagging.level_separation = 1.5
-puncture_tagging.level_separation = 1.5
+extraction_tagging.level_separation  = 1.5
+puncture_tagging.level_separation    = 1.5
 puncture_tagging.finest_level_factor = 2.0
 
 # Maximum number of cells along each side of a grid box
@@ -145,7 +145,7 @@ boundary.lo_condition = "SOMMERFELD_BC" "SOMMERFELD_BC" "REFLECTIVE_BC"
 # dt is dx * dt_multiplier on each grid level
 evolution.dt_multiplier = 0.25
 evolution.stop_time     = 2500.0
-# evolution.max_steps     = 1
+# evolution.max_steps   = 1
 
 # Spatial derivative order (only affects the CCZ4 RHS)
 evolution.spatial_derivative_order = 6
@@ -167,21 +167,21 @@ gauge.enable_eta_cutoff = true
 gauge.eta_cutoff_radius = 500.0
 
 # Modified (Bona-Masso / Gamma-driver generalisation) gauge functions a(x), b(x)
-mod_gauge.a0 = 0.1
-mod_gauge.b0 = 0.2
+mod_gauge.mod_a = 0.1
+mod_gauge.mod_b = 0.2
 
 # CCZ4 parameters
 
-# ccz4.formulation = 0 # 1 for BSSN, 0 for CCZ4
-ccz4.kappa1     = 0.6
-ccz4.kappa2     = -0.15
-ccz4.kappa3     = 1.0
+ccz4.formulation = 0 # 1 for BSSN, 0 for CCZ4
+ccz4.kappa1      = 0.6
+ccz4.kappa2      = -0.15
+ccz4.kappa3      = 1.0
 ccz4.covariantZ4 = true # replace kappa1 with kappa1/lapse
 
 # Coefficient for KO numerical dissipation
 evolution.sigma = 0.5
 
-# ccz4.min_chi = 1.e-4
+# ccz4.min_chi   = 1.e-4
 # ccz4.min_lapse = 1.e-4
 
 #################################################
@@ -197,7 +197,7 @@ four_deriv_scalar_tensor.scalar_mass = 0.0
 # Extraction parameters
 
 # weyl_extraction.center = 1024 1024 0 # defaults to geometry.center in all cases
-weyl_extraction.enabled = true
+weyl_extraction.enabled          = true
 weyl_extraction.num_radii        = 4
 weyl_extraction.radii            = 100.0 150.0 225.0 337.5
 weyl_extraction.levels           = 5 4 3 2
@@ -213,7 +213,7 @@ weyl_extraction.modes            = 2 0  2 1  2 2 \
 # Scalar-field extraction parameters
 
 # scalar_extraction.center = 1024 1024 0 # defaults to geometry.center in all cases
-scalar_extraction.enabled = true
+scalar_extraction.enabled          = true
 scalar_extraction.num_radii        = 4
 scalar_extraction.radii            = 100.0 150.0 225.0 337.5
 scalar_extraction.levels           = 5 4 3 2

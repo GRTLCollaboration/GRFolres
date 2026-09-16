@@ -1,4 +1,4 @@
-name: Run GRFolres Tests (Clang)
+name: Run GRFolres/GRChombo Tests (Clang)
 
 on: [push]
 
