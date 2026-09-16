@@ -106,7 +106,7 @@ void run_four_deriv_scalar_tensor_test()
         amrex::FArrayBox in_fab{ghosted_box, NUM_VARS,
                                 amrex::The_Managed_Arena()};
         amrex::FArrayBox out_fab{box, NUM_VARS, amrex::The_Managed_Arena()};
-        out_fab.setVal(0.0);
+        out_fab.setVal<amrex::RunOn::Host>(0.0);
 
         const auto &in_array = in_fab.array();
         const auto &in_c_array = in_fab.const_array();
