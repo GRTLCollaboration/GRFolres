@@ -37,16 +37,17 @@ jobs:
         repository: AMReX-Codes/amrex
         path: amrex
 
-    - name: Checkout ${{ github.repository }}
+    - name: Checkout GRTeclyn
       uses: actions/checkout@v7
       with:
+        repository: GRTLCollaboration/GRTeclyn
         path: GRTeclyn
         submodules: true
 
     - name: Checkout GRFolres
-        uses: actions/checkout@v7
-        with:
-          path: ModifiedGravity
+      uses: actions/checkout@v7
+      with:
+        path: ModifiedGravity
 
     - name: Set Up Cache
       uses: actions/cache@v6
@@ -119,11 +120,6 @@ jobs:
     - name: Build Tests
       working-directory: ${{ env.TESTS_DIR }}
       run: |
-        if [[ "${{ matrix.mpi }}" == "TRUE" ]]; then
-          export HDF5_HOME=/usr/lib/x86_64-linux-gnu/hdf5/openmpi
-        else
-          export HDF5_HOME=/usr/lib/x86_64-linux-gnu/hdf5/serial
-        fi
         export OMPI_CXX=${{ steps.set-compilers.outputs.ompi_cxx }}
         make -j 4 ${{ steps.set-compilers.outputs.build_args }}
 

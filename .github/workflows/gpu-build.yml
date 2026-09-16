@@ -48,6 +48,7 @@ jobs:
       - name: Checkout GRTeclyn
         uses: actions/checkout@v7
         with:
+          repository: GRTLCollaboration/GRTeclyn
           path: GRTeclyn
           submodules: true
 
