@@ -27,8 +27,6 @@ GRFOLRES_SOURCE = $(GRFOLRES_HOME)/GRTeclyn/Source
 # Don't forget the dot! (i.e., example specific files are in current directory)
 src_dirs := $(GRTECLYN_SOURCE)/BlackHoles \
             $(GRTECLYN_SOURCE)/CCZ4 \
-            $(GRTECLYN_SOURCE)/FourDerivScalarTensor \
-            $(GRTECLYN_SOURCE)/ModifiedCCZ4 \
             $(GRTECLYN_SOURCE)/Grids \
             $(GRTECLYN_SOURCE)/GRTeclynCore \
             $(GRTECLYN_SOURCE)/IO \

@@ -132,13 +132,13 @@ class CouplingAndPotential
 
         // Shift-symmetric or exponential quadratic coupling
         // The first derivative of the GB coupling function
-        const amrex::phi_squared = vars.phi() * vars.phi();
+        const amrex::Real phi_squared = vars.phi() * vars.phi();
         dfdphi = m_params.lambda / cutoff_factor *
-                 (1 - coupling_type +
-                  coupling_type * vars.phi() *
+                 (1 - m_params.coupling_type +
+                  m_params.coupling_type * vars.phi() *
                       std::exp(-m_params.beta * phi_squared));
         // The second derivative of the GB coupling function
-        d2fdphi2 = coupling_type * m_params.lambda / cutoff_factor *
+        d2fdphi2 = m_params.coupling_type * m_params.lambda / cutoff_factor *
                    (1.0 - 2.0 * m_params.beta * phi_squared) *
                    std::exp(-m_params.beta * phi_squared);
 

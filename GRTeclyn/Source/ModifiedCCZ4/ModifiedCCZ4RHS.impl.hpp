@@ -231,20 +231,24 @@ AMREX_GPU_DEVICE AMREX_FORCE_INLINE Tensor::Rank2
 ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_times_Sij_TF(
     int ix, int iy, int iz, const amrex::Array4<const amrex::Real> &state) const
 {
-    amrex::Array4<amrex::Real> rhs_state{};
+    amrex::Real rhs_data[NUM_VARS]{};
+    const amrex::Dim3 cell_begin{ix, iy, iz};
+    const amrex::Dim3 cell_end{ix + 1, iy + 1, iz + 1};
+    const amrex::Array4<amrex::Real> rhs_state(rhs_data, cell_begin, cell_end,
+                                               NUM_VARS);
 
     this->compute_A_ij_and_Theta_and_Gamma(ix, iy, iz, rhs_state, state);
     add_b_rhs(ix, iy, iz, rhs_state, state);
 
-    const amrex::CellData<amrex::Real> &rhs_cell_data_GR =
+    const amrex::CellData<amrex::Real> &rhs_cell_data =
         rhs_state.cellData(ix, iy, iz);
+    Tensor::Rank2 A_rhs_GR{};
+    FOR2_SYM(i, j) { A_rhs_GR(i, j) = rhs_cell_data[sym_var_idx(c_A11, i, j)]; }
 
     add_emtensor_rhs(ix, iy, iz, rhs_state, state);
     add_theory_rhs(ix, iy, iz, rhs_state, state);
     solve_lhs(ix, iy, iz, rhs_state, state);
 
-    const amrex::CellData<amrex::Real> &rhs_cell_data_full =
-        rhs_state.cellData(ix, iy, iz);
     const amrex::CellData<const amrex::Real> &state_cell_data =
         state.cellData(ix, iy, iz);
     const typename theory_t::Vars vars(state_cell_data);
@@ -252,9 +256,9 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::get_full_kappa_times_Sij_TF(
     Tensor::Rank2 out{};
     FOR2_SYM(i, j)
     {
-        amrex::Real component = (rhs_cell_data_GR[sym_var_idx(c_A11, i, j)] -
-                                 rhs_cell_data_full[sym_var_idx(c_A11, i, j)]) /
-                                (vars.chi() * vars.lapse());
+        amrex::Real component =
+            (A_rhs_GR(i, j) - rhs_cell_data[sym_var_idx(c_A11, i, j)]) /
+            (vars.chi() * vars.lapse());
         out(i, j) = component;
         out(j, i) = component;
     }
