@@ -197,7 +197,7 @@ void run_four_deriv_scalar_tensor_test()
             }
         }
 
-        CHECK(!out_fab.contains_nan(box, 0, NUM_VARS));
+        CHECK(!out_fab.contains_nan<amrex::RunOn::Host>(box, 0, NUM_VARS));
     }
     amrex::Finalize();
 }
