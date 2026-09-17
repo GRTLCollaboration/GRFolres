@@ -211,7 +211,46 @@ ModifiedCCZ4RHS<theory_t, deriv_t>::solve_lhs(
     int ix, int iy, int iz, const amrex::Array4<amrex::Real> &rhs_state,
     const amrex::Array4<const amrex::Real> &state) const
 {
+    const amrex::CellData<amrex::Real> &rhs_cell_data =
+        rhs_state.cellData(ix, iy, iz);
+    const amrex::CellData<const amrex::Real> &state_cell_data =
+        state.cellData(ix, iy, iz);
+    const typename theory_t::Vars vars(state_cell_data);
+
+    // Construct derivatives
+    const auto h_UU = CCZ4Geometry::compute_inverse_metric(vars);
+    auto d1_h = this->m_deriv.d1_sym_tensor(ix, iy, iz, state, c_h11);
+    const auto chris = CCZ4Geometry::compute_christoffel(d1_h, h_UU);
+
+    auto d1_chi = this->m_deriv.d1_scalar(ix, iy, iz, state, c_chi);
+    auto d1_Gamma = this->m_deriv.d1_vector(ix, iy, iz, state, c_Gamma1);
+    auto d2_chi = this->m_deriv.d2_scalar(ix, iy, iz, state, c_chi);
+    auto d2_h = this->m_deriv.d2_sym_tensor(ix, iy, iz, state, c_h11);
+
+    const auto source = m_theory.compute_einstein_sources(ix, iy, iz, state,
+                                                          this->m_deriv, h_UU);
+
+    // Compute ricci
+    auto ricci = CCZ4Geometry::compute_ricci(vars, d1_chi, d1_Gamma, d1_h,
+                                             d2_chi, d2_h, h_UU, chris);
+
+    // This is A_ij A^ij
+    amrex::Real Aij_squared = CCZ4Geometry::compute_Aij_squared(vars, h_UU);
+
+    // Compute Hamiltonian constraint
+    amrex::Real Ham = ricci.scalar +
+                      (GR_SPACEDIM - 1.0) * vars.K() * vars.K() / GR_SPACEDIM -
+                      Aij_squared;
+
+    // Converting K from CCZ4 to BSSN
+    amrex::Real two_dTheta_dt =
+        vars.lapse() * (Ham - 2.0 * source.rho) / (1.0 + m_mod_b);
+
+    rhs_cell_data[c_K] += this->m_params.bssn_coeff * two_dTheta_dt;
+
     m_theory.solve_lhs(ix, iy, iz, rhs_state, state, this->m_deriv);
+
+    rhs_cell_data[c_K] -= this->m_params.bssn_coeff * two_dTheta_dt;
 }
 
 template <class theory_t, class deriv_t>
