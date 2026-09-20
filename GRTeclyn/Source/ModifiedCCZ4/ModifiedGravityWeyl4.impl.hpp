@@ -112,7 +112,7 @@ void ModifiedGravityWeyl4<theory_t>::compute_mf(
     ModifiedGravityWeyl4<theory_t> weyl4(geomdata.CellSize(0), dcomp);
 
     amrex::ParallelFor(
-        out_mf,
+        out_mf, out_mf.nGrowVect(),
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz) noexcept
         { weyl4(ix, iy, iz, out_arrays[box_no], src_arrays[box_no]); });
 }

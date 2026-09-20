@@ -117,7 +117,7 @@ puncture_tagging.level_separation    = 1.5
 puncture_tagging.finest_level_factor = 2.0
 
 # Maximum number of cells along each side of a grid box
-amr.max_grid_size   = 64
+amr.max_grid_size   = 32
 # Grid box lengths must be divisible by this value
 amr.blocking_factor = 16
 # Minimum fraction of tagged cells required in generated grids

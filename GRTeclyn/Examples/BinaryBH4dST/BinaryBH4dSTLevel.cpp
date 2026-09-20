@@ -439,6 +439,10 @@ void BinaryBH4dSTLevel::tag_cells(amrex::TagBoxArray &a_tag_box_array,
         puncture_coords = get_puncture_tracker().get_puncture_coords();
     }
 
+#ifdef USE_TWOPUNCTURES
+    TwoPuncturesInitialData two_punctures_initial_data(Geom().CellSize(0));
+    two_punctures_initial_data.add_bh_mass_params();
+#endif
     GRParmParse pp;
     amrex::Real bh1_mass{};
     amrex::Real bh2_mass{};
