@@ -100,16 +100,16 @@ two_punctures.solver_max_iterations = 250
 # Grid parameters
 
 # Number of cells and physical domain extent on the coarsest level
-amr.n_cell           = 160 160 80
-geometry.prob_extent = 2048 2048 1024
-# geometry.center = 1024 1024 0 # defaults based on the domain and boundaries
+amr.n_cell           = 128 128 64
+geometry.prob_extent = 1024 1024 512
+# geometry.center = 512 512 0 # defaults based on the domain and boundaries
 
-amr.max_level = 10 # there are max_level + 1 levels
+amr.max_level = 9 # there are max_level + 1 levels
 
 # Regridding interval in level timesteps; -1 disables regridding
 # Supply one shared value or max_level values, one per coarse-to-fine
 # transition
-amr.regrid_int = -1   -1   -1   -1   1   2   4   8   16   32
+amr.regrid_int = -1   -1   -1   1   2   4   8   16   32
 tagging.threshold = 0.014
 
 extraction_tagging.level_separation  = 1.5
@@ -119,7 +119,7 @@ puncture_tagging.finest_level_factor = 2.0
 # Maximum number of cells along each side of a grid box
 amr.max_grid_size   = 32
 # Grid box lengths must be divisible by this value
-amr.blocking_factor = 16
+amr.blocking_factor = 32
 # Minimum fraction of tagged cells required in generated grids
 # amr.grid_eff = 0.7
 
@@ -163,7 +163,7 @@ gauge.shift_Gamma_coeff = 0.75
 gauge.eta               = 1.0 # typically O(1/M_ADM)
 
 # Eta cutoff
-gauge.enable_eta_cutoff = true
+gauge.enable_eta_cutoff = false
 gauge.eta_cutoff_radius = 500.0
 
 # Modified (Bona-Masso / Gamma-driver generalisation) gauge functions a(x), b(x)
@@ -173,8 +173,8 @@ mod_gauge.mod_b = 0.2
 # CCZ4 parameters
 
 ccz4.formulation = 0 # 1 for BSSN, 0 for CCZ4
-ccz4.kappa1      = 0.6
-ccz4.kappa2      = -0.15
+ccz4.kappa1      = 0.1
+ccz4.kappa2      = 0.0
 ccz4.kappa3      = 1.0
 ccz4.covariantZ4 = true # replace kappa1 with kappa1/lapse
 
@@ -188,7 +188,7 @@ evolution.sigma = 0.5
 # 4dST theory parameters
 
 four_deriv_scalar_tensor.lambda      = 0.0 # 0.02026173360433053
-four_deriv_scalar_tensor.cutoff      = 0.07
+four_deriv_scalar_tensor.cutoff      = 0.08
 four_deriv_scalar_tensor.factor      = 100.0
 four_deriv_scalar_tensor.g2          = 0.0
 four_deriv_scalar_tensor.scalar_mass = 0.0
@@ -200,7 +200,7 @@ four_deriv_scalar_tensor.scalar_mass = 0.0
 weyl_extraction.enabled          = true
 weyl_extraction.num_radii        = 4
 weyl_extraction.radii            = 100.0 150.0 225.0 337.5
-weyl_extraction.levels           = 5 4 3 2
+weyl_extraction.levels           = 4 3 2 1
 weyl_extraction.num_points_phi   = 160
 weyl_extraction.num_points_theta = 80
 weyl_extraction.num_modes        = 12
@@ -216,7 +216,7 @@ weyl_extraction.modes            = 2 0  2 1  2 2 \
 scalar_extraction.enabled          = true
 scalar_extraction.num_radii        = 4
 scalar_extraction.radii            = 100.0 150.0 225.0 337.5
-scalar_extraction.levels           = 5 4 3 2
+scalar_extraction.levels           = 4 3 2 1
 scalar_extraction.num_points_phi   = 160
 scalar_extraction.num_points_theta = 80
 scalar_extraction.num_modes        = 15
@@ -231,4 +231,4 @@ scalar_extraction.modes            = 0 0 \
 # Puncture tracking parameters
 
 puncture_tracking.enabled        = true
-puncture_tracking.level          = 7
+puncture_tracking.level          = 6

@@ -68,7 +68,7 @@ void RhoDiagnostics<theory_t>::compute_mf(amrex::MultiFab &out_mf, int dcomp,
     RhoDiagnostics<theory_t> rho_diagnostics(geomdata.CellSize(0), dcomp);
 
     amrex::ParallelFor(
-        out_mf,
+        out_mf, out_mf.nGrowVect(),
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz) noexcept
         {
             rho_diagnostics(ix, iy, iz, out_arrays[box_no], src_arrays[box_no]);

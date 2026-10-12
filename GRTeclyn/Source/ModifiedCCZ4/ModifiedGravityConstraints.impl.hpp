@@ -58,13 +58,14 @@ ModifiedGravityConstraints<theory_t>::operator()(
     // modified-gravity theory these also carry the extra (e.g. Gauss-Bonnet)
     // contributions to rho and j_i.
     const auto source =
-        m_theory.compute_einstein_sources(ix, iy, iz, state, m_deriv, h_UU);
+        m_theory.compute_rho_and_j(ix, iy, iz, state, m_deriv, h_UU);
+    const amrex::Real coupling = 8.0 * M_PI * m_theory.G_Newton();
 
     // Hamiltonian constraint
     if (m_c_Ham >= 0 || m_c_Ham_abs_terms >= 0)
     {
-        out.Ham += -2.0 * source.rho;
-        out.Ham_abs_terms += 2.0 * std::abs(source.rho);
+        out.Ham += -2.0 * coupling * source.rho;
+        out.Ham_abs_terms += 2.0 * coupling * std::abs(source.rho);
     }
 
     // Momentum constraints
@@ -72,8 +73,8 @@ ModifiedGravityConstraints<theory_t>::operator()(
     {
         FOR(i)
         {
-            out.Mom(i) += -source.j(i);
-            out.Mom_abs_terms(i) += std::abs(source.j(i));
+            out.Mom(i) += -coupling * source.j(i);
+            out.Mom_abs_terms(i) += coupling * std::abs(source.j(i));
         }
     }
 
@@ -125,7 +126,7 @@ void ModifiedGravityConstraints<theory_t>::compute_mf(
     ModifiedGravityConstraints<theory_t> constraints(dx, iham, imom);
 
     amrex::ParallelFor(
-        out_mf,
+        out_mf, out_mf.nGrowVect(),
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz) noexcept
         { constraints(ix, iy, iz, out_arrays[box_no], src_arrays[box_no]); });
 }

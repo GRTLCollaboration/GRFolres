@@ -125,8 +125,8 @@ void BinaryBH4dSTLevel::specific_advance()
     amrex::MultiFab &state_new = get_new_data(state_index);
     const auto &state_arrays = state_new.arrays();
 
-    const AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
-    const PositiveChiAndLapse positive_chi_lapse;
+    AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
+    PositiveChiAndLapse positive_chi_lapse;
 
     // Enforce det(h)=1, the trace-free A_ij condition and positive chi/lapse
     amrex::ParallelFor(state_new,
@@ -189,16 +189,14 @@ void BinaryBH4dSTLevel::initData()
 #endif
     }
 
-    {
-        // scalar field initial data (on device)
-        const auto &state_arrays = state_new.arrays();
-        amrex::ParallelFor(
-            state_new, state_new.nGrowVect(),
-            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-            { initial_scalar_data(ix, iy, iz, state_arrays[box_no]); });
-    }
+    // scalar field initial data (on device)
+    const auto &state_arrays = state_new.arrays();
+    amrex::ParallelFor(
+        state_new, state_new.nGrowVect(),
+        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+        { initial_scalar_data(ix, iy, iz, state_arrays[box_no]); });
 #else
-    const BinaryBHInitialData binary_initial_data(dx);
+    BinaryBHInitialData binary_initial_data(dx);
     static_assert(std::is_trivially_copyable_v<BinaryBHInitialData>,
                   "BinaryBHInitialData must be device copyable");
 
@@ -242,20 +240,21 @@ void BinaryBH4dSTLevel::initData()
 // NOLINTNEXTLINE(bugprone-easily-swappable-parameters)
 void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                                           amrex::MultiFab &a_rhs,
-                                          const amrex::Real /*a_time*/)
+                                          const amrex::Real a_time)
 {
     BL_PROFILE("BinaryBH4dSTLevel::specific_eval_rhs()");
 
     const auto &soln_arrays = a_soln.arrays();
     const auto &const_soln_arrays = a_soln.const_arrays();
     const auto &rhs_arrays = a_rhs.arrays();
+    const auto soln_ghosts = a_soln.nGrowVect();
 
     // The classes to be used
-    const AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
-    const PositiveChiAndLapse positive_chi_lapse;
+    AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
+    PositiveChiAndLapse positive_chi_lapse;
 
     // Enforce positive chi and lapse, det(h)=1 and trace-free A on the solution
-    amrex::ParallelFor(a_soln, a_soln.nGrowVect(),
+    amrex::ParallelFor(a_soln, soln_ghosts,
                        [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
                        {
                            algebraic_constraints_enforcer(ix, iy, iz,
@@ -276,13 +275,14 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
 
     if (m_evolution_spatial_derivative_order == 4)
     {
-        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
-                                  FourthOrderDerivatives>,
-                              FourthOrderDerivatives>
+        ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                            FourthOrderDerivatives>,
+                        FourthOrderDerivatives>
             modified_ccz4(Geom().CellSize(0));
-        const ModifiedPunctureGauge<FourthOrderDerivatives>
-            modified_puncture_gauge(Geom().CellSize(0));
+        ModifiedPunctureGauge<FourthOrderDerivatives> modified_puncture_gauge(
+            Geom().CellSize(0));
 
+        modified_ccz4.set_time(a_time);
         // 1. chi and h_ij
         amrex::ParallelFor(
             a_rhs,
@@ -317,6 +317,12 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                                                const_soln_arrays[box_no]);
                 modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
                                              const_soln_arrays[box_no]);
+            });
+        amrex::Gpu::streamSynchronize();
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
                 // solve the linear system for the fields that need it (4dST)
                 modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
                                         const_soln_arrays[box_no]);
@@ -326,12 +332,13 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     }
     else if (m_evolution_spatial_derivative_order == 6)
     {
-        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
-                                  SixthOrderDerivatives>,
-                              SixthOrderDerivatives>
+        ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                            SixthOrderDerivatives>,
+                        SixthOrderDerivatives>
             modified_ccz4(Geom().CellSize(0));
-        const ModifiedPunctureGauge<SixthOrderDerivatives>
-            modified_puncture_gauge(Geom().CellSize(0));
+        ModifiedPunctureGauge<SixthOrderDerivatives> modified_puncture_gauge(
+            Geom().CellSize(0));
+        modified_ccz4.set_time(a_time);
 
         // 1. chi and h_ij
         amrex::ParallelFor(
@@ -367,6 +374,12 @@ void BinaryBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                                                const_soln_arrays[box_no]);
                 modified_ccz4.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
                                              const_soln_arrays[box_no]);
+            });
+        amrex::Gpu::streamSynchronize();
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
                 // solve the linear system for the fields that need it (4dST)
                 modified_ccz4.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
                                         const_soln_arrays[box_no]);
@@ -387,11 +400,12 @@ void BinaryBH4dSTLevel::specific_update_ode(amrex::MultiFab &a_soln)
 {
     BL_PROFILE("BinaryBH4dSTLevel::specific_update_ode()");
 
-    const AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
+    AlgebraicConstraintsEnforcer algebraic_constraints_enforcer;
+    const auto soln_ghosts = amrex::IntVect(0); // zero ghost cells
     const auto &soln_arrays = a_soln.arrays();
 
     amrex::ParallelFor(
-        a_soln, amrex::IntVect(0),
+        a_soln, soln_ghosts,
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
         { algebraic_constraints_enforcer(ix, iy, iz, soln_arrays[box_no]); });
     amrex::Gpu::streamSynchronize();
@@ -422,12 +436,12 @@ void BinaryBH4dSTLevel::tag_cells(amrex::TagBoxArray &a_tag_box_array,
     const auto &tag_arrays = a_tag_box_array.arrays();
     const auto &state_const_arrays = state_new.const_arrays();
 
-    const ChiTagger chi_tagger(Geom().CellSize(0), a_regrid_threshold);
+    ChiTagger chi_tagger(Geom().CellSize(0), a_regrid_threshold);
 
     spherical_extraction_params_t extraction_params("weyl_extraction");
     extraction_params.fill_params();
-    const ExtractionTagger extraction_tagger(Geom().CellSize(0), Level(),
-                                             extraction_params);
+    ExtractionTagger extraction_tagger(Geom().CellSize(0), Level(),
+                                       extraction_params);
 
     constexpr auto num_puncture_coords =
         static_cast<std::size_t>(AMREX_SPACEDIM * num_punctures);
@@ -449,7 +463,7 @@ void BinaryBH4dSTLevel::tag_cells(amrex::TagBoxArray &a_tag_box_array,
     pp.get("bh1.mass", bh1_mass);
     pp.get("bh2.mass", bh2_mass);
 
-    const PunctureTagger<num_punctures> puncture_tagger(
+    PunctureTagger<num_punctures> puncture_tagger(
         Geom().CellSize(0), Level(), get_gr_amr_ptr()->maxLevel(),
         puncture_coords, {bh1_mass, bh2_mass});
 

@@ -104,6 +104,12 @@ class ModifiedCCZ4RHS : public CCZ4RHS<deriv_t>
 
     ModifiedCCZ4RHS(amrex::Real a_dx);
 
+    AMREX_GPU_HOST_DEVICE
+    AMREX_FORCE_INLINE void set_time(amrex::Real a_time)
+    {
+        m_theory.set_time(a_time);
+    }
+
     //! Add the modified gauge terms to the CCZ4 RHS
     AMREX_GPU_DEVICE AMREX_FORCE_INLINE void
     add_b_rhs(const int ix, const int iy, const int iz,

@@ -106,6 +106,9 @@ class CouplingAndPotential
     {
     }
 
+    AMREX_GPU_HOST_DEVICE
+    AMREX_FORCE_INLINE void set_time(amrex::Real a_time) { m_time = a_time; }
+
     // Set the coupling functions and the scalar potential.
     // vars must provide vars.chi() and vars.phi().
     // NOLINTBEGIN(bugprone-easily-swappable-parameters)
@@ -121,15 +124,27 @@ class CouplingAndPotential
         const amrex::Real cutoff_factor =
             1.0 + std::exp(-m_params.factor * (vars.chi() - m_params.cutoff));
 
+        const amrex::Real factor_time = m_time / 200.0;
+        const amrex::Real cutoff_time =
+            pow(factor_time, 5.) *
+            (126. + factor_time *
+                        (-420. + factor_time *
+                                     (540. + factor_time *
+                                                 (-315. + 70. * factor_time))));
+        amrex::Real lambda = m_params.lambda / cutoff_factor;
+        if (factor_time < 1.0)
+        {
+            lambda *= cutoff_time;
+        }
+
         // Shift-symmetric or exponential quadratic coupling
         // The first derivative of the GB coupling function
         const amrex::Real phi_squared = vars.phi() * vars.phi();
-        dfdphi = m_params.lambda / cutoff_factor *
-                 (1 - m_params.coupling_type +
-                  m_params.coupling_type * vars.phi() *
-                      std::exp(-m_params.beta * phi_squared));
+        dfdphi = lambda * (1 - m_params.coupling_type +
+                           m_params.coupling_type * vars.phi() *
+                               std::exp(-m_params.beta * phi_squared));
         // The second derivative of the GB coupling function
-        d2fdphi2 = m_params.coupling_type * m_params.lambda / cutoff_factor *
+        d2fdphi2 = m_params.coupling_type * lambda *
                    (1.0 - 2.0 * m_params.beta * phi_squared) *
                    std::exp(-m_params.beta * phi_squared);
 
@@ -148,6 +163,7 @@ class CouplingAndPotential
 
   private:
     params_t m_params{};
+    amrex::Real m_time{};
 };
 
 #endif /* COUPLINGANDPOTENTIAL_HPP_ */

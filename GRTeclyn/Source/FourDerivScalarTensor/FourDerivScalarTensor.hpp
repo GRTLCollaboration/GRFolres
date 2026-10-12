@@ -85,6 +85,15 @@ class FourDerivScalarTensor
         m_G_Newton = params.G_Newton;
     }
 
+    AMREX_GPU_HOST_DEVICE
+    AMREX_FORCE_INLINE amrex::Real G_Newton() const { return m_G_Newton; }
+
+    AMREX_GPU_HOST_DEVICE
+    AMREX_FORCE_INLINE void set_time(amrex::Real a_time)
+    {
+        m_coupling_and_potential.set_time(a_time);
+    }
+
     using Vars = ScalarFieldVars;
 
     //! The function which computes:

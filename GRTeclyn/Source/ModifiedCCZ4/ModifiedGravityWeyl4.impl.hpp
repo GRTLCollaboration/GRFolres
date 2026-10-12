@@ -84,7 +84,7 @@ ModifiedGravityWeyl4<theory_t>::add_theory_EB(
 template <class theory_t>
 void ModifiedGravityWeyl4<theory_t>::set_up(int a_state_index)
 {
-    const int num_ghosts = 2;
+    const int num_ghosts = 3;
 
     auto &derive_lst = amrex::AmrLevel::get_derive_lst();
     const auto &desc_lst = amrex::AmrLevel::get_desc_lst();
