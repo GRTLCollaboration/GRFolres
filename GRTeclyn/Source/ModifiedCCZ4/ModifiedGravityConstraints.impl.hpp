@@ -111,7 +111,7 @@ template <class theory_t>
 void ModifiedGravityConstraints<theory_t>::compute_mf(
     amrex::MultiFab &out_mf, int dcomp, int ncomp,
     const amrex::MultiFab &src_mf, const amrex::Geometry &geomdata,
-    amrex::Real /*time*/, const int * /*bcrec*/, int /*level*/)
+    amrex::Real time, const int * /*bcrec*/, int /*level*/)
 {
     const auto &out_arrays = out_mf.arrays();
     const auto &src_arrays = src_mf.const_arrays();
@@ -124,6 +124,7 @@ void ModifiedGravityConstraints<theory_t>::compute_mf(
     AMREX_ALWAYS_ASSERT(ncomp == (1 + AMREX_SPACEDIM));
 
     ModifiedGravityConstraints<theory_t> constraints(dx, iham, imom);
+    constraints.set_time(time);
 
     amrex::ParallelFor(
         out_mf, out_mf.nGrowVect(),

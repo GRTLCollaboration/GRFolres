@@ -51,12 +51,14 @@ template <class theory_t> class ModifiedGravityConstraints : public Constraints
     //! Adds the constraints to the derive list. Call in variableSetUp().
     static void set_up(int a_state_index, bool a_calc_mom_norm = false);
 
+    //! Pass the evolution time to the theory (time-dependent coupling)
+    void set_time(amrex::Real a_time) { m_theory.set_time(a_time); }
+
     // Has signature of DeriveFuncMF so that it can be stored in the derive_lst
     static void compute_mf(amrex::MultiFab &out_mf, int dcomp, int ncomp,
                            const amrex::MultiFab &src_mf,
-                           const amrex::Geometry &geomdata,
-                           amrex::Real /*time*/, const int * /*bcrec*/,
-                           int /*level*/);
+                           const amrex::Geometry &geomdata, amrex::Real time,
+                           const int * /*bcrec*/, int /*level*/);
 
   protected:
     theory_t m_theory; //!< The theory object, e.g. 4dST

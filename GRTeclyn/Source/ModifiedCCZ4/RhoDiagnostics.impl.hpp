@@ -59,13 +59,14 @@ void RhoDiagnostics<theory_t>::compute_mf(amrex::MultiFab &out_mf, int dcomp,
                                           int /*ncomp*/,
                                           const amrex::MultiFab &src_mf,
                                           const amrex::Geometry &geomdata,
-                                          amrex::Real /*time*/,
+                                          amrex::Real time,
                                           const int * /*bcrec*/, int /*level*/)
 {
     const auto &out_arrays = out_mf.arrays();
     const auto &src_arrays = src_mf.const_arrays();
 
     RhoDiagnostics<theory_t> rho_diagnostics(geomdata.CellSize(0), dcomp);
+    rho_diagnostics.set_time(time);
 
     amrex::ParallelFor(
         out_mf, out_mf.nGrowVect(),
