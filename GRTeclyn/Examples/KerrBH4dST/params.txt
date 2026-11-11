@@ -44,12 +44,23 @@ scalar_field.scalar_width = 1.0
 scalar_field.scalar_r0 = 0.0
 
 #################################################
+# Kerr BH initial data parameters
+
+kerr.mass = 1.0
+kerr.spin = 0.8 # a = J/M, so 0 <= |a| <= M
+# The spin must be aligned with the z-axis for the reflective z boundary
+# kerr.spin_direction = 0.0 0.0 1.0
+# kerr.offset = 0 0 0 # offset of the BH from geometry.center
+
+#################################################
 # Grid parameters
 
-# This octant domain corresponds to a 64^3 full domain of side length 64.
-amr.n_cell = 32 32 32
-geometry.prob_extent = 32 32 32
-# geometry.center = 0 0 0 # defaults based on the domain and boundaries
+# A spinning BH is only symmetric under z -> -z, so only the lower z boundary
+# is reflective. This half domain corresponds to a 64^3 full domain of side
+# length 64.
+amr.n_cell = 64 64 32
+geometry.prob_extent = 64 64 32
+# geometry.center = 32 32 0 # defaults based on the domain and boundaries
 
 amr.max_level = 1 # there are max_level + 1 levels
 
@@ -78,7 +89,7 @@ geometry.is_periodic = 0 0 0
 # Options are currently FIRST_ORDER_EXTRAPOLATION_BC, SOMMERFELD_BC,
 # or REFLECTIVE_BC
 boundary.hi_condition = "SOMMERFELD_BC" "SOMMERFELD_BC" "SOMMERFELD_BC"
-boundary.lo_condition = "REFLECTIVE_BC" "REFLECTIVE_BC" "REFLECTIVE_BC"
+boundary.lo_condition = "SOMMERFELD_BC" "SOMMERFELD_BC" "REFLECTIVE_BC"
 
 #################################################
 # Evolution parameters
@@ -101,7 +112,7 @@ evolution.stop_time = 10.0
 # Shift evolution
 # gauge.shift_advec_coeff = 0.0
 # gauge.shift_Gamma_coeff = 0.75
-gauge.eta = 2.0 # approximately 1/M_ADM for M_ADM = 0.5246
+gauge.eta = 0.5 # of order 1/M_ADM; value used in the GRChombo KerrBH4dST
 
 # CCZ4 parameters
 # ccz4.formulation = 0 # 1 for BSSN, 0 for CCZ4
@@ -128,14 +139,14 @@ mod_gauge.mod_b = 0.4
 # timestep.
 phi_line_extraction.enabled = true
 # phi_line_extraction.num_points = 128
-# phi_line_extraction.start = 0.0 0.0 0.0 # defaults to geometry.center
-phi_line_extraction.end = 28.86751345948129 28.86751345948129 28.86751345948129
+# phi_line_extraction.start = 32.0 32.0 0.0 # defaults to geometry.center
+phi_line_extraction.end = 60.86751345948129 60.86751345948129 28.86751345948129
 # path defaults to <grteclyn.output_path>/extraction_data/
 phi_line_extraction.file_prefix = phi_profile_
 
 rho_line_extraction.enabled = true
 # rho_line_extraction.num_points = 128
-# rho_line_extraction.start = 0.0 0.0 0.0 # defaults to geometry.center
-rho_line_extraction.end = 28.86751345948129 28.86751345948129 28.86751345948129
+# rho_line_extraction.start = 32.0 32.0 0.0 # defaults to geometry.center
+rho_line_extraction.end = 60.86751345948129 60.86751345948129 28.86751345948129
 # path defaults to <grteclyn.output_path>/extraction_data/
 rho_line_extraction.file_prefix = rho_profile_

@@ -10,7 +10,7 @@
 #include "FixedGridsTagger.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GammaCalculator.hpp"
-// #include "KerrBHInitialData.hpp"
+#include "KerrBHInitialData.hpp"
 #include "LineExtraction.hpp"
 // #include "ModifiedGravityConstraints.hpp"
 // #include "ModifiedGravityWeyl4.hpp"
@@ -101,18 +101,19 @@ void KerrBH4dSTLevel::initData()
     }
 
     const amrex::Real dx = Geom().CellSize(0);
-    // I think this is still not ready
-    // const KerrBHInitialData kerr_bh_initial_data(dx);
-    // static_assert(std::is_trivially_copyable_v<KerrBHInitialData>,
-    //              "KerrBHInitialData needs to be device copyable");
+    const KerrBHInitialData kerr_bh_initial_data(dx);
+    static_assert(std::is_trivially_copyable_v<KerrBHInitialData>,
+                  "KerrBHInitialData must be device copyable");
 
-    const ScalarFieldInitialData scalar_field_initial_data(Geom().CellSize(0));
+    const ScalarFieldInitialData scalar_field_initial_data(dx);
     static_assert(std::is_trivially_copyable_v<ScalarFieldInitialData>,
                   "ScalarFieldInitialData must be device copyable");
 
     amrex::MultiFab &state_new = get_new_data(state_index);
     const auto &state_arrays = state_new.arrays();
 
+    // First set everything to zero, then set the Kerr metric (CCZ4 vars) and
+    // the scalar field (phi, Pi) including the ghost cells
     amrex::ParallelFor(
         state_new, state_new.nGrowVect(),
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
@@ -123,10 +124,13 @@ void KerrBH4dSTLevel::initData()
             {
                 cell[component] = 0.0;
             }
+            kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
             scalar_field_initial_data(ix, iy, iz, state_arrays[box_no]);
-            // kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
         });
 
+    // Gamma^i needs derivatives of the metric, so it is calculated after the
+    // initial data has been set everywhere (including the ghost cells). B^i is
+    // then set so that the initial shift is approximately stationary.
     if (m_evolution_spatial_derivative_order == 4)
     {
         const GammaCalculator<FourthOrderDerivatives> gamma_calculator(
