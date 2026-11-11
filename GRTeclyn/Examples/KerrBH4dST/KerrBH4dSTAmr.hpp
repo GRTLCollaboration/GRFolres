@@ -14,7 +14,7 @@ class KerrBH4dSTAmr : public GRAmr
 {
   public:
     ParticleInterpolator<1> phi_interpolator;
-    ParticleInterpolator<1> rho_interpolator;
+    ParticleInterpolator<4> rho_interpolator;
 
     explicit KerrBH4dSTAmr(amrex::LevelBld *a_level_bld) : GRAmr(a_level_bld) {}
 

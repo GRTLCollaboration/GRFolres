@@ -20,6 +20,18 @@ conjugate momentum `Pi` (`StateVariables.hpp`).
   modified puncture gauge (`B^i` is not evolved). This differs from the
   GRChombo version, where `B^i = 0`.
 
+## Diagnostics
+
+AMReX derived records, computed on demand for plotfiles and extraction:
+
+| record            | components                              | class |
+|-------------------|-----------------------------------------|-------|
+| `constraints`     | `Ham`, `Mom1`, `Mom2`, `Mom3`           | `ModifiedGravityConstraints` |
+| `rho_diagnostics` | `rho_phi`, `rho_g2`, `rho_g3`, `rho_GB` | `RhoDiagnostics` |
+
+Weyl4 is not included: like the GRChombo version, this single-BH example
+only needs the constraints and energy densities.
+
 ## Symmetry
 
 A spinning BH is only symmetric under z -> -z, so the parameter files use a
@@ -38,13 +50,12 @@ make -j GRTECLYN_HOME=/path/to/GRTeclyn AMREX_HOME=/path/to/amrex
 `params.txt` uses a coarse two-level fixed grid that does not resolve the
 horizon well; increase `amr.max_level` for production runs.
 
-`params.txt` writes `phi` along the diagonal to
-`extraction_data/phi_profile_*.dat`. `plot_lineouts.py` plots `phi` and `rho`
-lineouts from `data/`; it needs the `rho` extraction, which is not yet
-implemented, so adjust it (or `data_path`) before use.
+`params.txt` writes `phi` and the four `rho_*` components along the diagonal
+to `extraction_data/{phi,rho}_profile_*.dat`. `plot_lineouts.py` plots `phi`
+and the total `rho` (sum of the components) from these files.
 
 ## Not yet ported
 
-- Constraints, Weyl4 and rho diagnostics (commented out in
-  `KerrBH4dSTLevel.cpp`).
+- Constraint norms (`calculate_constraint_norms`), which need an
+  `AMRReductions` equivalent in GRTeclyn.
 - Apparent-horizon finder.

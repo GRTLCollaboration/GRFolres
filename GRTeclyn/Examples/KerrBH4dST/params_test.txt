@@ -22,8 +22,7 @@ amr.check_int = 0
 amr.plot_int = 8
 
 amr.plot_vars = ALL
-# There are no derived variables yet (constraints are not set up in this
-# example)
+amr.derive_plot_vars = ALL
 
 #################################################
 # 4dST parameters

@@ -6,29 +6,26 @@
 #include "KerrBH4dSTLevel.hpp"
 
 #include "AlgebraicConstraintsEnforcer.hpp"
-#include "EMTensor.hpp"
 #include "FixedGridsTagger.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GammaCalculator.hpp"
 #include "KerrBHInitialData.hpp"
 #include "LineExtraction.hpp"
-// #include "ModifiedGravityConstraints.hpp"
-// #include "ModifiedGravityWeyl4.hpp"
+#include "ModifiedGravityConstraints.hpp"
 #include "PositiveChiAndLapse.hpp"
+#include "RhoDiagnostics.hpp"
 #include "ScalarFieldInitialData.hpp"
 #include "SixthOrderDerivatives.hpp"
 #include "StateTypes.hpp"
 
 #include <type_traits>
 
-// BELOW COMMENTED LINES STILL TO BE IMPLEMENTED
-// using theory_t =
-// KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>;
-
-// using KerrBH4dSTEnergyDensity =
-//    EMTensor<theory_t, EMTensorOptions::justEnergyDensity>;
-// using KerrBH4dSTConstraints = ModifiedGravityConstraints<theory_t>;
-// using KerrBH4dSTWeyl4 = ModifiedGravityWeyl4<theory_t>;
+// The diagnostics always use 4th-order derivatives, like the vacuum
+// Constraints class
+using theory_t =
+    KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>;
+using KerrBH4dSTConstraints = ModifiedGravityConstraints<theory_t>;
+using KerrBH4dSTRhoDiagnostics = RhoDiagnostics<theory_t>;
 
 KerrBH4dSTAmr *KerrBH4dSTLevel::get_kerrbh4dst_amr_ptr()
 {
@@ -40,9 +37,9 @@ void KerrBH4dSTLevel::variableSetUp()
     BL_PROFILE("KerrBH4dSTLevel::variableSetUp()");
     state_variable_set_up();
 
-    // KerrBH4dSTConstraints::set_up(state_index);
-    // KerrBH4dSTWeyl4::set_up(state_index);
-    // KerrBH4dSTEnergyDensity::set_up(state_index);
+    // Register the modified-gravity diagnostics as AMReX derived records
+    KerrBH4dSTConstraints::set_up(state_index);
+    KerrBH4dSTRhoDiagnostics::set_up(state_index);
 }
 
 void KerrBH4dSTLevel::specific_advance()
@@ -81,13 +78,14 @@ void KerrBH4dSTLevel::specific_post_timestep()
         phi_extraction.execute_query(
             &get_kerrbh4dst_amr_ptr()->phi_interpolator);
 
-        /*const LineExtraction<1> rho_extraction("rho_line_extraction", 0, dt,
+        const LineExtraction<4> rho_extraction("rho_line_extraction", 0, dt,
                                                time, restart_time, first_step);
-        const LineExtraction<1>::derived_vars_t rho_vars{
-            KerrBH4dSTEnergyDensity::name, {"rho"}, {BCParity::even}};
-
+        const LineExtraction<4>::derived_vars_t rho_vars{
+            KerrBH4dSTRhoDiagnostics::name,
+            {"rho_phi", "rho_g2", "rho_g3", "rho_GB"},
+            {BCParity::even, BCParity::even, BCParity::even, BCParity::even}};
         rho_extraction.execute_query(
-            &get_kerrbh4dst_amr_ptr()->rho_interpolator, rho_vars);*/
+            &get_kerrbh4dst_amr_ptr()->rho_interpolator, rho_vars);
     }
 }
 

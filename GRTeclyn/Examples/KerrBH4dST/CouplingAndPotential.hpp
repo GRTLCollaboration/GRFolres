@@ -115,6 +115,11 @@ class CouplingAndPotential
     {
     }
 
+    //! The coupling does not depend on time in this example (unlike the slow
+    //! turn-on in BinaryBH4dST), but the diagnostics require this interface
+    AMREX_GPU_HOST_DEVICE
+    AMREX_FORCE_INLINE void set_time(amrex::Real /*a_time*/) {}
+
     // Set the coupling functions and the scalar potential.
     // vars must provide vars.chi() and vars.phi().
     // NOLINTBEGIN(bugprone-easily-swappable-parameters)
