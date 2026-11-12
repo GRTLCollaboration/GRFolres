@@ -125,8 +125,11 @@ class CouplingAndPotential
     {
     }
 
-    //! The coupling does not depend on time in this example (unlike the slow
-    //! turn-on in BinaryBH4dST), but the diagnostics require this interface
+    //! The coupling is not time-dependent. But since we have it slowly
+    //! turn-on in BinaryBH4dST, this no-op is still required to compile:
+    //! FourDerivScalarTensor::set_time forwards to the coupling
+    //! unconditionally, and ModifiedGravityConstraints/RhoDiagnostics always
+    //! call it.
     AMREX_GPU_HOST_DEVICE
     AMREX_FORCE_INLINE void set_time(amrex::Real /*a_time*/) {}
 
