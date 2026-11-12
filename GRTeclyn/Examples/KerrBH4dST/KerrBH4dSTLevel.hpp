@@ -21,7 +21,7 @@ class KerrBH4dSTLevel : public GRAmrLevel
     using GRAmrLevel::GRAmrLevel;
 
     template <class deriv_t = FourthOrderDerivatives>
-    using KerrBH4dSTWithCouplingAndPotential =
+    using FourDerivScalarTensorWithCouplingAndPotential =
         FourDerivScalarTensor<CouplingAndPotential, deriv_t>;
 
     KerrBH4dSTAmr *get_kerrbh4dst_amr_ptr();

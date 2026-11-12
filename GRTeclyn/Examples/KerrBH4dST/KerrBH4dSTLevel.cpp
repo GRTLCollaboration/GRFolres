@@ -22,8 +22,8 @@
 
 // The diagnostics always use 4th-order derivatives, like the vacuum
 // Constraints class
-using theory_t =
-    KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>;
+using theory_t = KerrBH4dSTLevel::FourDerivScalarTensorWithCouplingAndPotential<
+    FourthOrderDerivatives>;
 using KerrBH4dSTConstraints = ModifiedGravityConstraints<theory_t>;
 using KerrBH4dSTRhoDiagnostics = RhoDiagnostics<theory_t>;
 
@@ -194,9 +194,9 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     // NOLINTBEGIN(bugprone-branch-clone)
     if (m_evolution_spatial_derivative_order == 4)
     {
-        const ModifiedCCZ4RHS<
-            KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>,
-            FourthOrderDerivatives>
+        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                                  FourthOrderDerivatives>,
+                              FourthOrderDerivatives>
             modified_ccz4_rhs(Geom().CellSize(0));
         const ModifiedPunctureGauge<FourthOrderDerivatives>
             modified_puncture_gauge(Geom().CellSize(0));
@@ -231,6 +231,12 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
                                                  const_soln_arrays[box_no]);
+            });
+        amrex::Gpu::streamSynchronize();
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
                 // solve the linear system for the fields that need it (4dST)
                 modified_ccz4_rhs.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
                                             const_soln_arrays[box_no]);
@@ -240,9 +246,9 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     }
     else if (m_evolution_spatial_derivative_order == 6)
     {
-        const ModifiedCCZ4RHS<
-            KerrBH4dSTWithCouplingAndPotential<SixthOrderDerivatives>,
-            SixthOrderDerivatives>
+        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                                  SixthOrderDerivatives>,
+                              SixthOrderDerivatives>
             modified_ccz4_rhs(Geom().CellSize(0));
         const ModifiedPunctureGauge<SixthOrderDerivatives>
             modified_puncture_gauge(Geom().CellSize(0));
@@ -277,6 +283,12 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
                                                  const_soln_arrays[box_no]);
+            });
+        amrex::Gpu::streamSynchronize();
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
                 // solve the linear system for the fields that need it (4dST)
                 modified_ccz4_rhs.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
                                             const_soln_arrays[box_no]);

@@ -35,11 +35,11 @@ four_deriv_scalar_tensor.factor = 100.
 # four_deriv_scalar_tensor.beta only relevant for four_deriv_scalar_tensor.coupling_type = 1.
 four_deriv_scalar_tensor.beta = 100.
 four_deriv_scalar_tensor.g2 = 0.0
+four_deriv_scalar_tensor.scalar_mass = 0.0 # mass of the scalar potential V = m^2 phi^2 / 2
 
 #################################################
 # Scalar-field parameters
 
-scalar_field.scalar_mass = 1.0
 scalar_field.scalar_amplitude = 0.1
 scalar_field.scalar_width = 1.0
 scalar_field.scalar_r0 = 0.0

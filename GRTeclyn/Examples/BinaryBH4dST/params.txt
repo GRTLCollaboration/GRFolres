@@ -38,9 +38,10 @@ amr.derive_plot_vars = Weyl4 constraints
 four_deriv_scalar_tensor.G_Newton = 0.03978873577297383 # 1/(8*pi)
 
 # Scalar field initial data (Gaussian bump; amplitude 0 => no scalar hair)
-initial_scalar_data.amplitude = 0.0
-initial_scalar_data.width     = 1.0
-initial_scalar_data.r0        = 30.0
+scalar_field.scalar_amplitude = 0.0
+scalar_field.scalar_width     = 1.0
+scalar_field.scalar_r0        = 30.0
+# scalar_field.scalar_center = ... # defaults to geometry.center
 
 # Black hole masses, positions (offset from geometry.center) and momenta
 bh1.mass = 0.4501303545011215

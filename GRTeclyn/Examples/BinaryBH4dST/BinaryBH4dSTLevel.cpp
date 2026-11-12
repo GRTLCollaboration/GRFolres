@@ -24,8 +24,8 @@
 
 // Scalar field
 #include "CouplingAndPotential.hpp"
-#include "InitialScalarData.hpp"
 #include "ScalarExtraction.hpp"
+#include "ScalarFieldInitialData.hpp"
 
 // 4dST / modified-gravity source classes.
 // NOTE: ModifiedWeyl, ModifiedConstraints, RhoDiagnostics and ScalarExtraction
@@ -152,9 +152,9 @@ void BinaryBH4dSTLevel::initData()
     const amrex::Real dx = Geom().CellSize(0);
     amrex::MultiFab &state_new = get_new_data(state_index);
 
-    const InitialScalarData initial_scalar_data(dx);
-    static_assert(std::is_trivially_copyable_v<InitialScalarData>,
-                  "InitialScalarData must be device copyable");
+    const ScalarFieldInitialData scalar_field_initial_data(dx);
+    static_assert(std::is_trivially_copyable_v<ScalarFieldInitialData>,
+                  "ScalarFieldInitialData must be device copyable");
 
 #ifdef USE_TWOPUNCTURES
     TwoPuncturesInitialData two_punctures_initial_data(dx);
@@ -194,7 +194,7 @@ void BinaryBH4dSTLevel::initData()
     amrex::ParallelFor(
         state_new, state_new.nGrowVect(),
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
-        { initial_scalar_data(ix, iy, iz, state_arrays[box_no]); });
+        { scalar_field_initial_data(ix, iy, iz, state_arrays[box_no]); });
 #else
     BinaryBHInitialData binary_initial_data(dx);
     static_assert(std::is_trivially_copyable_v<BinaryBHInitialData>,
@@ -214,7 +214,7 @@ void BinaryBH4dSTLevel::initData()
                 cell[n] = 0.;
             }
             binary_initial_data(ix, iy, iz, state_arrays[box_no]);
-            initial_scalar_data(ix, iy, iz, state_arrays[box_no]);
+            scalar_field_initial_data(ix, iy, iz, state_arrays[box_no]);
         });
 #endif
     amrex::Gpu::streamSynchronize();
