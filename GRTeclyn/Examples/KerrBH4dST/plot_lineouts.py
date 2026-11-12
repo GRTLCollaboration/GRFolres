@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Edit these plotting options as needed.
-data_path = Path("data")
+data_path = Path("extraction_data")
 dt = 0.2
 output_file = "lineouts.png"
 
@@ -35,7 +35,8 @@ for phi_file, rho_file, colour in zip(phi_files, rho_files, colours):
     step = int(phi_file.stem.split("_")[-1])
 
     axes[0].plot(radius, phi_data[:, 3], color=colour, label=f"t = {step * dt:g}")
-    axes[1].plot(radius, rho_data[:, 3], color=colour)
+    # Columns are x y z rho_phi rho_g2 rho_g3 rho_GB; plot the total
+    axes[1].plot(radius, rho_data[:, 3:7].sum(axis=1), color=colour)
 
 axes[0].set(xlabel=r"$r$", ylabel=r"$\phi$", xlim=xlim, ylim=phi_ylim)
 axes[1].set(xlabel=r"$r$", ylabel=r"$\rho$", xlim=xlim, ylim=rho_ylim)

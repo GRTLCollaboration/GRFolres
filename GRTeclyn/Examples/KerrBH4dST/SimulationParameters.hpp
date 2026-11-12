@@ -9,6 +9,7 @@
 #include "BaseParameterChecker.hpp"
 #include "CCZ4RHS.hpp"
 #include "FixedGridsTagger.hpp"
+#include "KerrBHInitialData.hpp"
 #include "LineExtractionParameters.hpp"
 
 // GRFolres specific
@@ -31,6 +32,7 @@ class SimulationParameters
 
         FourDerivScalarTensor<CouplingAndPotential,
                               FourthOrderDerivatives>::params_t::check_params();
+        KerrBHInitialData::params_t::check_params();
         ScalarFieldInitialData::params_t::check_params();
         CouplingAndPotential::params_t::check_params();
         line_extraction_params_t::check_params("phi_line_extraction");

@@ -36,6 +36,3 @@ make -j USE_TWOPUNCTURES=TRUE TWOPUNCTURES_SOURCE=/path/to/TwoPunctures/Source
 - Apparent-horizon finder (`AH_*` parameters).
 
 Use `KerrBH4dST/` for a fixed-grid single-BH 4dST example.
-
-claude --resume 9b892624-3162-47ef-a626-c02444f69a42
-
