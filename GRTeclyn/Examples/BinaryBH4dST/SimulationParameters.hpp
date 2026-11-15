@@ -23,8 +23,8 @@
 // GRFolres specific
 #include "CouplingAndPotential.hpp"
 #include "FourDerivScalarTensor.hpp"
-#include "InitialScalarData.hpp"
 #include "ModifiedPunctureGauge.hpp"
+#include "ScalarFieldInitialData.hpp"
 
 class SimulationParameters
 {
@@ -52,7 +52,7 @@ class SimulationParameters
         // 4dST theory parameters
         CouplingAndPotential::params_t::check_params();
         FourDerivScalarTensor<CouplingAndPotential>::params_t::check_params();
-        InitialScalarData::params_t::check_params();
+        ScalarFieldInitialData::params_t::check_params();
 
         spherical_extraction_params_t::check_params("weyl_extraction");
         spherical_extraction_params_t::check_params("scalar_extraction");

@@ -57,14 +57,24 @@ class CouplingAndPotential
             fdst_pp.queryAdd("beta", beta);
             fdst_pp.queryAdd("g2", g2);
 
-            // there's not yet a GRParmParse for kerr_spin
-            /*if (cutoff >=
-                0.8 * 0.2666 *
-                    std::sqrt(1.0 - m_params.kerr_spin * m_params.spin))
+            // chi on the horizon of the evolved Kerr BH is roughly
+            // 0.2666 * sqrt(1 - (a/M)^2) (see fig. C1 in arXiv:2112.10567)
+            GRParmParse kerr_pp("kerr");
+            amrex::Real kerr_mass{};
+            amrex::Real kerr_spin{};
+            kerr_pp.get("mass", kerr_mass);
+            kerr_pp.get("spin", kerr_spin);
+            if (kerr_mass > 0.0)
             {
-                fdst.warning(
-                    "cutoff", "Gauss-Bonnet cutoff may be too large.");
-            }*/
+                const amrex::Real spin_over_mass = kerr_spin / kerr_mass;
+                if (cutoff >=
+                    0.8 * 0.2666 *
+                        std::sqrt(1.0 - spin_over_mass * spin_over_mass))
+                {
+                    fdst_pp.warning("cutoff",
+                                    "Gauss-Bonnet cutoff may be too large.");
+                }
+            }
 
             if (scalar_mass < 0.0)
             {
@@ -114,6 +124,14 @@ class CouplingAndPotential
         : m_params(a_params)
     {
     }
+
+    //! The coupling is not time-dependent. But since we have it slowly
+    //! turn-on in BinaryBH4dST, this no-op is still required to compile:
+    //! FourDerivScalarTensor::set_time forwards to the coupling
+    //! unconditionally, and ModifiedGravityConstraints/RhoDiagnostics always
+    //! call it.
+    AMREX_GPU_HOST_DEVICE
+    AMREX_FORCE_INLINE void set_time(amrex::Real /*a_time*/) {}
 
     // Set the coupling functions and the scalar potential.
     // vars must provide vars.chi() and vars.phi().

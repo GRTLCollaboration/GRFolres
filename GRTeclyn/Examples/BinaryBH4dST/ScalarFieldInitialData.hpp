@@ -3,8 +3,8 @@
  * Please refer to LICENSE in GRTeclyn's root directory.
  */
 
-#ifndef INITIALSCALARDATA_HPP_
-#define INITIALSCALARDATA_HPP_
+#ifndef SCALARFIELDINITIALDATA_HPP_
+#define SCALARFIELDINITIALDATA_HPP_
 
 #include "Coordinates.hpp"
 #include "GRParmParse.hpp"
@@ -20,7 +20,7 @@
 
 // Sets a spherically-symmetric Gaussian bump for the scalar field phi with
 // zero conjugate momentum Pi, matching the GRChombo BinaryBH4dST example.
-class InitialScalarData
+class ScalarFieldInitialData
 {
   public:
     struct params_t
@@ -32,38 +32,39 @@ class InitialScalarData
 
         static void check_params()
         {
-            GRParmParse pp("initial_scalar_data");
-            amrex::Real amplitude{};
-            pp.queryAdd("amplitude", amplitude);
-            amrex::Real width{1.0};
-            pp.queryAdd("width", width);
-            if (width <= 0.0)
+            GRParmParse scalar_field_pp("scalar_field");
+            amrex::Real scalar_amplitude{};
+            scalar_field_pp.queryAdd("scalar_amplitude", scalar_amplitude);
+            amrex::Real scalar_width{1.0};
+            scalar_field_pp.queryAdd("scalar_width", scalar_width);
+            if (scalar_width <= 0.0)
             {
-                pp.error("width", "must be > 0.0");
+                scalar_field_pp.error("scalar_width", "must be > 0.0");
             }
-            amrex::Real r0{30.0};
-            pp.queryAdd("r0", r0);
+            amrex::Real scalar_r0{30.0};
+            scalar_field_pp.queryAdd("scalar_r0", scalar_r0);
 
             GRParmParse geom_pp("geometry");
-            std::array<amrex::Real, AMREX_SPACEDIM> center{};
-            geom_pp.get("center", center);
-            pp.queryAdd("center", center);
+            std::array<amrex::Real, AMREX_SPACEDIM> scalar_center{};
+            geom_pp.get("center", scalar_center);
+            scalar_field_pp.queryAdd("scalar_center", scalar_center);
         }
 
         void fill_params()
         {
-            GRParmParse pp("initial_scalar_data");
-            pp.get("amplitude", amplitude);
-            pp.get("width", width);
-            pp.get("r0", r0);
+            GRParmParse scalar_field_pp("scalar_field");
+            scalar_field_pp.get("scalar_amplitude", amplitude);
+            scalar_field_pp.get("scalar_width", width);
+            scalar_field_pp.get("scalar_r0", r0);
 
             GRParmParse geom_pp("geometry");
             geom_pp.get("center", center);
-            pp.queryAdd("center", center);
+            scalar_field_pp.queryAdd("scalar_center", center);
         }
     };
 
-    AMREX_FORCE_INLINE explicit InitialScalarData(amrex::Real a_dx) : m_dx(a_dx)
+    AMREX_FORCE_INLINE explicit ScalarFieldInitialData(amrex::Real a_dx)
+        : m_dx(a_dx)
     {
         m_params.fill_params();
     }
@@ -89,4 +90,4 @@ class InitialScalarData
     params_t m_params{};
 };
 
-#endif /* INITIALSCALARDATA_HPP_ */
+#endif /* SCALARFIELDINITIALDATA_HPP_ */

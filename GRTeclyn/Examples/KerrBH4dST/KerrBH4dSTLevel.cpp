@@ -6,29 +6,26 @@
 #include "KerrBH4dSTLevel.hpp"
 
 #include "AlgebraicConstraintsEnforcer.hpp"
-#include "EMTensor.hpp"
 #include "FixedGridsTagger.hpp"
 #include "FourthOrderDerivatives.hpp"
 #include "GammaCalculator.hpp"
-// #include "KerrBHInitialData.hpp"
+#include "KerrBHInitialData.hpp"
 #include "LineExtraction.hpp"
-// #include "ModifiedGravityConstraints.hpp"
-// #include "ModifiedGravityWeyl4.hpp"
+#include "ModifiedGravityConstraints.hpp"
 #include "PositiveChiAndLapse.hpp"
+#include "RhoDiagnostics.hpp"
 #include "ScalarFieldInitialData.hpp"
 #include "SixthOrderDerivatives.hpp"
 #include "StateTypes.hpp"
 
 #include <type_traits>
 
-// BELOW COMMENTED LINES STILL TO BE IMPLEMENTED
-// using theory_t =
-// KerrBH4dSTLevel::KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>;
-
-// using KerrBH4dSTEnergyDensity =
-//    EMTensor<theory_t, EMTensorOptions::justEnergyDensity>;
-// using KerrBH4dSTConstraints = ModifiedGravityConstraints<theory_t>;
-// using KerrBH4dSTWeyl4 = ModifiedGravityWeyl4<theory_t>;
+// The diagnostics always use 4th-order derivatives, like the vacuum
+// Constraints class
+using theory_t = KerrBH4dSTLevel::FourDerivScalarTensorWithCouplingAndPotential<
+    FourthOrderDerivatives>;
+using KerrBH4dSTConstraints = ModifiedGravityConstraints<theory_t>;
+using KerrBH4dSTRhoDiagnostics = RhoDiagnostics<theory_t>;
 
 KerrBH4dSTAmr *KerrBH4dSTLevel::get_kerrbh4dst_amr_ptr()
 {
@@ -40,9 +37,9 @@ void KerrBH4dSTLevel::variableSetUp()
     BL_PROFILE("KerrBH4dSTLevel::variableSetUp()");
     state_variable_set_up();
 
-    // KerrBH4dSTConstraints::set_up(state_index);
-    // KerrBH4dSTWeyl4::set_up(state_index);
-    // KerrBH4dSTEnergyDensity::set_up(state_index);
+    // Register the modified-gravity diagnostics as AMReX derived records
+    KerrBH4dSTConstraints::set_up(state_index);
+    KerrBH4dSTRhoDiagnostics::set_up(state_index);
 }
 
 void KerrBH4dSTLevel::specific_advance()
@@ -81,13 +78,14 @@ void KerrBH4dSTLevel::specific_post_timestep()
         phi_extraction.execute_query(
             &get_kerrbh4dst_amr_ptr()->phi_interpolator);
 
-        /*const LineExtraction<1> rho_extraction("rho_line_extraction", 0, dt,
+        const LineExtraction<4> rho_extraction("rho_line_extraction", 0, dt,
                                                time, restart_time, first_step);
-        const LineExtraction<1>::derived_vars_t rho_vars{
-            KerrBH4dSTEnergyDensity::name, {"rho"}, {BCParity::even}};
-
+        const LineExtraction<4>::derived_vars_t rho_vars{
+            KerrBH4dSTRhoDiagnostics::name,
+            {"rho_phi", "rho_g2", "rho_g3", "rho_GB"},
+            {BCParity::even, BCParity::even, BCParity::even, BCParity::even}};
         rho_extraction.execute_query(
-            &get_kerrbh4dst_amr_ptr()->rho_interpolator, rho_vars);*/
+            &get_kerrbh4dst_amr_ptr()->rho_interpolator, rho_vars);
     }
 }
 
@@ -101,18 +99,19 @@ void KerrBH4dSTLevel::initData()
     }
 
     const amrex::Real dx = Geom().CellSize(0);
-    // I think this is still not ready
-    // const KerrBHInitialData kerr_bh_initial_data(dx);
-    // static_assert(std::is_trivially_copyable_v<KerrBHInitialData>,
-    //              "KerrBHInitialData needs to be device copyable");
+    const KerrBHInitialData kerr_bh_initial_data(dx);
+    static_assert(std::is_trivially_copyable_v<KerrBHInitialData>,
+                  "KerrBHInitialData must be device copyable");
 
-    const ScalarFieldInitialData scalar_field_initial_data(Geom().CellSize(0));
+    const ScalarFieldInitialData scalar_field_initial_data(dx);
     static_assert(std::is_trivially_copyable_v<ScalarFieldInitialData>,
                   "ScalarFieldInitialData must be device copyable");
 
     amrex::MultiFab &state_new = get_new_data(state_index);
     const auto &state_arrays = state_new.arrays();
 
+    // First set everything to zero, then set the Kerr metric (CCZ4 vars) and
+    // the scalar field (phi, Pi) including the ghost cells
     amrex::ParallelFor(
         state_new, state_new.nGrowVect(),
         [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
@@ -123,10 +122,13 @@ void KerrBH4dSTLevel::initData()
             {
                 cell[component] = 0.0;
             }
+            kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
             scalar_field_initial_data(ix, iy, iz, state_arrays[box_no]);
-            // kerr_bh_initial_data(ix, iy, iz, state_arrays[box_no]);
         });
 
+    // Gamma^i needs derivatives of the metric, so it is calculated after the
+    // initial data has been set everywhere (including the ghost cells). B^i is
+    // then set so that the initial shift is approximately stationary.
     if (m_evolution_spatial_derivative_order == 4)
     {
         const GammaCalculator<FourthOrderDerivatives> gamma_calculator(
@@ -192,9 +194,9 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     // NOLINTBEGIN(bugprone-branch-clone)
     if (m_evolution_spatial_derivative_order == 4)
     {
-        const ModifiedCCZ4RHS<
-            KerrBH4dSTWithCouplingAndPotential<FourthOrderDerivatives>,
-            FourthOrderDerivatives>
+        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                                  FourthOrderDerivatives>,
+                              FourthOrderDerivatives>
             modified_ccz4_rhs(Geom().CellSize(0));
         const ModifiedPunctureGauge<FourthOrderDerivatives>
             modified_puncture_gauge(Geom().CellSize(0));
@@ -229,6 +231,12 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
                                                  const_soln_arrays[box_no]);
+            });
+        amrex::Gpu::streamSynchronize();
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
                 // solve the linear system for the fields that need it (4dST)
                 modified_ccz4_rhs.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
                                             const_soln_arrays[box_no]);
@@ -238,9 +246,9 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
     }
     else if (m_evolution_spatial_derivative_order == 6)
     {
-        const ModifiedCCZ4RHS<
-            KerrBH4dSTWithCouplingAndPotential<SixthOrderDerivatives>,
-            SixthOrderDerivatives>
+        const ModifiedCCZ4RHS<FourDerivScalarTensorWithCouplingAndPotential<
+                                  SixthOrderDerivatives>,
+                              SixthOrderDerivatives>
             modified_ccz4_rhs(Geom().CellSize(0));
         const ModifiedPunctureGauge<SixthOrderDerivatives>
             modified_puncture_gauge(Geom().CellSize(0));
@@ -275,6 +283,12 @@ void KerrBH4dSTLevel::specific_eval_rhs(amrex::MultiFab &a_soln,
                     ix, iy, iz, rhs_arrays[box_no], const_soln_arrays[box_no]);
                 modified_ccz4_rhs.add_theory_rhs(ix, iy, iz, rhs_arrays[box_no],
                                                  const_soln_arrays[box_no]);
+            });
+        amrex::Gpu::streamSynchronize();
+        amrex::ParallelFor(
+            a_rhs,
+            [=] AMREX_GPU_DEVICE(int box_no, int ix, int iy, int iz)
+            {
                 // solve the linear system for the fields that need it (4dST)
                 modified_ccz4_rhs.solve_lhs(ix, iy, iz, rhs_arrays[box_no],
                                             const_soln_arrays[box_no]);
