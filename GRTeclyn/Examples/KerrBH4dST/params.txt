@@ -18,7 +18,7 @@ amr.file_name_digits = 5
 # Number of level-0 time steps between checkpoint files; -1 disables output
 # amr.check_int = -1
 # Number of level-0 time steps between plot files; -1 disables output
-amr.plot_int = 50
+amr.plot_int = 20
 
 amr.plot_vars = chi lapse phi Pi
 amr.derive_plot_vars = constraints rho_diagnostics
@@ -26,10 +26,10 @@ amr.derive_plot_vars = constraints rho_diagnostics
 #################################################
 # 4dST parameters
 
-four_deriv_scalar_tensor.G_Newton = 1.0
+four_deriv_scalar_tensor.G_Newton = 0.0397887357729783 # 1/(8*pi)
 four_deriv_scalar_tensor.coupling_type = 0  # 0. Shift-Symmetric / 1. Exponential
-four_deriv_scalar_tensor.lambda = 0.0
-four_deriv_scalar_tensor.cutoff = 0.07
+four_deriv_scalar_tensor.lambda = 0.1
+four_deriv_scalar_tensor.cutoff = 0.08
 four_deriv_scalar_tensor.factor = 100.
 # four_deriv_scalar_tensor.beta only relevant for four_deriv_scalar_tensor.coupling_type = 1.
 four_deriv_scalar_tensor.beta = 100.
@@ -47,7 +47,7 @@ scalar_field.scalar_r0 = 0.0
 # Kerr BH initial data parameters
 
 kerr.mass = 1.0
-kerr.spin = 0.8 # a = J/M, so 0 <= |a| <= M
+kerr.spin = 0.5 # a = J/M, so 0 <= |a| <= M
 # The spin must be aligned with the z-axis for the reflective z boundary
 # kerr.spin_direction = 0.0 0.0 1.0
 # kerr.offset = 0 0 0 # offset of the BH from geometry.center
@@ -62,7 +62,7 @@ amr.n_cell = 64 64 32
 geometry.prob_extent = 64 64 32
 # geometry.center = 32 32 0 # defaults based on the domain and boundaries
 
-amr.max_level = 1 # there are max_level + 1 levels
+amr.max_level = 5 # there are max_level + 1 levels
 
 # Regridding interval in level timesteps; -1 disables regridding
 # Supply one shared value or max_level values, one per coarse-to-fine
@@ -95,12 +95,12 @@ boundary.lo_condition = "SOMMERFELD_BC" "SOMMERFELD_BC" "REFLECTIVE_BC"
 # Evolution parameters
 
 # dt is dx * dt_multiplier on each grid level
-evolution.dt_multiplier = 0.1
-evolution.stop_time = 10.0
+evolution.dt_multiplier = 0.25
+evolution.stop_time = 100.0
 # evolution.max_steps = 1000000
 
 # Spatial derivative order (only affects the CCZ4 RHS)
-# evolution.spatial_derivative_order = 4
+evolution.spatial_derivative_order = 6
 
 # evolution.nan_check = true
 
@@ -112,12 +112,12 @@ evolution.stop_time = 10.0
 # Shift evolution
 # gauge.shift_advec_coeff = 0.0
 # gauge.shift_Gamma_coeff = 0.75
-gauge.eta = 0.5 # of order 1/M_ADM; value used in the GRChombo KerrBH4dST
+gauge.eta = 1.0 # of order 1/M_ADM
 
 # CCZ4 parameters
 # ccz4.formulation = 0 # 1 for BSSN, 0 for CCZ4
-# ccz4.kappa1 = 0.1
-# ccz4.kappa2 = 0.0
+# ccz4.kappa1 = 0.6
+# ccz4.kappa2 = -0.15
 # ccz4.kappa3 = 1.0
 # ccz4.covariantZ4 = true # replace kappa1 with kappa1/lapse
 
@@ -129,8 +129,8 @@ evolution.sigma = 0.5
 
 # Modified gauge params
 
-mod_gauge.mod_a = 0.2
-mod_gauge.mod_b = 0.4
+mod_gauge.mod_a = 0.1
+mod_gauge.mod_b = 0.2
 
 #################################################
 # Line extraction parameters

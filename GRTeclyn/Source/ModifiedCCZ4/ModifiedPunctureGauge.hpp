@@ -64,14 +64,23 @@ class ModifiedPunctureGauge : public MovingPunctureGauge<deriv_t>
             state_cell_data;
         const CCZ4Vars vars(const_state_cell_data);
 
+        const auto h_UU = CCZ4Geometry::compute_inverse_metric(vars);
+        auto d1_lapse = this->m_deriv.d1_scalar(ix, iy, iz, state, c_lapse);
+
         amrex::Real eta_of_x{};
         this->compute_eta(eta_of_x, ix, iy, iz);
 
         FOR(i)
         {
-            state_cell_data[c_B1 + i] =
-                this->m_params.shift_Gamma_coeff * vars.Gamma(i) -
-                eta_of_x * vars.shift(i);
+            state_cell_data[c_B1 + i] = this->m_params.shift_Gamma_coeff *
+                                            vars.Gamma(i) / (1.0 + m_mod_a) -
+                                        eta_of_x * vars.shift(i);
+            FOR(j)
+            {
+                state_cell_data[c_B1 + i] += -m_mod_a / (1.0 + m_mod_a) *
+                                             vars.lapse() * vars.chi() *
+                                             h_UU(i, j) * d1_lapse(j);
+            }
         }
     }
 

@@ -43,16 +43,6 @@ scalar_field.scalar_width     = 1.0
 scalar_field.scalar_r0        = 30.0
 # scalar_field.scalar_center = ... # defaults to geometry.center
 
-# Black hole masses, positions (offset from geometry.center) and momenta
-bh1.mass = 0.4501303545011215
-bh2.mass = 0.5498696454988786
-
-bh1.offset =  6.488461816886767 0.0 0.0
-bh2.offset = -5.311538183113234 0.0 0.0
-
-bh1.momentum = -0.000560110173859659 0.0851972057743384 0.0
-bh2.momentum = 0.000560110173859659 -0.0851972057743384 0.0
-
 #################################################
 # TwoPunctures initial data parameters
 
@@ -69,16 +59,16 @@ two_punctures.adm_tol = 1.0e-12
 two_punctures.offset_plus  =  6.488461816886767
 two_punctures.offset_minus = -5.311538183113234
 
-two_punctures.momentum_plus  = -0.000560110173859659 0.0851972057743384 0.0 
-                             # -0.0010453356156597151 0.08511436829147685 0.0
-two_punctures.momentum_minus = 0.000560110173859659 -0.0851972057743384 0.0
-                             # 0.0010453356156597151 -0.08511436829147685 0.0
+two_punctures.momentum_plus  = -0.0010453356156597151 0.08511436829147685 0.0
+                             # -0.000560110173859659 0.0851972057743384 0.0
+two_punctures.momentum_minus = 0.0010453356156597151 -0.08511436829147685 0.0
+                             # 0.000560110173859659 -0.0851972057743384 0.0
 
 two_punctures.spin_plus  = 0.0 0.0 0.0
 two_punctures.spin_minus = 0.0 0.0 0.0
 
 two_punctures.use_spectral_interpolation = true
-two_punctures.initial_lapse = "twopunctures-averaged"
+two_punctures.initial_lapse = "psi^n"
 two_punctures.initial_lapse_psi_exponent = -2.0
 
 two_punctures.num_points_A   = 64
@@ -174,8 +164,8 @@ mod_gauge.mod_b = 0.2
 # CCZ4 parameters
 
 ccz4.formulation = 0 # 1 for BSSN, 0 for CCZ4
-ccz4.kappa1      = 0.1
-ccz4.kappa2      = 0.0
+ccz4.kappa1      = 0.6
+ccz4.kappa2      = -0.15
 ccz4.kappa3      = 1.0
 ccz4.covariantZ4 = true # replace kappa1 with kappa1/lapse
 
@@ -188,7 +178,7 @@ evolution.sigma = 0.5
 #################################################
 # 4dST theory parameters
 
-four_deriv_scalar_tensor.lambda      = 0.0 # 0.02026173360433053
+four_deriv_scalar_tensor.lambda      = 0.02026173360433053
 four_deriv_scalar_tensor.cutoff      = 0.08
 four_deriv_scalar_tensor.factor      = 100.0
 four_deriv_scalar_tensor.g2          = 0.0
