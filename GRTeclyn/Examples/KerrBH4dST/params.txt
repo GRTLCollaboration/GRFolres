@@ -1,0 +1,152 @@
+# GRTeclyn Kerr BH in 4dST Example
+# Commented parameters show default or suggested values
+
+#################################################
+# Filesystem parameters
+grteclyn.output_path = . # base path for all output
+
+amr.verbose = 1
+
+# Plotfiles default to <grteclyn.output_path>/plots and checkpoint files to
+# <grteclyn.output_path>/checkpoints
+
+amr.check_file = checkpoints/chk
+amr.plot_file = plots/plt
+# amr.restart = checkpoints/chk00000
+amr.file_name_digits = 5
+
+# Number of level-0 time steps between checkpoint files; -1 disables output
+# amr.check_int = -1
+# Number of level-0 time steps between plot files; -1 disables output
+amr.plot_int = 20
+
+amr.plot_vars = chi lapse phi Pi
+amr.derive_plot_vars = constraints rho_diagnostics
+
+#################################################
+# 4dST parameters
+
+four_deriv_scalar_tensor.G_Newton = 0.0397887357729783 # 1/(8*pi)
+four_deriv_scalar_tensor.coupling_type = 0  # 0. Shift-Symmetric / 1. Exponential
+four_deriv_scalar_tensor.lambda = 0.1
+four_deriv_scalar_tensor.cutoff = 0.08
+four_deriv_scalar_tensor.factor = 100.
+# four_deriv_scalar_tensor.beta only relevant for four_deriv_scalar_tensor.coupling_type = 1.
+four_deriv_scalar_tensor.beta = 100.
+four_deriv_scalar_tensor.g2 = 0.0
+four_deriv_scalar_tensor.scalar_mass = 0.0 # mass of the scalar potential V = m^2 phi^2 / 2
+
+#################################################
+# Scalar-field parameters
+
+scalar_field.scalar_amplitude = 0.0
+scalar_field.scalar_width = 1.0
+scalar_field.scalar_r0 = 0.0
+
+#################################################
+# Kerr BH initial data parameters
+
+kerr.mass = 1.0
+kerr.spin = 0.5 # a = J/M, so 0 <= |a| <= M
+# The spin must be aligned with the z-axis for the reflective z boundary
+# kerr.spin_direction = 0.0 0.0 1.0
+# kerr.offset = 0 0 0 # offset of the BH from geometry.center
+
+#################################################
+# Grid parameters
+
+# A spinning BH is only symmetric under z -> -z, so only the lower z boundary
+# is reflective. This half domain corresponds to a 64^3 full domain of side
+# length 64.
+amr.n_cell = 64 64 32
+geometry.prob_extent = 64 64 32
+# geometry.center = 32 32 0 # defaults based on the domain and boundaries
+
+amr.max_level = 5 # there are max_level + 1 levels
+
+# Regridding interval in level timesteps; -1 disables regridding
+# Supply one shared value or max_level values, one per coarse-to-fine
+# transition
+amr.regrid_int = -1
+
+# Maximum number of cells along each side of a grid box
+amr.max_grid_size = 32
+# Grid box side lengths must be divisible by this value
+amr.blocking_factor = 16
+# Minimum fraction of tagged cells required in generated grids
+# amr.grid_eff = 0.7
+
+# Number of cells by which tagged regions are grown
+amr.n_error_buf = 0
+# Proper-nesting width is n_proper * max(1, blocking_factor / 2) coarse cells
+# amr.n_proper = 1
+
+#################################################
+# Boundary condition parameters
+
+# Periodic directions: 0 = false, 1 = true
+geometry.is_periodic = 0 0 0
+# Options are currently FIRST_ORDER_EXTRAPOLATION_BC, SOMMERFELD_BC,
+# or REFLECTIVE_BC
+boundary.hi_condition = "SOMMERFELD_BC" "SOMMERFELD_BC" "SOMMERFELD_BC"
+boundary.lo_condition = "SOMMERFELD_BC" "SOMMERFELD_BC" "REFLECTIVE_BC"
+
+#################################################
+# Evolution parameters
+
+# dt is dx * dt_multiplier on each grid level
+evolution.dt_multiplier = 0.25
+evolution.stop_time = 100.0
+# evolution.max_steps = 1000000
+
+# Spatial derivative order (only affects the CCZ4 RHS)
+evolution.spatial_derivative_order = 6
+
+# evolution.nan_check = true
+
+# Lapse evolution
+# gauge.lapse_advec_coeff = 1.0
+# gauge.lapse_coeff = 2.0
+# gauge.lapse_power = 1.0
+
+# Shift evolution
+# gauge.shift_advec_coeff = 0.0
+# gauge.shift_Gamma_coeff = 0.75
+gauge.eta = 1.0 # of order 1/M_ADM
+
+# CCZ4 parameters
+# ccz4.formulation = 0 # 1 for BSSN, 0 for CCZ4
+# ccz4.kappa1 = 0.6
+# ccz4.kappa2 = -0.15
+# ccz4.kappa3 = 1.0
+# ccz4.covariantZ4 = true # replace kappa1 with kappa1/lapse
+
+# Coefficient for KO numerical dissipation
+evolution.sigma = 0.5
+
+# ccz4.min_chi = 1.e-4
+# ccz4.min_lapse = 1.e-4
+
+# Modified gauge params
+
+mod_gauge.mod_a = 0.1
+mod_gauge.mod_b = 0.2
+
+#################################################
+# Line extraction parameters
+
+# Write phi and rho along a length-50 positive x=y=z diagonal every level-0
+# timestep.
+phi_line_extraction.enabled = true
+# phi_line_extraction.num_points = 128
+# phi_line_extraction.start = 32.0 32.0 0.0 # defaults to geometry.center
+phi_line_extraction.end = 60.86751345948129 60.86751345948129 28.86751345948129
+# path defaults to <grteclyn.output_path>/extraction_data/
+phi_line_extraction.file_prefix = phi_profile_
+
+rho_line_extraction.enabled = true
+# rho_line_extraction.num_points = 128
+# rho_line_extraction.start = 32.0 32.0 0.0 # defaults to geometry.center
+rho_line_extraction.end = 60.86751345948129 60.86751345948129 28.86751345948129
+# path defaults to <grteclyn.output_path>/extraction_data/
+rho_line_extraction.file_prefix = rho_profile_

@@ -4,24 +4,18 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.11500211.svg)](https://doi.org/10.5281/zenodo.11500211)
 
 GRFolres is an open-source code for performing simulations in modified 
-theories of gravity, based on the publicly available 
-3+1D numerical relativity code GRChombo.
-It is developed and maintained by a collaboration of numerical relativists with a
-wide range of research interests, from early universe cosmology to astrophysics
-and mathematical general relativity.
+theories of gravity, based on the publicly available 3+1D numerical relativity codes GRChombo and GRTeclyn. It is developed and maintained by a collaboration of numerical relativists with a wide range of research interests, from early universe cosmology to astrophysics and mathematical general relativity.
 
-GRFolres is written entirely in C++14, using hybrid MPI/OpenMP 
-parallelism to achieve good performance on the latest architectures.
-It inherits all of the capabilities of the main [GRChombo](https://github.com/GRChombo/GRChombo) 
-code, which makes use of the Chombo library for adaptive mesh refinement.
+GRFolres comes in two versions:
+- `GRChombo/`: It is written entirely in C++14, using hybrid MPI/OpenMP 
+parallelism. It inherits all of the capabilities of the main [GRChombo](https://github.com/GRTLCollaboration/GRChombo) code, which makes use of the Chombo library for adaptive mesh refinement.
+- `GRTeclyn/`: It is a port to [GRTeclyn](https://github.com/GRTLCollaboration/GRTeclyn), written in C++20 and built on the [AMReX](https://github.com/AMReX-Codes/amrex) library for adaptive mesh refinement. It uses MPI, with OpenMP on CPUs or CUDA, HIP or SYCL on GPUs.
 
 ## Getting started
-Detailed installation instructions and usage examples are available in
-our [wiki](https://github.com/GRChombo/GRFolres/wiki), with the home page giving guidance on where to start.
+Detailed installation instructions and usage examples are available in our [wiki](https://github.com/GRTLCollaboration/GRFolres/wiki), with the home page giving guidance on where to start.
 
 ## Contributing
-We welcome feedback, bug reports, and contributions. Please consult the [wiki](https://github.com/GRChombo/GRFolres/wiki)
-for our coding style and testing policy before filing a pull request.
+We welcome feedback, bug reports, and contributions. Please consult the [wiki](https://github.com/GRTLCollaboration/GRFolres/wiki) for our coding style and testing policy before filing a pull request.
 
 ## License
 GRFolres is licensed under the BSD 3-Clause License. Please see LICENSE for details.
